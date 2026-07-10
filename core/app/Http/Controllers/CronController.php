@@ -1,0 +1,386 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Carbon\Carbon;
+use App\Models\Pin;
+use App\Models\User;
+use App\Models\Test;
+use App\Models\Matrix;
+use App\Models\Rmatrix;
+use App\Models\CronJob;
+use App\Lib\CurlRequest;
+use App\Constants\Status;
+use App\Models\UserExtra;
+use App\Models\CronJobLog;
+use App\Models\Transaction;
+use App\Models\MatrixStage;
+use App\Models\Rinvestment;
+use App\Models\UserStageProgress;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Services\MatrixPlacementService;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use App\Mail\WelcomeMember;
+use App\Mail\WelcomeEmail;
+use Illuminate\Support\Facades\Mail;
+
+
+class CronController extends Controller
+{    
+    protected $matrixService;
+    
+    public function __construct(MatrixPlacementService $matrixService)
+    {
+        $this->matrixService = $matrixService;
+        
+    }
+   
+    protected function referralLandComission(User $user, $details, $percentage, $amount, $trx_no)
+    {   
+        $amount_value = ($amount * ($percentage / 100));
+
+        if ($user && $amount_value) {
+            $user->balance  +=  $amount_value;
+            $user->save();
+
+            $transaction               = new Transaction();
+            $transaction->user_id      = $user->id;
+            $transaction->amount       = $amount_value;
+            $transaction->charge       = 0;
+            $transaction->trx_type     = '+';
+            $transaction->details      = $details;
+            $transaction->remark       = 'Shares_commission';
+            $transaction->trx          = $trx_no;
+            $transaction->post_balance = $user->balance;
+            $transaction->save();
+
+                notify($user, 'Shares_commission', [
+                    'trx'          => $trx_no,
+                    'amount'       => showAmount($amount, currencyFormat: false),
+                    'username'     => $user->username,
+                    'post_balance' => showAmount($user->balance, currencyFormat: false),
+                ]);
+                //Fraction_land_commission
+           
+        }
+    }
+
+    
+    
+     public function listDownliner(){   
+         
+        $matric = Matrix::where('user_id', 6672)
+            ->where('stage_id', 1)->first();
+        $aa = [];
+        $sn = $this->matrixService->listTotalDownline($matric); 
+       // dd($sn);
+       
+       if ($sn) {
+            DB::beginTransaction();
+            try {
+                foreach ($sn as $s){
+                    $aa[] = $s;
+                    $s = (int)$s;
+                    
+                    // delete all from Rmatrix
+                    $rr = Rmatrix::where('user_id' ,$s )->first();
+                    $rr->delete();
+                   
+                    //delete all transactions
+                    
+                   
+                    $ts = Transaction::where('user_id' ,$s )->get();
+                    //dd($ts);
+                    foreach($ts as $t){
+                        
+                        $tt = Transaction::find($t->id);
+                        $tt->delete();
+                    }
+    
+                    $ms = Matrix::where('user_id',$s)->get();
+                    foreach($ms as $m){
+                        $mq = Matrix::find($m->id);;
+                        $mq->delete();
+                    }
+    
+                    $ust = UserStageProgress::where('user_id',$s )->get();
+                    foreach($ust as $ut){
+                        $uq = UserStageProgress::find($ut->id);
+                        $uq->delete();
+                    }
+                    
+                   
+    
+                    $pin = Pin::where('user_id', $s)->first();
+                    $pin->delete();
+                    
+                   
+                    $user = User::find($s);
+                    $user->delete();
+                   
+                       
+                }
+            DB::commit();
+                        
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                throw $e;
+                    
+                    
+                   
+            } //end transaction
+        }//end if
+        //dd($aa);
+       
+    }
+
+
+    public function cron()
+    {
+        $general            = gs();
+        $general->last_cron = now();
+        $general->save();
+        
+        $crons = CronJob::with('schedule');
+
+        if (request()->alias) {
+            $crons->where('alias', request()->alias);
+        } else {
+            $crons->where('next_run', '<', now())->where('is_running', Status::YES);
+        }
+        $crons = $crons->get();
+        foreach ($crons as $cron) {
+            $cronLog              = new CronJobLog();
+            $cronLog->cron_job_id = $cron->id;
+            $cronLog->start_at    = now();
+            if ($cron->is_default) {
+                $controller = new $cron->action[0];
+                try {
+                    $method = $cron->action[1];
+                    $controller->$method();
+                } catch (\Exception $e) {
+                    $cronLog->error = $e->getMessage();
+                }
+            } else {
+                try {
+                    CurlRequest::curlContent($cron->url);
+                } catch (\Exception $e) {
+                    $cronLog->error = $e->getMessage();
+                }
+            }
+            $cron->last_run = now();
+            $cron->next_run = now()->addSeconds($cron->schedule->interval);
+            $cron->save();
+
+            $cronLog->end_at = $cron->last_run;
+
+            $startTime         = Carbon::parse($cronLog->start_at);
+            $endTime           = Carbon::parse($cronLog->end_at);
+            $diffInSeconds     = $startTime->diffInSeconds($endTime);
+            $cronLog->duration = $diffInSeconds;
+            $cronLog->save();
+        }
+        if (request()->target == 'all') {
+            $notify[] = ['success', 'Cron executed successfully'];
+            return back()->withNotify($notify);
+        }
+        if (request()->alias) {
+            $notify[] = ['success', keyToTitle(request()->alias) . ' executed successfully'];
+            return back()->withNotify($notify);
+        }
+    }
+
+    public function stageOneComplete() {
+    Matrix::where('left', '>', 0)
+        ->where('right', '>', 0)
+        ->where('stage_id', 1)
+        ->where('is_active', true)
+        ->chunk(50, function($matrices) {
+            foreach ($matrices as $mat) {
+                try {
+                    $this->matrixService->checkStageOne($mat);
+                } catch (\Throwable $e) {
+                    \Log::error("stageOneComplete failed for matrix {$mat->id}: " . $e->getMessage());
+                }
+            }
+        });
+    }
+
+
+    public function recFire($stage_id){
+        
+
+        $stage_id = (int)$stage_id;
+        //$count = 0;
+        $row =[];
+        $matrix = Matrix::where('stage_id', $stage_id)
+            ->where('is_active', true)->get();
+            foreach($matrix as $mat) {
+                $this->matrixService->reconnectDownline($mat);
+                $row[] = $mat;
+            //$count++;
+           }
+          // dd($row);
+ 
+    }
+   
+    
+    public function stageOut(){   
+        $rows = collect();
+        Matrix::where('left', '>', 0)
+            ->where('right', '>', 0)
+            ->where('stage_id', '>', 1)
+            ->where('is_active', 1)
+            ->chunk(50, function($matrix) use($rows) {
+            foreach($matrix as $mat) {
+                // 
+                $stage1 = MatrixStage::where('level', $mat->stage_id)->first();
+
+                if ($stage1) {
+                   $user = User::find($mat->user_id);
+                  
+                    if($stage1 && $user){
+                       
+                        $this->matrixService->checkStageCompletion1($user, $stage1);
+                    }
+                }
+                
+                
+           
+            }
+         });    
+    
+    }
+    function reconnectImmediate($stage){
+        $stage_id = (int)$stage;
+        Matrix::where('stage_id', $stage_id)
+            ->chunk(50, function($matrix) {
+            foreach($matrix as $mat) {
+                if ($mat) {
+                    $this->matrixService->reconnectImediateDownline($mat);
+                }
+            }
+         });     
+    }
+
+    function reconnectAll($stage){
+        $stage_id = (int)$stage;
+        Matrix::where('stage_id', $stage_id)
+            ->where('is_active', true)
+            ->chunk(50, function($matrix) {
+            foreach($matrix as $mat) { 
+                if ($mat) {
+                    $this->matrixService->reconnectDownline($mat);
+                }
+            }
+         });   
+        //dd($count);
+    }
+
+    private function matchingBound()
+    { 
+        $generalSetting = gs();
+        if ($generalSetting->matching_bonus_time == 'daily') {
+            $day = Date('H');
+            if (strtolower($day) != $generalSetting->matching_when) {
+                return '1';
+            }
+        }
+      
+
+        if ($generalSetting->matching_bonus_time == 'weekly') {
+            $day = Date('D');
+            if (strtolower($day) != $generalSetting->matching_when) {
+                return '2';
+            }
+        }
+
+        if ($generalSetting->matching_bonus_time == 'monthly') {
+            $day = Date('d');
+            if (strtolower($day) != $generalSetting->matching_when) {
+                return '3';
+            }
+        }
+       
+     
+        if (Carbon::now()->toDateString() > Carbon::parse($generalSetting->last_paid)->toDateString()) {
+            $generalSetting->last_paid = Carbon::now()->toDateString();
+            $generalSetting->save();
+
+            $eligibleUsers = UserExtra::where('bv_left', '>=', $generalSetting->total_bv)->where('bv_right', '>=', $generalSetting->total_bv)->get();
+            foreach ($eligibleUsers as $uex) {
+                $weak = $uex->bv_left < $uex->bv_right ? $uex->bv_left : $uex->bv_right;
+                $weaker = $weak < $generalSetting->max_bv ? $weak : $generalSetting->max_bv;
+
+                $pair = intval($weaker / $generalSetting->total_bv);
+
+                $bonus = $pair * $generalSetting->bv_price;
+
+                $payment = User::find($uex->user_id);
+                $payment->balance += $bonus;
+                $payment->save();
+
+                $user = $payment;
+
+                $trx = new Transaction();
+                $trx->user_id = $payment->id;
+                $trx->amount = $bonus;
+                $trx->charge = 0;
+                $trx->trx_type = '+';
+                $trx->post_balance = $payment->balance;
+                $trx->remark = 'binary_commission';
+                $trx->trx = getTrx();
+                $trx->details = 'Paid ' . showAmount($bonus) . ' For ' . $pair * $generalSetting->total_bv . ' BV.';
+                $trx->save();
+
+                notify($user, 'MATCHING_BONUS', [
+                    'amount' => showAmount($bonus,currencyFormat:false),
+                    'paid_bv' => $pair * $generalSetting->total_bv,
+                    'post_balance' => showAmount($payment->balance,currencyFormat:false),
+                    'trx' =>  $trx->trx,
+                ]);
+
+                $paidbv = $pair * $generalSetting->total_bv;
+                if ($generalSetting->cary_flash == 0) {
+                    $bv['setl'] = $uex->bv_left - $paidbv;
+                    $bv['setr'] = $uex->bv_right - $paidbv;
+                    $bv['paid'] = $paidbv;
+                    $bv['lostl'] = 0;
+                    $bv['lostr'] = 0;
+                }
+                if ($generalSetting->cary_flash == 1) {
+                    $bv['setl'] = $uex->bv_left - $weak;
+                    $bv['setr'] = $uex->bv_right - $weak;
+                    $bv['paid'] = $paidbv;
+                    $bv['lostl'] = $weak - $paidbv;
+                    $bv['lostr'] = $weak - $paidbv;
+                }
+                if ($generalSetting->cary_flash == 2) {
+                    $bv['setl'] = 0;
+                    $bv['setr'] = 0;
+                    $bv['paid'] = $paidbv;
+                    $bv['lostl'] = $uex->bv_left - $paidbv;
+                    $bv['lostr'] = $uex->bv_right - $paidbv;
+                }
+                $uex->bv_left = $bv['setl'];
+                $uex->bv_right = $bv['setr'];
+                $uex->save();
+
+
+                if ($bv['paid'] != 0) {
+                    createBVLog($user->id, 1, $bv['paid'], 'Paid ' . $bonus . ' ' . $generalSetting->cur_text . ' For ' . $paidbv . ' BV.');
+                    createBVLog($user->id, 2, $bv['paid'], 'Paid ' . $bonus . ' ' . $generalSetting->cur_text . ' For ' . $paidbv . ' BV.');
+                }
+                if ($bv['lostl'] != 0) {
+                    createBVLog($user->id, 1, $bv['lostl'], 'Flush ' . $bv['lostl'] . ' BV after Paid ' . $bonus . ' ' . $generalSetting->cur_text . ' For ' . $paidbv . ' BV.');
+                }
+                if ($bv['lostr'] != 0) {
+                    createBVLog($user->id, 2, $bv['lostr'], 'Flush ' . $bv['lostr'] . ' BV after Paid ' . $bonus . ' ' . $generalSetting->cur_text . ' For ' . $paidbv . ' BV.');
+                }
+            }
+            return '---';
+        }
+    }
+}

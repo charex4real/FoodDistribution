@@ -1,0 +1,53 @@
+Security Audit Report
+CRITICAL (Fix immediately)
+1. Unauthenticated debug endpoint — routes/admin.php:27-40
+A public route /admin/debug/auth-status dumps full session data, user objects, and guard info to anyone — no auth required. Remove it.
+
+2. Mass assignment on ~45 models — app/Models/*.php
+Models including User, Deposit, Withdrawal, Transaction, Order etc. have no $fillable or $guarded. Any create() or update($request->all()) call can overwrite sensitive columns like balance, is_admin, status.
+
+3. Unprotected cron/test routes — routes/web.php:6-30
+Routes like /cron, /stageOne, /reconAll/{stage}, /clear, and /test are publicly accessible with no auth middleware. /clear runs optimize:clear. The cron routes can trigger financial logic.
+
+4. XSS in JSON responses — SiteController.php:319-340
+User data is interpolated raw into HTML strings returned as JSON:
+
+
+return response()->json(['msg' => "<input value='$user->id' ...>"]);
+A crafted username with "><script> payload executes in other users' browsers.
+
+5. IDOR in activateAccount() — ManageUsersController.php:235-285
+The route parameter $id is ignored; the function reads $request->user_id directly. Any authenticated admin (or CSRF-forced request) can activate any arbitrary user account and trigger a 900-balance bonus to their referrer.
+
+HIGH
+6. SMS gateway credentials in URLs — app/Notify/SmsGateway.php:46-79
+Passwords and API keys for Infobip, SMSBroadcast, and Clickatell are passed as GET query parameters — they end up in server access logs, proxy logs, and referrer headers in plaintext.
+
+7. orderByRaw() without binding — AdminSavingsController.php:18
+Pattern is safe today but no binding is used. If user input ever flows into an orderByRaw() call, it's direct SQL injection.
+
+MEDIUM
+8. No permission checks on deposit approve/reject — DepositController.php
+Any admin-guard user can approve or reject deposits regardless of their role. $request->message is stored raw as admin feedback with no sanitization.
+
+9. Disabled old-password verification — ManageUsersController.php:40-43
+The old-password check is commented out. Any admin can reset any user's password silently.
+
+10. Null pointer risk — ManageUsersController.php:245
+User::find() can return null; the next line calls ->profile_complete = 1 without a null check. Use findOrFail().
+
+11. Exception suppression with @ — SmsGateway.php:50, 55, 78
+@file_get_contents(...) silently swallows all errors — SMS delivery failures produce no logs and no errors.
+
+Remediation Priority
+Priority	Action
+Now	Remove /admin/debug/auth-status route
+Now	Add auth:admin middleware to all cron/test routes in web.php
+Now	Fix IDOR in activateAccount() — use $id, add findOrFail
+Now	Escape output in SiteController.php JSON responses with htmlspecialchars()
+High	Add $fillable to all models (especially User, Deposit, Withdrawal)
+High	Move SMS API credentials to POST body / headers (not URL query strings)
+Medium	Add permission middleware gates to deposit approve/reject
+Medium	Re-enable old-password check or document why it's disabled
+Want me to start fixing any of these? The most impactful quick wins are #1 (remove the debug route), #3 (protect cron routes), and #5 (fix the IDOR).
+

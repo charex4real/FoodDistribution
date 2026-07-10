@@ -1,0 +1,427 @@
+AWARD SYSTEM DOCUMENTATION
+==========================
+Project: Wiifarm / Food MLM Platform
+Last updated: 2026-07-08
+
+
+────────────────────────────────────────────────────────────────────
+1. OVERVIEW
+────────────────────────────────────────────────────────────────────
+
+The Award System recognises and rewards members who accumulate Point
+Values (PV) on both legs of their binary MLM tree. When a user's
+left-leg PV and right-leg PV reach the thresholds defined on an
+Award, that Award is automatically granted and the user becomes
+eligible for a cash payment from the admin.
+
+Key principles:
+  • Awards are never granted in real-time. Qualification is checked
+    nightly by a scheduled cron job that dispatches one background
+    job per eligible user.
+  • Each Award is earned only once per user (unique constraint on
+    user_awards.user_id + award_id).
+  • Awards can be chained: an Award may require a Prerequisite Award
+    to exist on each leg of the user's binary sub-tree before it
+    can be earned.
+  • Payment is manual: an admin reviews the user_awards table and
+    approves the cash payment. Once paid, the amount is credited to
+    the user's `awards` wallet column, from which the user can
+    transfer it to their main balance (Money Box).
+
+
+────────────────────────────────────────────────────────────────────
+2. DATABASE SCHEMA
+────────────────────────────────────────────────────────────────────
+
+2.1  awards  (migration: 2026_07_07_100001_create_awards_table.php)
+─────────────────────────────────────────────────────────────────────
+  Column                 Type              Notes
+  ─────────────────────────────────────────────────────────────────
+  id                     bigint PK
+  name                   varchar(150)      Unique. Display name of the award.
+  description            text nullable     Shown to users on the My Awards page.
+  required_total_pv      decimal(12,2)     Sum of left+right PV that must be met.
+  required_left_pv       decimal(12,2)     Minimum PV in the left leg.
+  required_right_pv      decimal(12,2)     Minimum PV in the right leg.
+  prerequisite_award_id  bigint nullable   FK → awards.id (ON DELETE SET NULL).
+                                           See Section 3.4 for full explanation.
+  payment_amount         decimal(12,2)     Cash amount credited to user on payment.
+  image                  varchar nullable  Stored at assets/images/awards/ (200×200 px).
+  sort_order             uint              Controls display order (ascending).
+  status                 tinyint           1 = active, 0 = inactive.
+                                           Only active awards are evaluated by the job.
+  created_at / updated_at
+
+2.2  user_awards  (migration: 2026_07_07_100002_create_user_awards_table.php)
+───────────────────────────────────────────────────────────────────────────────
+  Column        Type               Notes
+  ────────────────────────────────────────────────────────────────
+  id            bigint PK
+  user_id       bigint FK → users
+  award_id      bigint FK → awards
+  status        tinyint            0 = earned / awaiting payment
+                                   1 = paid
+  earned_at     timestamp nullable  When the job created this record.
+  paid_at       timestamp nullable  When the admin approved payment.
+  paid_by       bigint nullable     admin.id who processed the payment.
+  paid_amount   decimal(12,2)      Actual amount paid (snapshot of award.payment_amount).
+  note          text nullable       Admin note recorded at payment time.
+  created_at / updated_at
+
+  Unique constraint: (user_id, award_id) — one row per user per award.
+
+2.3  users.awards  (migration: 2026_07_07_100003_add_awards_wallet_to_users_table.php)
+────────────────────────────────────────────────────────────────────────────────────────
+  Column   Type             Notes
+  ──────────────────────────────────────────────────────────────
+  awards   decimal(15,2)    Wallet balance credited by admin payments.
+                            User can transfer this to balance (Money Box)
+                            via the Bonus Transfer page.
+
+
+────────────────────────────────────────────────────────────────────
+3. QUALIFICATION LOGIC  (CheckUserAwardJob)
+────────────────────────────────────────────────────────────────────
+
+File: core/app/Jobs/CheckUserAwardJob.php
+Dispatched by: core/app/Console/Commands/CheckAwardQualifications.php
+
+The job evaluates a single user against every active Award in
+sort_order / required_total_pv ascending order. It uses the user's
+STAGE-1 Matrix entry, which holds the cumulative PV counters.
+
+3.1  Eligibility pre-conditions
+────────────────────────────────
+  • The user must have profile_complete = 1.
+  • The user must have a Matrix record where stage_id = 1.
+    (This is the binary placement matrix used for pairing PV.)
+
+3.2  PV source
+───────────────
+  Left PV  = Matrix.pv_left_pairing   (cumulative PV from all users
+  Right PV = Matrix.pv_right_pairing   placed in each leg)
+  Total PV = left_pv + right_pv
+
+3.3  Per-award checks (in this exact order)
+────────────────────────────────────────────
+  a. Skip if the user already has a UserAward record for this award.
+  b. Left PV  >= award.required_left_pv       — fail → skip this award.
+  c. Right PV >= award.required_right_pv      — fail → skip this award.
+  d. Total PV >= award.required_total_pv      — fail → skip this award.
+  e. Prerequisite check (only if prerequisite_award_id is set)
+     — see Section 3.4.
+  f. All checks pass → create UserAward(status=0, earned_at=now()).
+     The new award_id is immediately added to the in-memory earned list
+     so later awards in the same job run can chain off it.
+
+3.4  Prerequisite Award (leg-inheritance check)
+─────────────────────────────────────────────────
+  When an Award has a prerequisite_award_id set, the user cannot earn
+  it unless a member in EACH leg of their binary sub-tree has already
+  earned that prerequisite award.
+
+  Algorithm:
+    i.  Get the user's direct left child (Matrix.left) and right child
+        (Matrix.right) from their stage-1 matrix row.
+    ii. If either child slot is empty (null), the leg is not built —
+        skip this award.
+   iii. Run BFS (breadth-first search) starting from the left child to
+        collect all user_ids in the left sub-tree (capped at 1,000).
+    iv. Run BFS starting from the right child for the right sub-tree.
+     v. Check user_awards for prerequisite_award_id in the left set.
+    vi. Check user_awards for prerequisite_award_id in the right set.
+   vii. Both must exist — if either leg is missing the prerequisite,
+        skip this award.
+
+  BFS implementation detail (getLegUserIds):
+    • Processes 100 users at a time (array_splice batching).
+    • Queries Matrix WHERE stage_id=1 AND parent_id IN (batch IDs)
+      to find children.
+    • Hard cap: 1,000 users per leg to prevent runaway queries on
+      large trees.
+
+
+────────────────────────────────────────────────────────────────────
+4. CRON JOB
+────────────────────────────────────────────────────────────────────
+
+File:     core/routes/console.php
+Command:  award:check-qualifications
+Class:    core/app/Console/Commands/CheckAwardQualifications.php
+
+Schedule definition:
+  Schedule::command('award:check-qualifications')
+      ->dailyAt('02:00')
+      ->withoutOverlapping()
+      ->runInBackground()
+      ->appendOutputTo(storage_path('logs/award-check.log'));
+
+  Runs at:         02:00 server time, every day.
+  Overlap guard:   withoutOverlapping() — if a previous run is still
+                   active, the new invocation is skipped automatically.
+  Background:      runInBackground() — does not block the scheduler
+                   process.
+  Log file:        storage/logs/award-check.log
+
+What the command does:
+  1. Queries Matrix WHERE stage_id = 1 to get the set of user_ids
+     that are actually in the binary placement matrix.
+  2. Queries User WHERE profile_complete = 1 AND id IN (matrix users),
+     selecting only the id column.
+  3. Chunks the result in batches of 200.
+  4. For each user, dispatches CheckUserAwardJob::dispatch($user->id).
+  5. Prints a dot (.) per chunk and reports total dispatched count.
+
+The jobs then run asynchronously via Laravel's queue. Configure the
+queue worker to process the default queue:
+
+  php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+
+Job settings:
+  public int $tries   = 3;    // retried up to 3 times on failure
+  public int $timeout = 120;  // single job execution limit in seconds
+
+Server cron entry (required for the Laravel scheduler to fire):
+  * * * * * cd /path/to/project/core && php artisan schedule:run >> /dev/null 2>&1
+
+
+────────────────────────────────────────────────────────────────────
+5. AWARD CONFIGURATION (ADMIN)
+────────────────────────────────────────────────────────────────────
+
+Routes (all prefixed admin/ and require admin auth):
+  GET    admin/awards                → List all awards
+  GET    admin/awards/create         → Create form
+  POST   admin/awards/store          → Save new award
+  GET    admin/awards/edit/{award}   → Edit form
+  POST   admin/awards/update/{award} → Update award
+  POST   admin/awards/toggle/{award} → Activate / deactivate (AJAX)
+  DELETE admin/awards/{award}        → Delete award + image
+  GET    admin/awards/payments       → Payment list (filterable by status)
+  POST   admin/awards/pay/{userAward}→ Process a single payment
+
+Controller: core/app/Http/Controllers/Admin/AwardController.php
+
+5.1  Creating / Editing an Award
+──────────────────────────────────
+  Field              Validation
+  ─────────────────────────────────────────────────────────────────
+  name               required, string, max:150, unique (excluding self on edit)
+  description        nullable, string
+  required_total_pv  required, numeric, min:0
+  required_left_pv   required, numeric, min:0
+  required_right_pv  required, numeric, min:0
+  prerequisite_award_id  nullable, must exist in awards.id
+                     Empty string from the HTML select is coerced to
+                     null before fill() to avoid FK constraint errors.
+  payment_amount     required, numeric, min:0
+  image              nullable, image file, jpeg/png/jpg/gif, max 2 MB
+                     Stored at: assets/images/awards/ (200×200 px)
+  sort_order         required, integer, min:0
+  status             required, 0 or 1
+
+5.2  Toggling Active / Inactive
+────────────────────────────────
+  POST admin/awards/toggle/{award} flips status between 0 and 1.
+  Returns JSON { success: true }.
+  Inactive awards are excluded from the nightly qualification check
+  (Award::active() scope → WHERE status = 1).
+
+5.3  Processing a Payment
+──────────────────────────
+  POST admin/awards/pay/{userAward}
+  Runs inside DB::transaction:
+    1. user->awards  +=  award.payment_amount     (increment wallet)
+    2. user_awards row updated:
+         status      = 1
+         paid_at     = now()
+         paid_by     = auth('admin')->id()
+         paid_amount = award.payment_amount
+         note        = request.note (optional)
+
+  After payment, the `awards` column on the users table holds the
+  credited amount. The user transfers it to their Money Box via the
+  Bonus Transfer page (see Section 7).
+
+5.4  Deleting an Award
+───────────────────────
+  DELETE admin/awards/{award}
+  Removes the image file from disk before deleting the database row.
+  The FK on prerequisite_award_id is ON DELETE SET NULL, so child
+  awards that referenced this award as a prerequisite will have their
+  prerequisite_award_id set to null automatically.
+
+
+────────────────────────────────────────────────────────────────────
+6. USER-FACING AWARD PAGE
+────────────────────────────────────────────────────────────────────
+
+Route:      GET user/awards   → name: user.awards
+Controller: PlanController@myAwards
+View:       core/resources/views/templates/basic/user/awards.blade.php
+Sidebar:    Achievements → My Awards (Finance accordion group)
+
+What the page shows:
+  • A hero strip with counters: total awards, earned, paid.
+  • One card per active Award (sorted by sort_order).
+  • Card states:
+      locked  — user has not earned this award (greyscale, grey ring)
+      earned  — earned but not yet paid (green, animated pulse badge)
+      paid    — payment received (gold gradient)
+  • Earned date or paid date shown at the card footer.
+  • The sidebar badge on "My Awards" shows the count of earned-but-
+    unpaid awards (UserAward WHERE user_id = auth AND status = 0).
+
+Data loading:
+  $allAwards  = Award::active()->orderBy('sort_order')->get();
+  $earnedMap  = UserAward::where('user_id', $user->id)->get()->keyBy('award_id');
+
+Card state detection:
+  $earned   = $earnedMap->get($award->id);
+  $isPaid   = $earned && $earned->status == 1;
+  $isEarned = $earned && !$isPaid;
+  $isLocked = !$earned;
+
+
+────────────────────────────────────────────────────────────────────
+7. AWARDS WALLET & BONUS TRANSFER
+────────────────────────────────────────────────────────────────────
+
+After an admin payment is processed, the cash is held in the
+`users.awards` decimal column. This is separate from the user's
+main `balance` (Money Box).
+
+To move it into the Money Box the user visits:
+  GET user/bonus-transfer   → BonusTransferController@index
+
+Awards is one of six transferable bonus types:
+  direct_bonus, indirect_bonus, upgrade_bonus,
+  unilevel_bonus, awards, pairing_bonus
+
+Transfer flow:
+  1. User clicks "Transfer" on the Awards row.
+  2. An authorization modal appears asking for the account password.
+  3. On submit:
+       POST user/bonus-transfer/transfer
+       { bonus_field: "awards", amount: <n>, password: <pw> }
+  4. Server validates password with Hash::check.
+  5. DB::transaction:
+       user.awards   -= amount
+       user.balance  += amount
+       Transaction record created (trx_type='+', remark='bonus_transfer',
+         details='Bonus Transfer from Awards', bonus_type=6,
+         post_balance=user.balance after credit)
+       Transfer record created (STATUS_COMPLETED)
+
+
+────────────────────────────────────────────────────────────────────
+8. MODELS & RELATIONSHIPS
+────────────────────────────────────────────────────────────────────
+
+Award  (core/app/Models/Award.php)
+  fillable:      name, description, required_total_pv, required_left_pv,
+                 required_right_pv, prerequisite_award_id, payment_amount,
+                 image, sort_order, status
+  relationships: prerequisite() → belongsTo(Award, prerequisite_award_id)
+                 userAwards()   → hasMany(UserAward)
+  scopes:        active()       → where('status', 1)
+  accessor:      $award->image_url → full URL at assets/images/awards/
+
+UserAward  (core/app/Models/UserAward.php)
+  fillable:      user_id, award_id, status, earned_at, paid_at,
+                 paid_by, paid_amount, note
+  relationships: user()  → belongsTo(User)
+                 award() → belongsTo(Award)
+  scopes:        pending() → where('status', 0)
+                 paid()    → where('status', 1)
+
+
+────────────────────────────────────────────────────────────────────
+9. KEY FILE LOCATIONS
+────────────────────────────────────────────────────────────────────
+
+  Type              Path
+  ───────────────────────────────────────────────────────────────────
+  Model             core/app/Models/Award.php
+  Model             core/app/Models/UserAward.php
+  Admin controller  core/app/Http/Controllers/Admin/AwardController.php
+  User controller   core/app/Http/Controllers/User/PlanController.php
+                    (method: myAwards) 
+  Artisan command   core/app/Console/Commands/CheckAwardQualifications.php
+  Queue job         core/app/Jobs/CheckUserAwardJob.php
+  Cron schedule     core/routes/console.php
+  Admin routes      core/routes/admin.php   (lines ~568–580)
+  User routes       core/routes/user.php    (line ~332)
+  Admin views       core/resources/views/admin/awards/
+                      index.blade.php    — award list with stats
+                      form.blade.php     — create / edit form
+                      payments.blade.php — payment management
+  User view         core/resources/views/templates/basic/user/awards.blade.php
+  Image storage     public/assets/images/awards/  (200×200 px)
+  Cron log          storage/logs/award-check.log
+
+
+────────────────────────────────────────────────────────────────────
+10. COMMON OPERATIONS
+────────────────────────────────────────────────────────────────────
+
+Run the award check manually (outside of scheduled time):
+  cd core && php artisan award:check-qualifications
+
+View scheduled jobs:
+  cd core && php artisan schedule:list
+
+Inspect queue jobs (if using database queue):
+  SELECT * FROM jobs ORDER BY created_at DESC;
+  SELECT * FROM failed_jobs ORDER BY failed_at DESC;
+
+Retry failed award jobs:
+  php artisan queue:retry all
+
+View the cron log:
+  tail -f core/storage/logs/award-check.log
+
+Seed a test award (example):
+  INSERT INTO awards
+    (name, required_total_pv, required_left_pv, required_right_pv,
+     payment_amount, sort_order, status, created_at, updated_at)
+  VALUES
+    ('Bronze', 3000, 1500, 1500, 50000, 1, 1, NOW(), NOW());
+
+
+────────────────────────────────────────────────────────────────────
+11. IMPORTANT BEHAVIOURS & EDGE CASES
+────────────────────────────────────────────────────────────────────
+
+  a. Awards are evaluated in sort_order / required_total_pv order.
+     If a user qualifies for multiple awards in one job run, all of
+     them are created in sequence. Higher awards can therefore be
+     earned in the same nightly run as lower awards, provided the
+     prerequisites are already met or were created earlier in that
+     same run (in-memory chaining via $earnedAwardIds[]).
+
+  b. An inactive award (status=0) is never evaluated. Deactivating
+     an award that some users have already earned does NOT revoke
+     those UserAward records.
+
+  c. Deleting a prerequisite award sets prerequisite_award_id = NULL
+     on any award that referenced it (ON DELETE SET NULL), effectively
+     removing the prerequisite requirement for those awards going
+     forward.
+
+  d. The BFS in getLegUserIds is capped at 1,000 users per leg.
+     For trees larger than 1,000 deep/wide, the prerequisite check
+     may not scan the entire leg. Increase the cap if the network
+     grows significantly.
+
+  e. The job has $tries = 3 and $timeout = 120 seconds. A job
+     processing a user in a very large tree may time out. If this
+     occurs repeatedly, consider increasing $timeout or breaking
+     the BFS into a separate pre-computation step.
+
+  f. withoutOverlapping() on the schedule means: if the 02:00 run
+     is still dispatching jobs at 02:00 the next day, the second
+     invocation is silently skipped. The dispatching itself is fast
+     (just INSERT into jobs table) so this is unlikely in practice,
+     but the jobs themselves run asynchronously and may still be
+     processing when the next schedule fires.
