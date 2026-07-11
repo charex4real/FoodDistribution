@@ -1,210 +1,171 @@
 @extends('admin.layouts.app')
 
 @section('panel')
-    <form action="{{ route('admin.product.store') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('Product Basic Information')</div>
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Product Name') </label>
-                            </div>
-                            <div class="col-md-10">
-                                <input class="form-control" name="name" type="text" value="{{ old('name') }}" placeholder="@lang('Name')"
-                                    required>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Categories') </label>
-                            </div>
-                            <div class="col-md-10">
-                                <select class="form-control select2" name="category" required>
-                                    <option value="">@lang('Select One')</option>
-                                    @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}" @selected(old('category') == $category->id)>{{ __($category->name) }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Price') </label>
-                            </div>
-                            <div class="col-md-10">
-                                <input class="form-control" name="price" type="number" value="{{ old('price') }}" step="any"  placeholder="@lang('Price')" required>
-                            </div>
-                        </div>
+<form action="{{ route('admin.product.store') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <div class="pf-grid">
 
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Quantity')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <input class="form-control" name="quantity" type="number" value="{{ old('quantity') }}" placeholder="@lang('Quantity')"
-                                    required>
-                            </div>
-                        </div>
-                        
-                    </div>
+        {{-- LEFT COLUMN --}}
+        <div class="pf-col-main">
+
+            {{-- Basic Info --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-tag"></i> Basic Information
                 </div>
-            </div>
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('SKU in kg') </div>
-                    <div class="card-body">
-                        
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Stock keeping unit') </label>
-                            </div>
-                            <div class="col-md-4">
-                                <input class="form-control" name="sku" type="text" value="{{ old('sku') }}"   placeholder="SKU" required>
-                            </div>
-
-                        </div>
-
+                <div class="pf-card-body">
+                    <div class="pf-field">
+                        <label class="pf-label">Product Name <span class="pf-req">*</span></label>
+                        <input class="pf-input" name="name" type="text" value="{{ old('name') }}" placeholder="Enter product name" required>
                     </div>
-                </div>
-            </div>
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('Product Order')</div>
-                    <div class="card-body">
-                        
-
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Product order') </label>
-                            </div>
-                            <div class="col-md-4">
-                                Min:
-                                <input class="form-control" name="min_order_quantity" type="text" value="{{ old('min_order_quantity') }}" 
-                                 placeholder="Min Order Quantity" required>
-                            </div>
-                            <div class="col-md-4">
-                                Max:
-                                <input class="form-control" name="max_order_quantity" type="text" value="{{ old('max_order_quantity') }}" 
-                                 placeholder="Max order_quantity" required>
-                            </div>
-
+                    <div class="pf-field-row">
+                        <div class="pf-field">
+                            <label class="pf-label">Category <span class="pf-req">*</span></label>
+                            <select class="pf-input select2" name="category" required>
+                                <option value="">Select category</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" @selected(old('category') == $category->id)>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
-
+                        <div class="pf-field">
+                            <label class="pf-label">SKU (kg) <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="sku" type="number" value="{{ old('sku') }}" placeholder="e.g. 25" required>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="col-lg-12 mt-5">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('Product Description')</div>
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Product Discription') </label>
-                            </div>
-                            <div class="col-md-10">
-                                <textarea class="form-control nicEdit" id="my-textarea" name="description" rows="3" required> {{ old('description') }} </textarea>
-                            </div>
+                    <div class="pf-field-row">
+                        <div class="pf-field">
+                            <label class="pf-label">Stock Quantity <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="quantity" type="number" value="{{ old('quantity') }}" placeholder="Available units" required>
                         </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label for="">@lang('Product Specifications')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <div id="specification"></div>
-                                <div class="row">
-                                    <div class="col-lg-10 p-1"><label id="specifications-title">@lang('Add specifications as you want by clicking the (+) button on the right side')</label></div>
-                                    <div class="col-lg-2 p-1"><a class="btn btn-outline--success add-specification mb-2"><i
-                                                class="la la-plus me-0"></i></a></div>
-                                </div>
-                            </div>
+                        <div class="pf-field">
+                            <label class="pf-label">Min Order Qty <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="min_order_quantity" type="number" value="{{ old('min_order_quantity') }}" placeholder="Minimum" required>
+                        </div>
+                        <div class="pf-field">
+                            <label class="pf-label">Max Order Qty <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="max_order_quantity" type="number" value="{{ old('max_order_quantity') }}" placeholder="Maximum" required>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-12 mt-5">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('Product Images')</div>
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Thumbnail')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <div class="thumbnail-image-box">
-                                    <x-image-uploader class="w-100" name="thumbnail" type="products" :required=true />
-                                </div>
+            {{-- Pricing & Metrics --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-coins"></i> Pricing &amp; Metrics
+                </div>
+                <div class="pf-card-body">
+                    <div class="pf-metrics-grid">
+                        <div class="pf-metric-block">
+                            <label class="pf-label">Price <span class="pf-req">*</span></label>
+                            <div class="pf-input-prefix">
+                                <span class="pf-prefix">₦</span>
+                                <input class="pf-input" name="price" type="number" step="any" value="{{ old('price') }}" placeholder="0.00" required>
                             </div>
                         </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Gallery')</label>
+                        <div class="pf-metric-block">
+                            <label class="pf-label pf-label-pv">Point Value (PV) <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="pv" type="number" step="any" value="{{ old('pv', 0) }}" placeholder="0.00" required>
+                            <p class="pf-hint">Accumulated for member rewards</p>
+                        </div>
+                        <div class="pf-metric-block">
+                            <label class="pf-label pf-label-prb">Repurchase Bonus (PRB) <span class="pf-req">*</span></label>
+                            <div class="pf-input-prefix">
+                                <span class="pf-prefix">₦</span>
+                                <input class="pf-input" name="prb" type="number" step="any" value="{{ old('prb', 0) }}" placeholder="0.00" required>
                             </div>
-                            <div class="col-md-10">
-                                <div class="input-images"></div>
-                                <div class="mt-1">
-                                    <small class="text-muted">
-                                        @lang('Supported Files:')
-                                        <b>@lang('.png, .jpg, .jpeg')</b>
-                                        @lang('& you can upload maximum ') <b>@lang('10')</b> @lang('images').
-                                    </small>
-                                </div>
-                            </div>
+                            <p class="pf-hint">Base amount for unilevel distribution</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-
-            <div class="col-lg-12 mt-5">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('SEO Contents')</div>
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Meta Ttitle')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <input class="form-control" name="meta_title" type="text" value="{{ old('meta_title') }}"
-                                    placeholder="@lang('Meta Title')">
-                            </div>
-
+            {{-- Description & Specs --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-align-left"></i> Description &amp; Specifications
+                </div>
+                <div class="pf-card-body">
+                    <div class="pf-field">
+                        <label class="pf-label">Product Description <span class="pf-req">*</span></label>
+                        <textarea class="pf-input nicEdit" name="description" rows="5" required>{{ old('description') }}</textarea>
+                    </div>
+                    <div class="pf-field pf-field--spec">
+                        <div class="pf-spec-header">
+                            <label class="pf-label">Specifications</label>
+                            <button type="button" class="pf-spec-add-btn add-specification">
+                                <i class="las la-plus"></i> Add Row
+                            </button>
                         </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Meta Keyword')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <select class="form-control select2-auto-tokenize" name="meta_keywords[]" data-placeholder="@lang('Separate multiple keywords by ,(comma) or enter key')"
-                                    multiple></select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Meta Description') </label>
-                            </div>
-                            <div class="col-md-10">
-                                <textarea class="form-control" id="" name="meta_description" placeholder="@lang('Meta Description')" cols="30" rows="10">{{ old('meta_description') }}</textarea>
-                            </div>
+                        <div id="specification">
+                            <p class="pf-spec-empty" id="specifications-title">Click "Add Row" to add product specifications</p>
                         </div>
                     </div>
                 </div>
             </div>
-            
 
-            <div class="col-lg-12 mt-3">
-                <button class="btn btn--primary h-45 w-100" type="submit">@lang('Submit')</button>
+            {{-- SEO --}}
+            <div class="pf-card">
+                <div class="pf-card-header pf-card-header--muted">
+                    <i class="las la-search"></i> SEO <span class="pf-optional">optional</span>
+                </div>
+                <div class="pf-card-body">
+                    <div class="pf-field">
+                        <label class="pf-label">Meta Title</label>
+                        <input class="pf-input" name="meta_title" type="text" value="{{ old('meta_title') }}" placeholder="Meta title">
+                    </div>
+                    <div class="pf-field">
+                        <label class="pf-label">Meta Keywords</label>
+                        <select class="pf-input select2-auto-tokenize" name="meta_keywords[]" data-placeholder="Type and press enter or comma" multiple></select>
+                    </div>
+                    <div class="pf-field">
+                        <label class="pf-label">Meta Description</label>
+                        <textarea class="pf-input" name="meta_description" rows="3" placeholder="Meta description">{{ old('meta_description') }}</textarea>
+                    </div>
+                </div>
             </div>
+
         </div>
-    </form>
+
+        {{-- RIGHT COLUMN --}}
+        <div class="pf-col-side">
+
+            {{-- Thumbnail --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-image"></i> Thumbnail <span class="pf-req">*</span>
+                </div>
+                <div class="pf-card-body">
+                    <x-image-uploader class="w-100" name="thumbnail" type="products" :required="true" />
+                </div>
+            </div>
+
+            {{-- Gallery --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-images"></i> Gallery
+                </div>
+                <div class="pf-card-body">
+                    <div class="input-images"></div>
+                    <p class="pf-hint pf-hint--mt">PNG, JPG, JPEG &mdash; max 10 images, 3MB each</p>
+                </div>
+            </div>
+
+            {{-- Submit --}}
+            <button class="pf-submit-btn" type="submit">
+                <i class="las la-save"></i> Save Product
+            </button>
+
+        </div>
+    </div>
+</form>
 @endsection
 
 @push('breadcrumb-plugins')
-    <a class="btn btn-sm btn-outline--dark" href="{{ route('admin.product.index') }}"><i class="las la-undo"></i>@lang('Back')</a>
+    <a class="btn btn-sm btn-outline--dark" href="{{ route('admin.product.index') }}">
+        <i class="las la-undo"></i> Back
+    </a>
 @endpush
 
 @push('script-lib')
@@ -215,58 +176,36 @@
     <link href="{{ asset('assets/admin/css/image-uploader.min.css') }}" rel="stylesheet">
 @endpush
 
-
 @push('script')
-    <script>
-        "use strict";
-        (function($) {
+<script>
+"use strict";
+(function($) {
 
-            $(".add-specification").on('click', function(e) {
-                let index = $(document).find(".specification").length;
-                index = parseInt(index) + parseInt(1);
+    $(".add-specification").on('click', function() {
+        let index = $(".specification").length + 1;
+        let html = `
+            <div class="pf-spec-row specification">
+                <input type="text" class="pf-input" name="specification[${index}][name]" placeholder="Name">
+                <input type="text" class="pf-input" name="specification[${index}][value]" placeholder="Value">
+                <button type="button" class="pf-spec-remove minus-specification"><i class="las la-times"></i></button>
+            </div>`;
+        $("#specification").append(html);
+        $("#specifications-title").hide();
+    });
 
-                let html = `
-           <div class="row mb-2 align-items-center specification">
-            <div class="col-lg-5 p-1">
-                <input type="text" class="form-control" name="specification[${index}][name]" placeholder="@lang('Enter Specification Name')">
-            </div>
-            <div class="col-lg-5 px-1">
-                <input type="text" class="form-control" name="specification[${index}][value]" placeholder="@lang('Enter Specification Value')">
-            </div>
-            <div class="col-lg-2 p-1 text-right minus-specification">
-                <a class="btn btn-outline--danger "><i class="las la-trash-alt me-0"></i></a>
-            </div>
-        </div>
-           `;
-                $("#specification").append(html)
-                $("#specifications-title").hide()
-            })
+    $("body").on('click', '.minus-specification', function() {
+        $(this).closest('.specification').remove();
+        if ($(".specification").length === 0) $("#specifications-title").show();
+    });
 
+    $('.input-images').imageUploader({
+        preloaded: [],
+        imagesInputName: 'gallery',
+        preloadedInputName: 'old',
+        maxSize: 3 * 1024 * 1024,
+        maxFiles: 10,
+    });
 
-            $("body").on('click', '.minus-specification', function(e) {
-                $(this).closest('.specification').remove()
-                $(document).find(".specification").length <= 0 ? $("#specifications-title").show() : "";
-
-            })
-
-            let preloaded = [];
-
-            $('.input-images').imageUploader({
-                preloaded: preloaded,
-                imagesInputName: 'gallery',
-                preloadedInputName: 'old',
-                maxSize: 3 * 1024 * 1024,
-                maxFiles: 10,
-            });
-
-        })(jQuery);
-    </script>
-@endpush
-
-@push('style')
-    <style>
-        .thumbnail-image-box {
-            max-width: 300px;
-        }
-    </style>
+})(jQuery);
+</script>
 @endpush

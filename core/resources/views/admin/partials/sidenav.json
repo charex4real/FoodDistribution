@@ -279,48 +279,49 @@
             
         ]
     },
-    "category": {
-        "keyword": [
-            "Category",
-            "Class",
-            "Group",
-            "Type",
-            "Division"
-        ],
-        "title": "Manage Category",
-        "icon": "las la-list",
-        "route_name": "admin.category.index",
-        "menu_active": "admin.category.index"
-    },
-    "product": {
-        "keyword": [
-            "Product",
-            "Item",
-            "Manufacture"
-        ],
-        "title": "Manage Product",
-        "icon": "lab la-product-hunt",
-        "route_name": "admin.product.index",
-        "menu_active": "admin.product*"
-    },
-    "order": {
-        "keyword": [
-            "Order",
-            "Purchase",
-            "Buy",
-            "Sell"
-        ],
-        "title": "Manage Order",
-        "icon": "las la-cart-plus",
-        "route_name": "admin.order.index",
-        "menu_active": "admin.order.index"
-    },
-    "manage_sales": {
-        "keyword": ["Sales", "Manage Sales", "Invoices", "Redemptions", "Daily sales", "Sales report"],
-        "title": "Manage Sales",
-        "icon": "las la-chart-line",
-        "route_name": "admin.sales.index",
-        "menu_active": "admin.sales*"
+    "shop": {
+        "keyword": ["Shop", "Product", "Category", "Sales", "Order", "Manage Shop", "Inventory", "Merchandise"],
+        "title": "Shop",
+        "icon": "las la-store",
+        "menu_active": "admin.product*|admin.category*|admin.sales*|admin.order*|admin.state*|admin.repurchase-award*",
+        "submenu": [
+            {
+                "keyword": ["Product", "Item", "Manufacture", "Inventory"],
+                "title": "Manage Product",
+                "route_name": "admin.product.index",
+                "menu_active": "admin.product*"
+            },
+            {
+                "keyword": ["Category", "Class", "Group", "Type", "Division"],
+                "title": "Manage Category",
+                "route_name": "admin.category.index",
+                "menu_active": "admin.category.index"
+            },
+            {
+                "keyword": ["Sales", "Manage Sales", "Invoices", "Redemptions", "Daily sales", "Sales report"],
+                "title": "Manage Sales",
+                "route_name": "admin.sales.index",
+                "menu_active": "admin.sales*"
+            },
+            {
+                "keyword": ["Order", "Purchase", "Buy", "Sell"],
+                "title": "Manage Order",
+                "route_name": "admin.order.index",
+                "menu_active": "admin.order.index"
+            },
+            {
+                "keyword": ["State", "Manage States", "States", "Region", "Territory"],
+                "title": "Manage States",
+                "route_name": "admin.state.index",
+                "menu_active": "admin.state*"
+            },
+            {
+                "keyword": ["Repurchase Award", "PV Award", "Unilevel Award", "Product PV", "Repurchase"],
+                "title": "Repurchase Awards",
+                "route_name": "admin.repurchase-award.index",
+                "menu_active": "admin.repurchase-award*"
+            }
+        ]
     },
     "manage_unilevel": {
         "keyword": ["Unilevel", "Unilevel bonus", "Generation", "Add generation", "Allocate generation", "PRB", "Product repurchase bonus"],

@@ -516,6 +516,16 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::post('/update/{id}', 'update')->name('update');
         Route::post('status/{id}', 'status')->name('status');
         Route::post('feature/{id}', 'feature')->name('feature');
+        Route::post('/{id}/state-price', 'storeStatePrice')->name('state-price.store');
+        Route::delete('/{id}/state-price/{priceId}', 'destroyStatePrice')->name('state-price.destroy');
+    });
+
+    // States
+    Route::controller(\App\Http\Controllers\Admin\StateController::class)->name('state.')->prefix('state')->group(function () {
+        Route::get('/',          'index')->name('index');
+        Route::post('/',         'store')->name('store');
+        Route::post('/{id}',     'store')->name('update');
+        Route::delete('/{id}',   'destroy')->name('destroy');
     });
 
     //Order
@@ -577,6 +587,17 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::get('detail/{batchId}', 'detail')->name('detail');
         Route::get('detail/{batchId}/search', 'searchTransactions')->name('detail.search');
         Route::get('user-dividends/{userId}', 'userDividends')->name('user.dividends');
+    });
+
+    // Repurchase (Unilevel) Awards
+    Route::controller(\App\Http\Controllers\Admin\RepurchaseAwardController::class)->prefix('repurchase-award')->name('repurchase-award.')->group(function () {
+        Route::get('/',                    'index')->name('index');
+        Route::post('/',                   'store')->name('store');
+        Route::post('/{id}',               'store')->name('update');
+        Route::delete('/{id}',             'destroy')->name('destroy');
+        Route::post('/{id}/toggle',        'toggle')->name('toggle');
+        Route::get('/{id}/qualified',              'qualifiedUsers')->name('qualified');
+        Route::post('/{awardId}/credit/{userId}',  'creditUser')->name('credit');
     });
 
     // Award Management

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductImage;
+use App\Models\ProductStatePrice;
+use App\Models\State;
 use Illuminate\Http\Request;
 use App\Rules\FileTypeValidate;
 use App\Http\Controllers\Controller;
@@ -21,7 +23,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        $pageTitle  = 'Create Products';
+        $pageTitle  = 'Create Product';
         $categories = Category::active()->get();
         return view('admin.product.create', compact('pageTitle', 'categories'));
     }
@@ -29,43 +31,47 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'                  => 'required',
-            'category'              => 'required',
+            'name'                  => 'required|string|max:255',
+            'category'              => 'required|integer|exists:categories,id',
             'price'                 => 'required|numeric|gt:0',
             'quantity'              => 'required|integer|gt:0',
             'sku'                   => 'required|integer|gt:0',
-            'min_order_quantity'     => 'required|numeric|gt:0', 
-            'max_order_quantity'  => 'required|numeric|gt:0',
+            'pv'                    => 'required|numeric|min:0',
+            'prb'                   => 'required|numeric|min:0',
+            'min_order_quantity'    => 'required|numeric|gt:0',
+            'max_order_quantity'    => 'required|numeric|gt:0',
             'description'           => 'required',
             'specification.*.name'  => 'required|sometimes',
             'specification.*.value' => 'required|sometimes',
             'gallery.*'             => ['nullable', 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
             'thumbnail'             => ['required', 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
         ], [
-            'specification.*.name.required'  => "All specification name filed is required",
-            'specification.*.value.required' => "All specification value filed is required",
+            'specification.*.name.required'  => 'All specification name fields are required',
+            'specification.*.value.required' => 'All specification value fields are required',
         ]);
 
-        $product                   = new Product();
-        $product->category_id      = $request->category;
-        $product->name             = $request->name;
-        $product->price            = $request->price;
-        $product->quantity         = $request->quantity;
-        $product->sku              = $request->sku;
+        $product                     = new Product();
+        $product->category_id        = $request->category;
+        $product->name               = $request->name;
+        $product->price              = $request->price;
+        $product->quantity           = $request->quantity;
+        $product->sku                = $request->sku;
+        $product->pv                 = $request->pv;
+        $product->prb                = $request->prb;
         $product->min_order_quantity = $request->min_order_quantity;
         $product->max_order_quantity = $request->max_order_quantity;
-        $product->description      = $request->description;
-        $product->meta_title       = $request->meta_title;
-        $product->meta_description = $request->meta_description;
-        $product->meta_keyword     = $request->meta_keywords;
-        $product->bv               = 1;
+        $product->description        = $request->description;
+        $product->meta_title         = $request->meta_title;
+        $product->meta_description   = $request->meta_description;
+        $product->meta_keyword       = $request->meta_keywords;
+        $product->bv                 = 1;
 
         if ($request->hasFile('thumbnail')) {
             try {
                 $thumb              = getThumbSize('products');
                 $product->thumbnail = fileUploader($request->thumbnail, getFilePath('products'), getFileSize('products'), null, $thumb);
             } catch (\Exception $exp) {
-                $notify[] = ['error', 'Couldn\'t upload language image'];
+                $notify[] = ['error', 'Couldn\'t upload thumbnail image'];
                 return back()->withNotify($notify);
             }
         }
@@ -79,80 +85,82 @@ class ProductController extends Controller
         if (!$image) {
             return response()->json([
                 'status'  => 'error',
-                'message' => "Couldn\'t upload product gallery images",
-
+                'message' => 'Couldn\'t upload product gallery images',
             ]);
         }
 
-        $notify[] = ['success', 'Product has been saved successfully'];
+        $notify[] = ['success', 'Product created successfully'];
         return back()->withNotify($notify);
     }
 
     public function edit($id)
     {
-        $product    = Product::with('category', 'images')->findOrFail($id);
-        $pageTitle  = 'Edit Product:' . $product->name;
+        $product    = Product::with('category', 'images', 'statePrices.state')->findOrFail($id);
+        $pageTitle  = 'Edit Product: ' . $product->name;
         $categories = Category::active()->get();
+        $states     = State::orderBy('name')->get();
 
         $images = [];
-
-
-        foreach ((@$product->images ??  []) as $key => $image) {
-            $img['id']  = $image->id;
-            $img['src'] = getImage(getFilePath('products') . '/' . $image->name);
-            $images[]   = $img;
+        foreach (($product->images ?? []) as $image) {
+            $images[] = [
+                'id'  => $image->id,
+                'src' => getImage(getFilePath('products') . '/' . $image->name),
+            ];
         }
-        return view('admin.product.edit', compact('pageTitle', 'categories', 'product', 'images'));
+
+        return view('admin.product.edit', compact('pageTitle', 'categories', 'product', 'images', 'states'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name'                  => 'required',
-            'category'              => 'required',
+            'name'                  => 'required|string|max:255',
+            'category'              => 'required|integer|exists:categories,id',
             'price'                 => 'required|numeric|gt:0',
             'sku'                   => 'required|integer|gt:0',
-            'min_order_quantity'     => 'required|numeric|gt:0', 
-            'max_order_quantity'  => 'required|numeric|gt:0',
+            'pv'                    => 'required|numeric|min:0',
+            'prb'                   => 'required|numeric|min:0',
+            'min_order_quantity'    => 'required|numeric|gt:0',
+            'max_order_quantity'    => 'required|numeric|gt:0',
             'quantity'              => 'required|integer|gt:0',
             'description'           => 'required',
             'specification.*.name'  => 'required|sometimes',
             'specification.*.value' => 'required|sometimes',
             'galleryImages.*'       => ['nullable', 'image', new FileTypeValidate(['jpg', 'jpeg', 'png'])],
             'thumbnail'             => ['nullable', 'image', new FileTypeValidate(['jpg', 'jpeg', 'png'])],
-
         ], [
-
-            'specification.*.name.required'  => "All specification name filed is required",
-            'specification.*.value.required' => "All specification value filed is required",
+            'specification.*.name.required'  => 'All specification name fields are required',
+            'specification.*.value.required' => 'All specification value fields are required',
         ]);
 
-        $product                   = Product::findOrFail($id);
-        $product->name             = $request->name;
-        $product->category_id      = $request->category;
-        $product->price            = $request->price;
-        $product->quantity         = $request->quantity;
-        $product->description      = $request->description;
-        $product->meta_title       = $request->meta_title;
-        $product->meta_description = $request->meta_description;
-        $product->bv               = 1;
-        $product->sku              = $request->sku;
+        $product                     = Product::findOrFail($id);
+        $product->name               = $request->name;
+        $product->category_id        = $request->category;
+        $product->price              = $request->price;
+        $product->quantity           = $request->quantity;
+        $product->description        = $request->description;
+        $product->meta_title         = $request->meta_title;
+        $product->meta_description   = $request->meta_description;
+        $product->bv                 = 1;
+        $product->sku                = $request->sku;
+        $product->pv                 = $request->pv;
+        $product->prb                = $request->prb;
         $product->min_order_quantity = $request->min_order_quantity;
         $product->max_order_quantity = $request->max_order_quantity;
-       
-        $product->meta_keyword     = $request->meta_keywords;
+        $product->meta_keyword       = $request->meta_keywords;
 
         if ($request->specification) {
             $product->specifications = array_values($request->specification);
         } else {
             $product->specifications = null;
         }
+
         if ($request->hasFile('thumbnail')) {
             try {
                 $thumb              = getThumbSize('products');
                 $product->thumbnail = fileUploader($request->thumbnail, getFilePath('products'), getFileSize('products'), null, $thumb);
             } catch (\Exception $exp) {
-                $notify[] = ['error', 'Couldn\'t upload language image'];
+                $notify[] = ['error', 'Couldn\'t upload thumbnail image'];
                 return back()->withNotify($notify);
             }
         }
@@ -165,7 +173,34 @@ class ProductController extends Controller
 
         $product->save();
 
-        $notify[] = ['success', 'Product has been updated successfully'];
+        $notify[] = ['success', 'Product updated successfully'];
+        return back()->withNotify($notify);
+    }
+
+    public function storeStatePrice(Request $request, int $id)
+    {
+        $request->validate([
+            'state_id' => 'required|integer|exists:states,id',
+            'price'    => 'required|numeric|gt:0',
+        ]);
+
+        $product = Product::findOrFail($id);
+
+        ProductStatePrice::updateOrCreate(
+            ['product_id' => $product->id, 'state_id' => $request->state_id],
+            ['price'      => $request->price]
+        );
+
+        $notify[] = ['success', 'State price saved successfully'];
+        return back()->withNotify($notify);
+    }
+
+    public function destroyStatePrice(int $id, int $priceId)
+    {
+        $price = ProductStatePrice::where('product_id', $id)->where('id', $priceId)->firstOrFail();
+        $price->delete();
+
+        $notify[] = ['success', 'State price removed'];
         return back()->withNotify($notify);
     }
 
@@ -177,14 +212,12 @@ class ProductController extends Controller
             $this->removeImages($request, $product, $path);
         }
 
-        $hasImages = $request->file('gallery');
-
         if ($request->hasFile('gallery')) {
             $size      = getFileSize('products');
             $thumbSize = getThumbSize('products');
             $images    = [];
 
-            foreach ($hasImages as $file) {
+            foreach ($request->file('gallery') as $file) {
                 try {
                     $name              = fileUploader($file, $path, $size, null, $thumbSize);
                     $image             = new ProductImage();

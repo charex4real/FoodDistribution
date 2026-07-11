@@ -1,297 +1,276 @@
 @extends('admin.layouts.app')
+
 @section('panel')
-    <form action="{{ route('admin.product.update', @$product->id) }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <div class="row">
+<form action="{{ route('admin.product.update', $product->id) }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <div class="pf-grid">
 
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('Product Basic Information')</div>
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Product Name') </label>
-                            </div>
-                            <div class="col-md-10">
-                                <input class="form-control" name="name" type="text" value="{{ @$product->name }}" placeholder="Name" required>
-                            </div>
-                        </div>
+        {{-- LEFT COLUMN --}}
+        <div class="pf-col-main">
 
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Categories')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <select class="form-control select2" name="category" required>
-                                    <option disabled>@lang('Please Select One')</option>
-                                    @foreach (@$categories as $category)
-                                        <option value="{{ $category->id }}" @if ($category->id == $product->category_id) selected @endif>{{ $category->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Price')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <input class="form-control" name="price" type="number" value="{{ getAmount($product->price) }}" step="any" placeholder="Price" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Quantity')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <input class="form-control" name="quantity" type="number" value="{{ @$product->quantity }}" placeholder="Quantity" required>
-                            </div>
-                        </div>
-
-                    </div>
+            {{-- Basic Info --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-tag"></i> Basic Information
                 </div>
-            </div>
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('SKU in kg') </div>
-                    <div class="card-body">
-                        
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Stock keeping unit') </label>
-                            </div>
-                            <div class="col-md-4">
-                                <input class="form-control" name="sku" type="text" value="{{ $product->sku }}"     placeholder="SKU" required>
-                            </div>
-
-                        </div>
-
+                <div class="pf-card-body">
+                    <div class="pf-field">
+                        <label class="pf-label">Product Name <span class="pf-req">*</span></label>
+                        <input class="pf-input" name="name" type="text" value="{{ $product->name }}" placeholder="Enter product name" required>
                     </div>
-                </div>
-            </div>
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('Product Order')</div>
-                    <div class="card-body">
-                        
-
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Product order') </label>
-                            </div>
-                            <div class="col-md-4">
-                                Min:
-                                <input class="form-control" name="min_order_quantity" type="text" value="{{ $product->min_order_quantity }}" 
-                                 placeholder="Min Order Quantity" required>
-                            </div>
-                            <div class="col-md-4">
-                                Max:
-                                <input class="form-control" name="max_order_quantity" type="text" value="{{ $product->max_order_quantity }}"  
-                                 placeholder="Max order_quantity" required>
-                            </div>
-
+                    <div class="pf-field-row">
+                        <div class="pf-field">
+                            <label class="pf-label">Category <span class="pf-req">*</span></label>
+                            <select class="pf-input select2" name="category" required>
+                                <option value="">Select category</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" @selected($category->id == $product->category_id)>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
-
+                        <div class="pf-field">
+                            <label class="pf-label">SKU (kg) <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="sku" type="number" value="{{ $product->sku }}" placeholder="e.g. 25" required>
+                        </div>
+                    </div>
+                    <div class="pf-field-row">
+                        <div class="pf-field">
+                            <label class="pf-label">Stock Quantity <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="quantity" type="number" value="{{ $product->quantity }}" placeholder="Available units" required>
+                        </div>
+                        <div class="pf-field">
+                            <label class="pf-label">Min Order Qty <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="min_order_quantity" type="number" value="{{ $product->min_order_quantity }}" placeholder="Minimum" required>
+                        </div>
+                        <div class="pf-field">
+                            <label class="pf-label">Max Order Qty <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="max_order_quantity" type="number" value="{{ $product->max_order_quantity }}" placeholder="Maximum" required>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-12 mt-5">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('Product Description')</div>
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label class="font-weight-bold">@lang('Product Discription') <strong class="text-danger">*</strong> </label>
-                            </div>
-                            <div class="col-md-10">
-                                <textarea class="form-control nicEdit" id="my-textarea" name="description" rows="3">{{ @$product->description }}</textarea>
+            {{-- Pricing & Metrics --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-coins"></i> Pricing &amp; Metrics
+                </div>
+                <div class="pf-card-body">
+                    <div class="pf-metrics-grid">
+                        <div class="pf-metric-block">
+                            <label class="pf-label">Price <span class="pf-req">*</span></label>
+                            <div class="pf-input-prefix">
+                                <span class="pf-prefix">₦</span>
+                                <input class="pf-input" name="price" type="number" step="any" value="{{ getAmount($product->price) }}" placeholder="0.00" required>
                             </div>
                         </div>
-
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label for="">@lang('Product Specifications')</label>
+                        <div class="pf-metric-block">
+                            <label class="pf-label pf-label-pv">Point Value (PV) <span class="pf-req">*</span></label>
+                            <input class="pf-input" name="pv" type="number" step="any" value="{{ $product->pv ?? 0 }}" placeholder="0.00" required>
+                            <p class="pf-hint">Accumulated for member rewards</p>
+                        </div>
+                        <div class="pf-metric-block">
+                            <label class="pf-label pf-label-prb">Repurchase Bonus (PRB) <span class="pf-req">*</span></label>
+                            <div class="pf-input-prefix">
+                                <span class="pf-prefix">₦</span>
+                                <input class="pf-input" name="prb" type="number" step="any" value="{{ $product->prb ?? 0 }}" placeholder="0.00" required>
                             </div>
-                            <div class="col-10">
-                                <div id="specification">
-                                    @foreach (@$product->specifications ?? [] as $k => $specification)
-                                        <div class="row specification align-items-center mb-2">
-                                            <div class="col-lg-5 p-1">
-                                                <input class="form-control" name="specification[{{ $k }}][name]" type="text" value="{{ @$specification['name'] }}" placeholder="@lang('Enter Specification Name')">
-                                            </div>
-                                            <div class="col-lg-5 p-1">
-                                                <input class="form-control" name="specification[{{ $k }}][value]" type="text" value="{{ @$specification['value'] }}" placeholder="@lang('Enter Specification Value')">
-                                            </div>
-                                            <div class="col-lg-2 minus-specification p-1 text-right">
-                                                <a class="btn btn-outline--danger"><i class="las la-trash-alt"></i></a>
-                                            </div>
-                                        </div>
-                                    @endforeach
+                            <p class="pf-hint">Base amount for unilevel distribution</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Description & Specs --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-align-left"></i> Description &amp; Specifications
+                </div>
+                <div class="pf-card-body">
+                    <div class="pf-field">
+                        <label class="pf-label">Product Description <span class="pf-req">*</span></label>
+                        <textarea class="pf-input nicEdit" name="description" rows="5" required>{{ $product->description }}</textarea>
+                    </div>
+                    <div class="pf-field pf-field--spec">
+                        <div class="pf-spec-header">
+                            <label class="pf-label">Specifications</label>
+                            <button type="button" class="pf-spec-add-btn add-specification">
+                                <i class="las la-plus"></i> Add Row
+                            </button>
+                        </div>
+                        <div id="specification">
+                            @php $hasSpecs = !empty($product->specifications); @endphp
+                            @foreach($product->specifications ?? [] as $k => $spec)
+                                <div class="pf-spec-row specification">
+                                    <input type="text" class="pf-input" name="specification[{{ $k }}][name]" value="{{ $spec['name'] ?? '' }}" placeholder="Name">
+                                    <input type="text" class="pf-input" name="specification[{{ $k }}][value]" value="{{ $spec['value'] ?? '' }}" placeholder="Value">
+                                    <button type="button" class="pf-spec-remove minus-specification"><i class="las la-times"></i></button>
                                 </div>
-                                <div class="row p-0">
-                                    <div class="col-lg-10 p-1"><label class="{{ $product->specifications ? 'd-none' : '' }}" id="specifications-title">@lang('Add specifications as you want by clicking the (+) button on the right side')</label></div>
-                                    <div class="col-lg-2 p-1"><a class="btn btn--success add-specification mb-2"><i class="la la-plus"></i></a></div>
-                                </div>
-                            </div>
+                            @endforeach
+                            <p class="pf-spec-empty {{ $hasSpecs ? 'd-none' : '' }}" id="specifications-title">Click "Add Row" to add product specifications</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-12 mt-5">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('Product Image')</div>
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Thumbnail')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <div class="thumbnail-image-box">
-                                    <x-image-uploader class="w-100" name="thumbnail" type="products" image="{{ $product->thumbnail }}" :required=false />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label class="font-weight-bold" for="">@lang('Gallery')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <div class="input-images"></div>
-                                <div class="mt-1">
-                                    <small class="text-muted">
-                                        @lang('Supported Files:')
-                                        <b>@lang('.png, .jpg, .jpeg')</b>
-                                        @lang('& you can upload maximum ') <b>@lang('10')</b> @lang('images').
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
+            {{-- SEO --}}
+            <div class="pf-card">
+                <div class="pf-card-header pf-card-header--muted">
+                    <i class="las la-search"></i> SEO <span class="pf-optional">optional</span>
+                </div>
+                <div class="pf-card-body">
+                    <div class="pf-field">
+                        <label class="pf-label">Meta Title</label>
+                        <input class="pf-input" name="meta_title" type="text" value="{{ $product->meta_title }}" placeholder="Meta title">
+                    </div>
+                    <div class="pf-field">
+                        <label class="pf-label">Meta Keywords</label>
+                        <select class="pf-input select2-auto-tokenize" name="meta_keywords[]" data-placeholder="Type and press enter or comma" multiple>
+                            @foreach($product->meta_keyword ?? [] as $kw)
+                                <option value="{{ $kw }}" selected>{{ $kw }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="pf-field">
+                        <label class="pf-label">Meta Description</label>
+                        <textarea class="pf-input" name="meta_description" rows="3" placeholder="Meta description">{{ $product->meta_description }}</textarea>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-lg-12 mt-5">
-                <div class="card">
-                    <div class="card-header font-weight-bold bg--primary">@lang('SEO Contents')</div>
-                    <div class="card-body">
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Meta Ttitle')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <input class="form-control" name="meta_title" type="text" value="{{ @$product->meta_title }}" placeholder="Meta Title">
-                            </div>
-
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Meta Keyword')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <select class="form-control select2-auto-tokenize" name="meta_keywords[]" data-placeholder="@lang('Separate multiple keywords by ,(comma) or enter key')" multiple>
-                                    @if (@$product->meta_keyword && !empty(@$product->meta_keyword))
-                                        @foreach (@$product->meta_keyword as $keyword)
-                                            <option value="{{ $keyword }}" selected>{{ $keyword }}</option>
-                                        @endforeach
-                                    @endif
-
-                                </select>
-                            </div>
-
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-2">
-                                <label>@lang('Meta Description')</label>
-                            </div>
-                            <div class="col-md-10">
-                                <textarea class="form-control" name="meta_description" name="meta_description" placeholder="@lang('Meta Description')" cols="30" rows="10">{{ @$product->meta_description }}</textarea>
-                            </div>
-
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            
-
-
-            
-
-            <div class="col-lg-12 mt-3">
-                <button class="btn btn--primary w-100 h-45" type="submit">@lang('Update')</button>
             </div>
 
         </div>
 
-    </form>
+        {{-- RIGHT COLUMN --}}
+        <div class="pf-col-side">
+
+            {{-- Thumbnail --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-image"></i> Thumbnail
+                </div>
+                <div class="pf-card-body">
+                    <x-image-uploader class="w-100" name="thumbnail" type="products" image="{{ $product->thumbnail }}" :required="false" />
+                </div>
+            </div>
+
+            {{-- Gallery --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-images"></i> Gallery
+                </div>
+                <div class="pf-card-body">
+                    <div class="input-images"></div>
+                    <p class="pf-hint pf-hint--mt">PNG, JPG, JPEG &mdash; max 10 images, 3MB each</p>
+                </div>
+            </div>
+
+            {{-- Submit --}}
+            <button class="pf-submit-btn" type="submit">
+                <i class="las la-save"></i> Update Product
+            </button>
+
+        </div>
+    </div>
+</form>
+
+{{-- State Prices Section --}}
+<div class="pf-card pf-state-prices-card">
+    <div class="pf-card-header pf-card-header--state">
+        <div class="pf-state-header-left">
+            <i class="las la-map-marker"></i> State-Specific Prices
+        </div>
+        <button class="pf-state-add-toggle" id="toggleAddState" type="button">
+            <i class="las la-plus"></i> Add State Price
+        </button>
+    </div>
+    <div class="pf-card-body">
+
+        {{-- Add form --}}
+        <div class="pf-state-add-form" id="addStatePriceForm" style="display:none;">
+            <form action="{{ route('admin.product.state-price.store', $product->id) }}" method="POST">
+                @csrf
+                @php $assignedStateIds = $product->statePrices->pluck('state_id')->toArray(); @endphp
+                <div class="pf-state-add-row">
+                    <div class="pf-field">
+                        <label class="pf-label">State</label>
+                        <select class="pf-input select2" name="state_id" required>
+                            <option value="">Select state</option>
+                            @foreach($states as $state)
+                                @if(!in_array($state->id, $assignedStateIds))
+                                    <option value="{{ $state->id }}">{{ $state->name }} ({{ $state->code }})</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="pf-field">
+                        <label class="pf-label">Price (₦)</label>
+                        <div class="pf-input-prefix">
+                            <span class="pf-prefix">₦</span>
+                            <input class="pf-input" name="price" type="number" step="any" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="pf-state-add-actions">
+                        <button type="submit" class="pf-btn-save">Save</button>
+                        <button type="button" class="pf-btn-cancel" id="cancelAddState">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {{-- Existing state prices --}}
+        @if($product->statePrices->count())
+        <table class="pf-state-table">
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th>Code</th>
+                    <th>State Price</th>
+                    <th>vs Default</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($product->statePrices->sortBy('state.name') as $sp)
+                <tr>
+                    <td class="pf-state-name">{{ optional($sp->state)->name }}</td>
+                    <td><span class="pf-state-code-chip">{{ optional($sp->state)->code }}</span></td>
+                    <td class="pf-state-price">₦{{ number_format($sp->price, 2) }}</td>
+                    <td>
+                        @php $diff = $sp->price - $product->price; @endphp
+                        @if($diff > 0)
+                            <span class="pf-diff pf-diff-up">+₦{{ number_format($diff, 2) }}</span>
+                        @elseif($diff < 0)
+                            <span class="pf-diff pf-diff-down">-₦{{ number_format(abs($diff), 2) }}</span>
+                        @else
+                            <span class="pf-diff pf-diff-same">Same</span>
+                        @endif
+                    </td>
+                    <td class="text-right">
+                        <form action="{{ route('admin.product.state-price.destroy', [$product->id, $sp->id]) }}" method="POST"
+                            onsubmit="return confirm('Remove state price for {{ addslashes(optional($sp->state)->name) }}?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="pf-state-del-btn" title="Remove">
+                                <i class="las la-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @else
+        <div class="pf-state-empty">
+            <i class="las la-map-marker-slash"></i>
+            <p>No state-specific prices set &mdash; the default price applies everywhere</p>
+        </div>
+        @endif
+    </div>
+</div>
 
 @endsection
 
 @push('breadcrumb-plugins')
     <x-back route="{{ route('admin.product.index') }}" />
-@endpush
-
-
-@push('script')
-    <script>
-        "use strict";
-        (function($) {
-
-            $(".add-specification").on('click', function(e) {
-                let index = $(document).find(".specification").length;
-                index = parseInt(index) + parseInt(1);
-
-                let html = `
-                    <div class="row align-items-center mb-2 specification">
-                        <div class="col-lg-5 p-1">
-                            <input type="text" class="form-control" name="specification[${index}][name]" placeholder="@lang('Enter Specification Name')">
-                        </div>
-                        <div class="col-lg-5 p-1">
-                            <input type="text" class="form-control" name="specification[${index}][value]" placeholder="@lang('Enter Specification Value')">
-                        </div>
-                        <div class="col-lg-2 text-right minus-specification p-1">
-                            <a class="btn btn-outline--danger "><i class="las la-trash-alt"></i></a>
-                        </div>
-                    </div>
-                `;
-                $("#specification").append(html)
-                $("#specifications-title").hide()
-            })
-
-
-            $("body").on('click', '.minus-specification', function(e) {
-                $(this).closest('.specification').remove();
-                $(document).find(".specification").length <= 0 ? $("#specifications-title").show() : "";
-
-            })
-
-            $(document).on('click', '.removeBtn', function() {
-                $(this).closest('.__gallery_image').remove();
-            });
-
-            $('select[name=featured]').val({{ $product->is_featured }});
-
-
-            // image uploder
-            @if (isset($images))
-                let preloaded = @json($images);
-            @else
-                let preloaded = [];
-            @endif
-
-            $('.input-images').imageUploader({
-                preloaded: preloaded,
-                imagesInputName: 'gallery',
-                preloadedInputName: 'old',
-                maxSize: 3 * 1024 * 1024,
-                maxFiles: 10,
-            });
-
-        })(jQuery);
-    </script>
 @endpush
 
 @push('script-lib')
@@ -302,27 +281,55 @@
     <link href="{{ asset('assets/admin/css/image-uploader.min.css') }}" rel="stylesheet">
 @endpush
 
-@push('style')
-    <style>
-        .profilePicUpload {
-            height: 0px;
-            padding: 0px;
-        }
+@push('script')
+<script>
+"use strict";
+(function($) {
 
-        .__gallery_image .form-group {
-            position: relative;
-        }
+    $(".add-specification").on('click', function() {
+        let index = $(".specification").length + 1;
+        let html = `
+            <div class="pf-spec-row specification">
+                <input type="text" class="pf-input" name="specification[${index}][name]" placeholder="Name">
+                <input type="text" class="pf-input" name="specification[${index}][value]" placeholder="Value">
+                <button type="button" class="pf-spec-remove minus-specification"><i class="las la-times"></i></button>
+            </div>`;
+        $("#specification").append(html);
+        $("#specifications-title").hide();
+    });
 
-        .removeBtn {
-            position: absolute;
-            z-index: 99;
-            top: 3px;
-            right: 3px;
-            border-radius: 5px;
-        }
+    $("body").on('click', '.minus-specification', function() {
+        $(this).closest('.specification').remove();
+        if ($(".specification").length === 0) $("#specifications-title").show();
+    });
 
-        .thumbnail-image-box {
-            max-width: 300px;
-        }
-    </style>
+    $("body").on('click', '.removeBtn', function() {
+        $(this).closest('.__gallery_image').remove();
+    });
+
+    @if(isset($images))
+        let preloaded = @json($images);
+    @else
+        let preloaded = [];
+    @endif
+
+    $('.input-images').imageUploader({
+        preloaded: preloaded,
+        imagesInputName: 'gallery',
+        preloadedInputName: 'old',
+        maxSize: 3 * 1024 * 1024,
+        maxFiles: 10,
+    });
+
+    $('#toggleAddState').on('click', function() {
+        $('#addStatePriceForm').slideDown(200);
+        $(this).hide();
+    });
+    $('#cancelAddState').on('click', function() {
+        $('#addStatePriceForm').slideUp(200);
+        $('#toggleAddState').show();
+    });
+
+})(jQuery);
+</script>
 @endpush

@@ -29,6 +29,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Services\UnilevelService;
+use App\Models\RepurchasePv;
+use App\Models\RepurchaseAward;
 
 class StockistController extends Controller
 {
@@ -187,7 +189,7 @@ class StockistController extends Controller
             return back()->with('error', 'Failed to create stockist profile: ' . $e->getMessage());
         }
     }
-    
+     
     public function verifyInvoice(Request $request)
     {   
         $stockist = auth()->user()->stockist;
@@ -453,6 +455,10 @@ class StockistController extends Controller
                         //app(UnilevelService::class)->process($invoice, $user_dist, $product, $quantity, $trx);
                         
                         $this->unilevelService->process($invoice, $user_dist, $product, $quantity, $trx);
+
+                        // 5.) Record product PV for repurchase award tracking
+                        $this->recordRepurchasePv($user_dist, $product, $quantity);
+
                         // State leaders commission (SKU-based, runs independently of unilevel)
                         $this->stateLeaderCommission($invoice, $product, $quantity, $trx);
                        
@@ -530,6 +536,18 @@ class StockistController extends Controller
     }
     
     
+    protected function recordRepurchasePv(User $user, Product $product, int $quantity): void
+    {
+        $pvEarned = round((float)($product->pv ?? 0) * $quantity, 2);
+        if ($pvEarned <= 0) {
+            return;
+        }
+
+        $record = RepurchasePv::lockForUpdate()->firstOrNew(['user_id' => $user->id]);
+        $record->total_pv = round((float)($record->total_pv ?? 0) + $pvEarned, 2);
+        $record->save();
+    }
+
     protected function stateLeaderCommission(Invoice $invoice, Product $product, $quantity, $trx): void
     {
         $stateId  = $invoice->state_id;

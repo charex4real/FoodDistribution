@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\BvLog;
 use App\Models\Award;
 use App\Models\UserAward;
+use App\Models\RepurchasePv;
+use App\Models\RepurchaseAward;
 use App\Models\PvLog;
 use App\Models\Matrix;
 use App\Models\UserExtra;
@@ -152,6 +154,18 @@ class PlanController extends Controller
                         ->keyBy('award_id');
 
         return view('Template::user.awards', compact('pageTitle', 'allAwards', 'earnedMap'));
+    }
+
+    public function repurchaseAward()
+    {
+        $pageTitle      = 'Repurchase (Unilevel) Award';
+        $user           = auth()->user();
+        $pvRecord       = RepurchasePv::where('user_id', $user->id)->first();
+        $totalPv        = $pvRecord ? (float) $pvRecord->total_pv : 0;
+        $awards         = RepurchaseAward::active()->get();
+        $walletBalance  = (float) ($user->repurchase_award ?? 0);
+
+        return view('Template::user.repurchase_award', compact('pageTitle', 'totalPv', 'awards', 'walletBalance'));
     }
 
     public function pvlog(Request $request){

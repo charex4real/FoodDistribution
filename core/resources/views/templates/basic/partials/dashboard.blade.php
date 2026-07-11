@@ -43,7 +43,7 @@
                         $grpSavings = request()->routeIs(['user.savings*', 'user.loans*']);
                         $grpFinance = request()->routeIs(['user.deposit*', 'user.withdraw*', 'user.transactions', 'user.bonus.transfer*']);
                         $grpTree    = request()->routeIs(['user.my.tree', 'user.my.stages', 'user.binary*', 'user.pv.log']);
-                        $grpAwards  = request()->routeIs(['user.awards']);
+                        $grpAwards  = request()->routeIs(['user.awards', 'user.repurchase.award']);
                         $grpProject = request()->routeIs(['user.project.*']);
                         $grpShop    = request()->routeIs(['product*', 'user.orders*', 'user.stockist*']);
                         $grpAccount = request()->routeIs(['user.notifications', 'user.profile*', 'user.kyc*', 'user.guarantor*', 'user.twofactor']);
@@ -224,6 +224,12 @@
                                     @if($pendingAwardCount > 0)
                                         <span class="bank-nav-badge" style="background:#fef3c7;color:#92400e;font-size:.65rem;padding:2px 7px;border-radius:20px;font-weight:800;margin-left:auto;">{{ $pendingAwardCount }}</span>
                                     @endif
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.repurchase.award') }}" class="bank-nav-link {{ menuActive('user.repurchase.award') }}">
+                                    <span class="bank-nav-icon"><i class="las la-medal"></i></span>
+                                    <span>Repurchase Award</span>
                                 </a>
                             </li>
                         </ul>
