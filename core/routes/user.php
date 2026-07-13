@@ -34,7 +34,7 @@ Route::namespace('User\Auth')->name('user.')->middleware(['guest', 'XssSanitizer
 
 Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
     Route::get('user-data', 'User\UserController@userData')->name('data');
-    Route::get('user-data1', 'User\UserController@userData1')->name('data1');
+    Route::get('user-data1', 'User\UserController@userData')->name('data');
     Route::post('user-data-submit', 'User\UserController@userDataSubmit')->name('data.submit');
 
     //authorization
@@ -384,7 +384,7 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
         // Payment
         Route::prefix('deposit')->name('deposit.')->controller('Gateway\PaymentController')->group(function () {
             Route::any('/', 'deposit')->name('index');
-            Route::any('/dep', 'deposit1')->name('index1');
+            
 
             Route::post('insert', 'depositInsert')->name('insert');
             Route::post('insert1', 'depositInsert1')->name('insert1');

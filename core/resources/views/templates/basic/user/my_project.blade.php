@@ -7,7 +7,7 @@
     $visaBalance = (float) ($user->visa ?? 0);
     $sym         = gs('cur_sym');
 @endphp
-
+ 
 {{-- ── Page header ──────────────────────────────────────────── --}}
 <div class="mp-header">
     <div class="mp-header-icon">

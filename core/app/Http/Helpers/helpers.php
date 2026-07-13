@@ -1813,257 +1813,142 @@ function complete_registration(User $user, $details){
      sendEmailWithPhpTemplate($user);
 }
 
-function complete_registration_old2(User $user, $details, Rmatrix $rmatrix, $user_parent_mat){
 
-
-    //$user->profile_complete = Status::YES;
-    $parent_id = 0;
-    
-    $parent = User::find($user->ref_by); 
-   
-    if($user_parent_mat){
-
-        if($user_parent_mat->left == 0 ){
-
-            $user_parent_mat->left = $user->id;
-            $parent_id = $user_parent_mat->user_id;
-            $user_parent_mat->save();
-
-        }elseif($user_parent_mat->right == 0){
-            $user_parent_mat->right = $user->id;
-            $parent_id = $user_parent_mat->user_id;
-             $user_parent_mat->save();         
-        }
-
-        //dd($user->ref_by);
-
-        
-    }else{
-         
-         
-        $user_parent_matrix = Matrix::where('user_id', $rmatrix->parent_id)->where('stage_id', 1)->where('is_active', 1)->first();
-
-        // check if the parent is in the Matrix before assignment to new user
-        if (!$user_parent_matrix) {
-            $parent_id = 0;
-            $pos = 0;
-        }else{
-
-            if($user_parent_matrix->left == 0 && $rmatrix->position == 'left'){
-
-               $user_parent_matrix->left = $user->id;
-               $parent_id = $user_parent_matrix->user_id;
-               $user_parent_matrix->save();
-
-             }elseif($user_parent_matrix->right == 0 && $rmatrix->position == 'right'){
-                $user_parent_matrix->right = $user->id;
-                $parent_id = $user_parent_matrix->user_id;
-                $user_parent_matrix->save();         
-            }
-        }
-
-    }
-    $user->status = Status::USER_ACTIVE;
-    $user->profile_complete = Status::YES;
-    $user->save();
-
-    Matrix::create([
-       'user_id' => $user->id,
-        'parent_id' => $parent_id,
-        'stage_id' => 1,
-        'is_active' => 1
-    ]);
-    Useridcard::create([
-       'user_id' => $user->id
-    ]);
-
-    UserStageProgress::firstOrCreate([
-        'user_id' => $user->id,
-        'stage_id' => 1
-    ]);
-
-    $details = 'Registration Bonus from username: '.$user->username;
-    referralStageMAtrix($user->id, $details, 1, 1);
-
-
-    $adminNotification            = new AdminNotification();
-    $adminNotification->user_id   = $user->id;
-    $adminNotification->title     = 'New member registered';
-    $adminNotification->click_url = urlPath('admin.users.detail', $user->id);
-    $adminNotification->save();
-
-
-        // check if the parent is in the matrix and free before assignment to new user
-           
-                //Login Log Create
-                $ip        = getRealIP();
-                $exist     = UserLogin::where('user_ip', $ip)->first();
-                $userLogin = new UserLogin();
-
-                if ($exist) {
-                    $userLogin->longitude    = $exist->longitude;
-                    $userLogin->latitude     = $exist->latitude;
-                    $userLogin->city         = $exist->city;
-                    $userLogin->country_code = $exist->country_code;
-                    $userLogin->country      = $exist->country;
-                } else {
-                    $info                    = json_decode(json_encode(getIpInfo()), true);
-                    $userLogin->longitude    = @implode(',', $info['long']);
-                    $userLogin->latitude     = @implode(',', $info['lat']);
-                    $userLogin->city         = @implode(',', $info['city']);
-                    $userLogin->country_code = @implode(',', $info['code']);
-                    $userLogin->country      = @implode(',', $info['country']);
-                }
-
-                $userAgent          = osBrowser();
-                $userLogin->user_id = $user->id;
-                $userLogin->user_ip = $ip;
-
-                $userLogin->browser = @$userAgent['browser'];
-                $userLogin->os      = @$userAgent['os_platform'];
-                $userLogin->save();
-
-    // Record registration transac
-    $details_reg = 'Registration money ';
-    registrationTransaction($user->id, $details_reg);
-    sendEmailWithPhpTemplate($user);
-}
-
-
-function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_mat, Pin $pin)
-{
  
-    //dd($pin);
+function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_mat, $pin = null)
+{
     DB::beginTransaction();
  
     try {
  
-    //$user->profile_complete = Status::YES;
-    $parent_id = 0;
-    $parent = User::find($user->ref_by); 
-   
-    if($user_parent_mat){
-        if($user_parent_mat->left == 0 ){
-            $user_parent_mat->left = $user->id;
-            $parent_id = $user_parent_mat->user_id;
-            $user_parent_mat->save();
-            $position = 'left';
-        }elseif($user_parent_mat->right == 0){
-            $user_parent_mat->right = $user->id;
-            $parent_id = $user_parent_mat->user_id;
-            $user_parent_mat->save();
-            $position = 'right';      
-        }        
-    }else{
-        $user_parent_matrix = Matrix::where('user_id', $rmatrix->parent_id)->where('stage_id', 1)->where('is_active', 1)->first();
-
-        // check if the parent is in the Matrix before assignment to new user
-        if (!$user_parent_matrix) {
-            $parent_id = 0;
-            $pos = 0;
-            $position = 'root';
+        //$user->profile_complete = Status::YES;
+        $parent_id = 0;
+        $parent = User::find($user->ref_by); 
+    
+        if($user_parent_mat){
+            if($user_parent_mat->left == 0 ){
+                $user_parent_mat->left = $user->id;
+                $parent_id = $user_parent_mat->user_id;
+                $user_parent_mat->save();
+                $position = 'left';
+            }elseif($user_parent_mat->right == 0){
+                $user_parent_mat->right = $user->id;
+                $parent_id = $user_parent_mat->user_id;
+                $user_parent_mat->save();
+                $position = 'right';      
+            }        
         }else{
-            if($user_parent_matrix->left == 0 && $rmatrix->position == 'left'){
-               $user_parent_matrix->left = $user->id;
-               $parent_id = $user_parent_matrix->user_id;
-               $user_parent_matrix->save();
-               $position = 'left';
+            $user_parent_matrix = Matrix::where('user_id', $rmatrix->parent_id)->where('stage_id', 1)->where('is_active', 1)->first();
 
-             }elseif($user_parent_matrix->right == 0 && $rmatrix->position == 'right'){
-                $user_parent_matrix->right = $user->id;
+            // check if the parent is in the Matrix before assignment to new user
+            if (!$user_parent_matrix) {
+                $parent_id = 0;
+                $pos = 0;
+                $position = 'root';
+            }else{
+                if($user_parent_matrix->left == 0 && $rmatrix->position == 'left'){
+                $user_parent_matrix->left = $user->id;
                 $parent_id = $user_parent_matrix->user_id;
                 $user_parent_matrix->save();
-                $position = 'right';        
+                $position = 'left';
+
+                }elseif($user_parent_matrix->right == 0 && $rmatrix->position == 'right'){
+                    $user_parent_matrix->right = $user->id;
+                    $parent_id = $user_parent_matrix->user_id;
+                    $user_parent_matrix->save();
+                    $position = 'right';        
+                }
             }
         }
-    }
-    //if Pin stats is 1. its means the pin is 9000. this user paid in full
-    /*
-    if($pin->stats == 0) {
-        //$user->balance -= 2000; 
-    }
-    */
-    $user->status = Status::USER_ACTIVE;
-    $user->profile_complete = Status::YES;
-    $user->save();
+        //if Pin stats is 1. its means the pin is 9000. this user paid in full
+        /*
+        if($pin->stats == 0) {
+            //$user->balance -= 2000; 
+        }
+        */
+        $user->status = Status::USER_ACTIVE;
+        $user->profile_complete = Status::YES;
+        $user->save();
 
 
-    $pin->status = Status::YES;
-    $pin->user_id = $user->id;
-    $pin->save();
+        if ($pin instanceof Pin) {
+            $pin->status = Status::YES;
+            $pin->user_id = $user->id;
+            $pin->save();
+        }
 
-    $matrix            = new Matrix();
-    $matrix->user_id   = $user->id;
-    $matrix->parent_id = $parent_id;
-    $matrix->position  = $position;
-    $matrix->stage_id  = 1;
-    $matrix->is_active  = 1;
-    $matrix->save();
+        $matrix            = new Matrix();
+        $matrix->user_id   = $user->id;
+        $matrix->parent_id = $parent_id;
+        $matrix->position  = $position;
+        $matrix->stage_id  = 1;
+        $matrix->is_active  = 1;
+        $matrix->save();
 
-    Useridcard::create([
-       'user_id' => $user->id
-    ]);
+        Useridcard::create([
+        'user_id' => $user->id
+        ]);
 
-    UserStageProgress::firstOrCreate([
-        'user_id' => $user->id,
-        'stage_id' => 1
-    ]);
+        UserStageProgress::firstOrCreate([
+            'user_id' => $user->id,
+            'stage_id' => 1
+        ]);
 
 
 
-    $details = 'direct bonus gotten from username: '.$user->username;
-    // the section process the direct bonus as set by the admin in $project->direct_commission
-    directBonus($user, $details);
+        $details = 'direct bonus gotten from username: '.$user->username;
+        // the section process the direct bonus as set by the admin in $project->direct_commission
+        directBonus($user, $details);
 
-    $dets = $user->username . ' Subscribed to ' . $user->project->title . ' Project.';
+        $dets = $user->username . ' Subscribed to ' . $user->project->title . ' Project.';
 
-    // Next we distribute the PV along the user Tree.
-    updatePV($user, $dets);
+        // Next we distribute the PV along the user Tree.
+        updatePV($user, $dets);
 
-    // Cash back is credited to product_wallet AFTER payment is confirmed (visa/Paystack settled)
-    processCashBack($user, null, $user->project->title . ' subscription');
+        // Cash back is credited to product_wallet AFTER payment is confirmed (visa/Paystack settled)
+        processCashBack($user, null, $user->project->title . ' subscription');
 
-    $adminNotification            = new AdminNotification();
-    $adminNotification->user_id   = $user->id;
-    $adminNotification->title     = 'New member registered';
-    $adminNotification->click_url = urlPath('admin.users.detail', $user->id);
-    $adminNotification->save();
+        $adminNotification            = new AdminNotification();
+        $adminNotification->user_id   = $user->id;
+        $adminNotification->title     = 'New member registered';
+        $adminNotification->click_url = urlPath('admin.users.detail', $user->id);
+        $adminNotification->save();
 
 
         // check if the parent is in the matrix and free before assignment to new user
 
-                //Login Log Create
-                $ip        = getRealIP();
-                $exist     = UserLogin::where('user_ip', $ip)->first();
-                $userLogin = new UserLogin();
+        //Login Log Create
+        $ip        = getRealIP();
+        $exist     = UserLogin::where('user_ip', $ip)->first();
+        $userLogin = new UserLogin();
 
-                if ($exist) {
-                    $userLogin->longitude    = $exist->longitude;
-                    $userLogin->latitude     = $exist->latitude;
-                    $userLogin->city         = $exist->city;
-                    $userLogin->country_code = $exist->country_code;
-                    $userLogin->country      = $exist->country;
-                } else {
-                    $info                    = json_decode(json_encode(getIpInfo()), true);
-                    $userLogin->longitude    = @implode(',', $info['long']);
-                    $userLogin->latitude     = @implode(',', $info['lat']);
-                    $userLogin->city         = @implode(',', $info['city']);
-                    $userLogin->country_code = @implode(',', $info['code']);
-                    $userLogin->country      = @implode(',', $info['country']);
-                }
+        if ($exist) {
+            $userLogin->longitude    = $exist->longitude;
+            $userLogin->latitude     = $exist->latitude;
+            $userLogin->city         = $exist->city;
+            $userLogin->country_code = $exist->country_code;
+            $userLogin->country      = $exist->country;
+        } else {
+            $info                    = json_decode(json_encode(getIpInfo()), true);
+            $userLogin->longitude    = @implode(',', $info['long']);
+            $userLogin->latitude     = @implode(',', $info['lat']);
+            $userLogin->city         = @implode(',', $info['city']);
+            $userLogin->country_code = @implode(',', $info['code']);
+            $userLogin->country      = @implode(',', $info['country']);
+        }
 
-                $userAgent          = osBrowser();
-                $userLogin->user_id = $user->id;
-                $userLogin->user_ip = $ip;
+        $userAgent          = osBrowser();
+        $userLogin->user_id = $user->id;
+        $userLogin->user_ip = $ip;
 
-                $userLogin->browser = @$userAgent['browser'];
-                $userLogin->os      = @$userAgent['os_platform'];
-                $userLogin->save();
-                // Record registration transac
-                $details_reg = 'Registration money ';
+        $userLogin->browser = @$userAgent['browser'];
+        $userLogin->os      = @$userAgent['os_platform'];
+        $userLogin->save();
+        // Record registration transac
+        $details_reg = 'Registration money ';
 
-                registrationTransaction($user->id, $details_reg);
-                sendEmailWithPhpTemplate($user);
+        registrationTransaction($user->id, $details_reg);
+        sendEmailWithPhpTemplate($user);
 
         DB::commit();
 

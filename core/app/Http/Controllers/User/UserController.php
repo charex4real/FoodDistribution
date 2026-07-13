@@ -630,49 +630,6 @@ class UserController extends Controller
         return view('Template::user.user_data', compact('pageTitle', 'user', 'data'));
     }
 
-    public function userData1()
-    {   
-        $user = auth()->user();
-        if ($user->profile_complete == Status::YES) {
-            return to_route('user.land');
-        }
-
-        if ($user->section == 1) {
-            return to_route('user.data');
-        }
-        
-        
-        $data =[];
-        $general = gs();
-
-        $dirName = 'Paystack';
-        $new = __NAMESPACE__ . '\\' . $dirName . '\\ProcessController';
-
-        $paysAcc = GatewayCurrency::where('method_code', 107)->where('currency', 'NGN')->first();
-        $paystackAcc = json_decode($paysAcc->gateway_parameter);
-
-        //dd($paystackAcc->public_key);
-        $project   = $user->project_id ? Project::find($user->project_id) : null;
-        $regAmount = $project ? (float) $project->amount : (float) $general->registration_fee;
-
-        $data['key'] = $paystackAcc->public_key;
-        $data['email'] = auth()->user()->email;
-        $data['amount'] = $regAmount * 100;
-        $data['currency'] = 'NGN';
-        $trx = getTrx(20);
-        $data['ref'] = $trx;
-
-        $user->trx = $trx;
-        $user->save();
- 
-        $pageTitle  = 'Payment Page';
-        $info       = json_decode(json_encode(getIpInfo()), true);
-        $mobileCode = @implode(',', $info['code']);
-        $countries  = json_decode(file_get_contents(resource_path('views/partials/country.json')));
-    
-        return view('Template::user.user_data1', compact('pageTitle', 'user', 'countries', 'mobileCode', 'data'));
-    }
-
     public function userDataSubmit(Request $request)
     {
 

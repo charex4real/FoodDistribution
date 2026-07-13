@@ -106,51 +106,67 @@ class ProcessController extends Controller
     }
 
     /**
-     * Paystack Webhook (charge.success event).
-     * URL to add in Paystack dashboard: https://yourdomain.com/ipn/paystack2
+     * Paystack server-to-server webhook (charge.success).
+     * Register this URL in the Paystack dashboard: https://yourdomain.com/ipn/paystack2
      *
-     * Routes to the correct handler based on metadata.payment_type sent at
-     * payment initialisation ('registration' or 'deposit'). Payments initiated
-     * before metadata was added fall through to a reference-lookup fallback.
+     * Acts as the fallback processor for both payment flows — deposits and
+     * membership registrations — so that network failures on the user's side
+     * do not leave transactions stuck. Paystack retries failed webhooks for
+     * up to 72 hours, guaranteeing eventual processing.
+     *
+     * Flow detection uses the metadata.payment_type field set when each form
+     * initialises the Paystack popup: 'deposit' → processDepositWebhook,
+     * 'registration' → processRegistrationWebhook.
+     * A reference-lookup fallback handles any transactions that pre-date the
+     * metadata field.
+     *
+     * SECURITY: HMAC-SHA512 signature is verified before any parsing or DB
+     * access, ensuring only genuine Paystack events are processed.
      */
     public function ipn_webhook(Request $request)
     {
+        // ── 1. Capture raw body before any framework parsing ──────────────
         $payload   = $request->getContent();
-        $signature = $request->header('x-paystack-signature');
-        $event     = json_decode($payload, true);
+        $signature = (string) $request->header('x-paystack-signature', '');
 
-        if (empty($event['event']) || $event['event'] != 'charge.success') {
-            return response('OK', 200);
-        }
-
-        $reference = $event['data']['reference'] ?? null;
-        if (!$reference) {
-            return response('OK', 200);
-        }
-
-        // Verify signature using the shared Paystack account credentials
+        // ── 2. Verify HMAC signature first — reject non-Paystack requests ─
         $paysAcc = GatewayCurrency::where('method_code', 107)->where('currency', 'NGN')->first();
         if (!$paysAcc) {
+            \Log::error('Paystack webhook: GatewayCurrency (method_code=107, NGN) not found.');
             return response('OK', 200);
         }
 
         $paystackAcc = json_decode($paysAcc->gateway_parameter);
-        $secret_key  = $paystackAcc->secret_key;
+        $secret_key  = $paystackAcc->secret_key ?? '';
         $computed    = hash_hmac('sha512', $payload, $secret_key);
 
-        if (!hash_equals($computed, (string) $signature)) {
-            return response('Invalid signature', 401);
+        if (!hash_equals($computed, $signature)) {
+            return response('Forbidden', 403);
         }
 
-        $data        = $event['data'];
+        // ── 3. Parse and validate the event ───────────────────────────────
+        $event = json_decode($payload, true);
+
+        if (empty($event['event']) || $event['event'] !== 'charge.success') {
+            return response('OK', 200);
+        }
+
+        $data      = $event['data'] ?? [];
+        $reference = $data['reference'] ?? null;
+
+        if (!$reference) {
+            return response('OK', 200);
+        }
+
+        // ── 4. Route to the correct processor ─────────────────────────────
         $paymentType = $data['metadata']['payment_type'] ?? null;
 
-        if ($paymentType == 'deposit') {
-            $this->processDepositWebhook($data, $reference);
-        } elseif ($paymentType == 'registration') {
+        if ($paymentType === 'deposit') {
+            $this->processDepositWebhook($data, $reference);  
+        } elseif ($paymentType === 'registration') {
             $this->processRegistrationWebhook($data, $reference);
         } else {
-            // Fallback for payments initiated before metadata was introduced
+            // Fallback: check by reference — deposit table first, then user trx
             $deposit = Deposit::where('trx', $reference)->orderBy('id', 'DESC')->first();
             if ($deposit) {
                 $this->processDepositWebhook($data, $reference);
@@ -263,7 +279,7 @@ class ProcessController extends Controller
             $notify[] = ['error', 'Something went wrong while executing'];
         }
         return back()->withNotify($notify);
-    }
+    } 
 
     public function ipn1(Request $request)
     {
@@ -359,7 +375,7 @@ class ProcessController extends Controller
         return back()->withNotify($notify);
     }
 
-    protected function Register_now(User $user, $pin = null, $data = null){
+    protected function register_now(User $user, $pin = null, $data = null){
 
         $rmatrix = Rmatrix::where('user_id', $user->id)->first();
         $sam = gs()->registration_fee;

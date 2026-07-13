@@ -235,7 +235,7 @@
         </div>
     </form>
 
-    {{-- ── Trust strip ── --}}
+    {{-- ── Trust strip ── 
     <div class="dep-trust-strip">
         <div class="dep-trust-item">
             <div class="dep-trust-icon t1"><i class="las la-lock"></i></div>
@@ -266,6 +266,7 @@
             </div>
         </div>
     </div>
+    --}}
 
 </div>
 

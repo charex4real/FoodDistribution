@@ -19,7 +19,7 @@ use App\Services\MatrixPlacementService;
 
 class MatrixController extends Controller
 {
-	 protected $matrixService;
+	protected $matrixService;
     
     public function __construct(MatrixPlacementService $matrixService)
     {

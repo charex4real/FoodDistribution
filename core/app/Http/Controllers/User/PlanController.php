@@ -507,11 +507,9 @@ class PlanController extends Controller
             $notify[] = ['error', 'Insufficient Balance!! Please Fund Money Box '];
             //return back()->withNotify($notify);
             //route()
-            if($user->section == 1){
-                return to_route('user.deposit.index')->withNotify($notify);
-            }else{
-                return to_route('user.deposit1.index')->withNotify($notify);
-            }
+            
+            return to_route('user.deposit.index')->withNotify($notify);
+            
             
         }
         $trx_no = getTrx();

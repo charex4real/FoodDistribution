@@ -11,7 +11,7 @@ use App\Models\GatewayCurrency;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
-
+ 
 class PaymentController extends Controller
 {
     public function deposit()
@@ -23,14 +23,7 @@ class PaymentController extends Controller
         return view('Template::user.payment.deposit', compact('gatewayCurrency', 'pageTitle'));
     }
 
-    public function deposit1()
-    {
-        $gatewayCurrency = GatewayCurrency::whereHas('method', function ($gate) {
-            $gate->where('status', Status::ENABLE);
-        })->with('method')->orderby('name')->get();
-        $pageTitle = 'Deposit Methods';
-        return view('Template::user.payment.deposit1', compact('gatewayCurrency', 'pageTitle'));
-    }
+    
 
     public function depositInsert(Request $request)
     {
