@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Services\MatrixPlacementService;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use App\Mail\WelcomeMember;
 use App\Mail\WelcomeEmail;
@@ -277,6 +278,104 @@ class CronController extends Controller
             }
          });   
         //dd($count);
+    }
+
+    /**
+     * Dispatch payment processing jobs for all eligible users.
+     * Queues one ProcessPayment job per user — runs in the background so no single
+     * request blocks while payments are computed.
+     *
+     * Artisan command : payments:dispatch
+     * Command file    : app/Console/Commands/DispatchPaymentProcessing.php
+     * Scheduled       : daily at 00:00 via console.php
+     * Route           : GET /paymentsDispatch?token=CRON_SECRET  (name: paymentsDispatch)
+     * cPanel cron     : curl -s "https://yourdomain.com/paymentsDispatch?token=CRON_SECRET"
+     */
+    public function paymentsDispatch()
+    {
+        try {
+            Artisan::call('payments:dispatch');
+            return response('payments:dispatch OK [' . now() . ']', 200);
+        } catch (\Throwable $e) {
+            \Log::error('paymentsDispatch cron failed: ' . $e->getMessage());
+            return response('payments:dispatch FAILED: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Check and process award qualifications for all users.
+     * Evaluates each user's activity / sales metrics against award thresholds
+     * and records any newly earned ranks or awards.
+     *
+     * Artisan command : award:check-qualifications
+     * Command file    : app/Console/Commands/CheckAwardQualifications.php
+     * Scheduled       : daily at 02:00 via console.php
+     * Route           : GET /awardCheck?token=CRON_SECRET  (name: awardCheck)
+     * cPanel cron     : curl -s "https://yourdomain.com/awardCheck?token=CRON_SECRET"
+     */
+    public function awardCheck()
+    {
+        try {
+            Artisan::call('award:check-qualifications');
+            return response('award:check-qualifications OK [' . now() . ']', 200);
+        } catch (\Throwable $e) {
+            \Log::error('awardCheck cron failed: ' . $e->getMessage());
+            return response('award:check-qualifications FAILED: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Retry any ACB (Ambassador Cash Back) upline bonus payouts that were
+     * missed while the queue was down. Processes pending ACB bonus records
+     * and credits the appropriate upline wallets.
+     *
+     * Artisan command : acb:process
+     * Command file    : app/Console/Commands/ProcessAcbBonusCommand.php
+     * Scheduled       : hourly via console.php
+     * Route           : GET /acbProcess?token=CRON_SECRET  (name: acbProcess)
+     * cPanel cron     : curl -s "https://yourdomain.com/acbProcess?token=CRON_SECRET"
+     */
+    public function acbProcess()
+    {
+        try {
+            Artisan::call('acb:process');
+            return response('acb:process OK [' . now() . ']', 200);
+        } catch (\Throwable $e) {
+            \Log::error('acbProcess cron failed: ' . $e->getMessage());
+            return response('acb:process FAILED: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Dump the MySQL database to storage/app/db_bk/ as a gzip-compressed SQL file.
+     * The filename embeds the timestamp so each backup is uniquely identifiable.
+     * Backups older than 30 days are automatically purged to manage disk usage.
+     * The password is never exposed — it is passed to mysqldump via the child
+     * process environment (MYSQL_PWD), keeping it invisible in server process lists.
+     *
+     * Artisan command : db:backup
+     * Command file    : app/Console/Commands/DatabaseBackupCommand.php
+     * Backup location : storage/app/db_bk/db_backup_YYYY-MM-DD_HH-II-SS.sql.gz
+     * Scheduled       : daily at 03:00 via console.php
+     * Route           : GET /dbBackup?token=CRON_SECRET  (name: dbBackup)
+     * cPanel cron     : curl -s "https://yourdomain.com/dbBackup?token=CRON_SECRET"
+     */
+    public function dbBackup()
+    {
+        try {
+            $exitCode = Artisan::call('db:backup');
+            $output   = trim(Artisan::output());
+
+            if ($exitCode == 0) {
+                return response('db:backup OK — ' . $output . ' [' . now() . ']', 200);
+            }
+
+            \Log::error('dbBackup cron — command exited with code ' . $exitCode . ': ' . $output);
+            return response('db:backup FAILED: ' . $output, 500);
+        } catch (\Throwable $e) {
+            \Log::error('dbBackup cron exception: ' . $e->getMessage());
+            return response('db:backup FAILED: ' . $e->getMessage(), 500);
+        }
     }
 
     private function matchingBound()

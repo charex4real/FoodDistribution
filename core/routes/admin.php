@@ -156,6 +156,7 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::post('matching-bonus/update', 'matchingUpdate')->name('matching-bonus.update');
         //User Pin 
         Route::post('buy-shares/{id}', 'buySharesForUser')->name('buy.shares');
+        Route::post('ambassador/{id}', 'toggleAmbassador')->name('ambassador.toggle');
 
         Route::get('generate/pin/{id}', 'generatePin')->name('generate.pin');
         Route::get('used/pin/{id}', 'usedPin')->name('used.pin');

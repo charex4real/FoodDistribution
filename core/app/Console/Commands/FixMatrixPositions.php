@@ -21,7 +21,7 @@ class FixMatrixPositions extends Command
                        ->where('parent_id', '>', 0)
                        ->count();
 
-        if ($total === 0) {
+        if ($total == 0) {
             $this->info('Nothing to fix — all positions are already set.');
             return 0;
         }

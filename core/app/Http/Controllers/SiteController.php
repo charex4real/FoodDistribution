@@ -376,9 +376,9 @@ class SiteController extends Controller
 
         $mat = Matrix::where('parent_id', $parentId)->first();
         $a = $b = '';
-        if ($request->position === 'left' && $mat->left === 0)
+        if ($request->position == 'left' && $mat->left == 0)
             $a = 'Left';
-        if ($request->position === 'right' && $mat->right === 0)
+        if ($request->position == 'right' && $mat->right == 0)
             $b = 'Right';
 
         return response()->json(['success' => true, 'msg' => "<span class='help-block'><strong class='text-success'>Position " . e($a) . "  -  " . e($b) . " </strong></span>"]);

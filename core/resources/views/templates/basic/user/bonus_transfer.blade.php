@@ -47,8 +47,9 @@
             $isLocked  = $isPairing && !$hasPurchasedThisMonth;
             $hasBalance = $balance > 0;
         @endphp
+        @if(!$hasBalance) @continue @endif
 
-        <div class="bt-row {{ $isLocked ? 'bt-row--locked' : '' }} {{ !$hasBalance ? 'bt-row--zero' : '' }}">
+        <div class="bt-row {{ $isLocked ? 'bt-row--locked' : '' }}">
             {{-- Icon --}}
             <div class="bt-row-icon {{ $isPairing ? 'bt-row-icon--pairing' : '' }}">
                 <i class="{{ $cfg['icon'] }}"></i>
@@ -77,7 +78,7 @@
                     <button type="button" class="bt-btn-check" onclick="openPairingCheck()">
                         <i class="las la-shield-alt"></i> Check
                     </button>
-                @elseif($hasBalance)
+                @else
                     <button type="button" class="bt-btn-transfer"
                         data-field="{{ $field }}"
                         data-label="{{ e($cfg['label']) }}"
@@ -85,8 +86,6 @@
                         onclick="handleTransferClick(this)">
                         Transfer
                     </button>
-                @else
-                    <span class="bt-no-balance">—</span>
                 @endif
             </div>
         </div>

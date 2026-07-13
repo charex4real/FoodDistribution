@@ -134,7 +134,7 @@ class AdminLoanController extends Controller
         DB::transaction(function () use ($id, &$error, &$reference) {
             $loan = Loan::lockForUpdate()->find($id);
 
-            if (!$loan || $loan->status !== 'pending') {
+            if (!$loan || $loan->status != 'pending') {
                 $error = 'Loan not found or is no longer pending.';
                 return;
             }
@@ -146,7 +146,7 @@ class AdminLoanController extends Controller
                 return;
             }
 
-            if ($user->kv !== Status::KYC_VERIFIED) {
+            if ($user->kv != Status::KYC_VERIFIED) {
                 $error = 'User KYC is not verified. Complete KYC verification before approving this loan.';
                 return;
             }
@@ -158,7 +158,7 @@ class AdminLoanController extends Controller
             $loan->approved_at  = now();
             $loan->disbursed_at = now();
             $loan->approved_by  = auth('admin')->id();
-            $loan->next_due_date = ($loan->tenure_unit === 'week')
+            $loan->next_due_date = ($loan->tenure_unit == 'week')
                 ? now()->addWeek()->toDateString()
                 : now()->addMonth()->toDateString();
             $loan->save();
@@ -193,7 +193,7 @@ class AdminLoanController extends Controller
         $updated = DB::transaction(function () use ($request, $id) {
             $loan = Loan::lockForUpdate()->find($id);
 
-            if (!$loan || $loan->status !== 'pending') {
+            if (!$loan || $loan->status != 'pending') {
                 return false;
             }
 

@@ -1,7 +1,7 @@
 <?php
  
 use Illuminate\Support\Facades\Route;
-
+ 
  
 Route::middleware('cron.secret')->group(function () {
     Route::get('cron', 'CronController@cron')->name('cron');
@@ -11,6 +11,16 @@ Route::middleware('cron.secret')->group(function () {
     // reconnect users to children in previous stages
     Route::get('recStart/{stage}', 'CronController@recFire')->name('recStart');
     Route::get('recon/{stage}', 'CronController@reconnectImmediate')->name('reconnectImme');
+    // reconnect all downlines in a stage (active + inactive)
+    Route::get('reconAll/{stage}', 'CronController@reconnectAll')->name('reconAll');
+    // dispatch payment processing jobs for all eligible users
+    Route::get('paymentsDispatch', 'CronController@paymentsDispatch')->name('paymentsDispatch');
+    // check and process award qualifications
+    Route::get('awardCheck', 'CronController@awardCheck')->name('awardCheck');
+    // retry missed ACB upline bonus payouts
+    Route::get('acbProcess', 'CronController@acbProcess')->name('acbProcess');
+    // dump database to storage/app/db_bk/ as a timestamped gzip-compressed SQL file
+    Route::get('dbBackup', 'CronController@dbBackup')->name('dbBackup');
 });
 
 

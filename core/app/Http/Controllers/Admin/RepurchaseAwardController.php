@@ -10,6 +10,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessAcbBonusJob;
 
 class RepurchaseAwardController extends Controller
 {
@@ -111,15 +112,18 @@ class RepurchaseAwardController extends Controller
             return back()->withNotify($notify);
         }
 
-        DB::transaction(function () use ($award, $user, $awardId) {
+        $credit = null;
+
+        DB::transaction(function () use ($award, $user, $awardId, &$credit) {
             $user->increment('repurchase_award', $award->amount);
 
-            RepurchaseAwardCredit::create([
+            $credit = RepurchaseAwardCredit::create([
                 'user_id'              => $user->id,
                 'repurchase_award_id'  => $awardId,
                 'amount'               => $award->amount,
                 'paid_by'              => auth('admin')->id(),
                 'paid_at'              => now(),
+                'acb_processed'        => false,
             ]);
 
             $trx               = new Transaction();
@@ -133,6 +137,11 @@ class RepurchaseAwardController extends Controller
             $trx->post_balance = $user->repurchase_award;
             $trx->save();
         });
+
+        // Dispatch ACB upline bonus processing after the transaction commits
+        if ($credit) {
+            ProcessAcbBonusJob::dispatch($credit->id);
+        }
 
         $notify[] = ['success', '₦' . number_format($award->amount, 2) . ' credited to ' . $user->fullname . ' for "' . $award->title . '"'];
         return back()->withNotify($notify);

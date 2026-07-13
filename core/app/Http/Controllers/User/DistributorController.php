@@ -236,6 +236,9 @@ class DistributorController extends Controller
             $txn->trx         = $trx;
             $txn->save();
 
+            $newUser->keyed_in_by = $sponsor->id;
+            $newUser->save();
+
             $details = 'direct bonus gotten from username: '.$newUser->username;
             directBonus($newUser, $details);
 
@@ -244,6 +247,21 @@ class DistributorController extends Controller
 
             // Cash back credited to the new user's product_wallet after visa deduction is settled
             processCashBack($newUser, (float) $project->amount, $project->title . ' subscription');
+
+            // Key-In Bonus: 2% of registration fee to the sponsor who keyed in the registration
+            $keyInBonus = round($cost * 0.02, 2);
+            if ($keyInBonus > 0) {
+                $sponsor->increment('key_in_bonus', $keyInBonus);
+                $sponsor->refresh();
+                balance_TransactionReturn(
+                    $sponsor->id,
+                    'Key-in bonus: registered ' . $newUser->username,
+                    $keyInBonus,
+                    'key_in_bonus',
+                    $trx,
+                    $sponsor->key_in_bonus
+                );
+            }
 
 
 

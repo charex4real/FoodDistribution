@@ -9,7 +9,7 @@
 
 
 (function(e) {
-    if (typeof define === "function" && define.amd) {
+    if (typeof define == "function" && define.amd) {
         define([ "jquery" ], e);
     } else {
         e(jQuery);
@@ -27,7 +27,7 @@
         }
         function t(e) {
             var a = e[0];
-            if (a.nodeType === 9) {
+            if (a.nodeType == 9) {
                 return {
                     width: e.width(),
                     height: e.height(),

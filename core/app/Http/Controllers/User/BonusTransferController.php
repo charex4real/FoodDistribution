@@ -22,6 +22,8 @@ class BonusTransferController extends Controller
         'awards'         => ['label' => 'Awards',          'icon' => 'las la-trophy',          'color' => '#F97316', 'bg' => 'linear-gradient(135deg,#F97316,#EA580C)'],
         'pairing_bonus'      => ['label' => 'Pairing Bonus',      'icon' => 'las la-code-branch', 'color' => '#EC4899', 'bg' => 'linear-gradient(135deg,#EC4899,#BE185D)', 'requires_purchase' => true],
         'repurchase_award'   => ['label' => 'Repurchase Award',   'icon' => 'las la-medal',       'color' => '#0D9488', 'bg' => 'linear-gradient(135deg,#0D9488,#0F766E)'],
+        'key_in_bonus'       => ['label' => 'Key-In Bonus',       'icon' => 'las la-keyboard',    'color' => '#7C3AED', 'bg' => 'linear-gradient(135deg,#7C3AED,#5B21B6)'],
+        'acb'                => ['label' => 'ACB Bonus',           'icon' => 'las la-star',        'color' => '#DC2626', 'bg' => 'linear-gradient(135deg,#DC2626,#991B1B)'],
     ];
 
     public function index()

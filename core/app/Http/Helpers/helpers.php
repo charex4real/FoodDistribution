@@ -85,6 +85,22 @@ function returnReferrerUser($user_id)
     return false;    
 }
 
+
+function checkIfUserIsInMatrix($user_id){
+   
+   $check =  Matrix::where('user_id', auth()->id())->where('is_active', 1)->first();
+   
+        return $check;
+}
+
+function checkIfUserIsInMatrix_new($user_id, $stage_id){
+    
+   $check =  Matrix::where('user_id', $user_id)->where('stage_id', $stage_id)->first();
+   
+        return $check;
+}
+
+
 // return stockist
 
 function getStockistId($user_id){
@@ -1599,13 +1615,6 @@ function stockistPurchase($user_id, $amount, $post_balance, $details, $remark, $
 
 }
 
-
-
-
-
-
-
-
 function referralComission($user_id, $details)
 {
     $user  = User::find($user_id);
@@ -1998,48 +2007,42 @@ function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_ma
     }
  }
 
- function updatePV(User $user,  $details){
+ function updatePV(User $user, $details){
 
-
-        /* . So our job here it to track all parent upline and credit them thier PV while noting the position of their child placement so we dont credit the wrong position 
-            */
-
-        $pv = $user->project->pv;
+        $pv     = $user->project->pv;
         $user_m = Matrix::where('stage_id', 1)->where('user_id', $user->id)->first();
+
+        // User has no stage-1 matrix record — nothing to propagate
+        if (!$user_m || !$user_m->parent_id) {
+            return;
+        }
+
         $user_child = $user->id;
+        $user_id    = $user_m->parent_id;
 
-
-        // passing the parent ID in the matrix to the $user_id thats the loop to run.
-        $user_id = $user_m->parent_id;
-
-
-        while($user_id != "" || $user_id != "0"){
+        while ($user_id) {
 
             $user_matrix = Matrix::where('stage_id', 1)->where('user_id', $user_id)->first();
 
-            if ($user_matrix) {
-                $pvLog->user_id = $user_matrix->user_id;
-                if ($user_matrix->left == $user_child) {
-                    $user_matrix->pv_left          += $pv;
-                    $user_matrix->pv_left_pairing  += $pv;
-                    $position                = 1;
-                } else {
-                    $user_matrix->pv_right          += $pv;
-                    $user_matrix->pv_right_pairing  += $pv;
-                    $position  = 2;
-                }
-                $user_matrix->save();
-                pvLog($user_matrix->user_id, $pv, $position, '+', $details);
-
-                //$position = $user_matrix->position;
-                $user_child = $user_matrix->user_id;
-                $user_id = $user_matrix->parent_id;
-
-
-            }else {
-
+            if (!$user_matrix) {
                 break;
             }
+
+            if ($user_matrix->left == $user_child) {
+                $user_matrix->pv_left         += $pv;
+                $user_matrix->pv_left_pairing += $pv;
+                $position = 1;
+            } else {
+                $user_matrix->pv_right         += $pv;
+                $user_matrix->pv_right_pairing += $pv;
+                $position = 2;
+            }
+            $user_matrix->save();
+
+            pvLog($user_matrix->user_id, $pv, $position, '+', $details);
+
+            $user_child = $user_matrix->user_id;
+            $user_id    = $user_matrix->parent_id;
         }
 
 }
@@ -2324,20 +2327,6 @@ function sanitizeInput($vars) {
     
 }
 
-
-function checkIfUserIsInMatrix($user_id){
-   
-   $check =  Matrix::where('user_id', auth()->id())->where('is_active', 1)->first();
-   
-        return $check;
-}
-
-function checkIfUserIsInMatrix_new($user_id, $stage_id){
-    
-   $check =  Matrix::where('user_id', $user_id)->where('stage_id', $stage_id)->first();
-   
-        return $check;
-}
 
 
 function retrunUserIDcard($user_id){

@@ -850,7 +850,7 @@ class ManageUsersController extends Controller
 
         $transaction = new Transaction();
 
-        if ($request->act === 'add') {
+        if ($request->act == 'add') {
             $user->product_wallet  += $amount;
             $transaction->trx_type  = '+';
             $transaction->remark    = 'product_wallet_add';
@@ -1208,6 +1208,17 @@ class ManageUsersController extends Controller
 
         $notify[] = ['success', 'Matching bonus has been updated.'];
         return back()->withNotify($notify);
+    }
+
+    public function toggleAmbassador(int $id)
+    {
+        $user = User::findOrFail($id);
+        $user->ambassador = !$user->ambassador;
+        $user->save();
+
+        $status  = $user->ambassador ? 'tagged as Ambassador' : 'removed from Ambassador status';
+        $notify[] = ['success', $user->fullname . ' has been ' . $status . '.'];
+        return to_route('admin.users.detail', $user->id)->withNotify($notify);
     }
 }
 

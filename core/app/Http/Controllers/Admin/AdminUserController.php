@@ -99,7 +99,7 @@ class AdminUserController extends Controller
     public function edit(Admin $admin)
     {
         $pageTitle = 'Edit Admin ';
-        if ($admin->id === Auth::guard('admin')->id()) {
+        if ($admin->id == Auth::guard('admin')->id()) {
             return redirect()->route('admin.admins.index')
                 ->with('error', 'You cannot edit your own account here.');
         }
@@ -112,7 +112,7 @@ class AdminUserController extends Controller
 
     public function update(Request $request, Admin $admin)
     {
-        if ($admin->id === Auth::guard('admin')->id()) {
+        if ($admin->id == Auth::guard('admin')->id()) {
             return redirect()->route('admin.admins.index')
                 ->with('error', 'You cannot edit your own account here.');
         }
@@ -136,7 +136,7 @@ class AdminUserController extends Controller
             'roles.*' => 'exists:roles,id'
             
         ]);
-            ///dd($request);
+        //dd($request);
 
         try {
             DB::beginTransaction();
@@ -181,7 +181,7 @@ class AdminUserController extends Controller
 
     public function update1(Request $request, Admin $user)
     {
-        if ($user->id === Auth::guard('admin')->id()) {
+        if ($user->id == Auth::guard('admin')->id()) {
             return redirect()->route('admin.users.index')
                 ->with('error', 'You cannot edit your own account here.');
         }
@@ -230,7 +230,7 @@ class AdminUserController extends Controller
 
     public function destroy(Admin $admin)
     {
-        if ($admin->id === Auth::guard('admin')->id()) {
+        if ($admin->id == Auth::guard('admin')->id()) {
             return redirect()->route('admin.users.index')
                 ->with('error', 'You cannot delete your own account.');
         }
@@ -243,7 +243,7 @@ class AdminUserController extends Controller
 
     public function toggleStatus(Admin $user)
     {
-        if ($user->id === Auth::guard('admin')->id()) {
+        if ($user->id == Auth::guard('admin')->id()) {
             return redirect()->route('admin.users.index')
                 ->with('error', 'You cannot change your own account status.');
         }

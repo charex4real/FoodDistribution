@@ -1,19 +1,39 @@
 @extends('admin.layouts.app')
 
 @section('panel')
-    @if($user->profile_complete == 0 && $user->section == 2)
-        <div class="row"> 
-            <div class="col-12">
-                <div class="d-flex mt-4 flex-wrap gap-3">
-                    <div class="flex-fill">
-                        <button class="btn btn--danger btn--shadow w-100 btn-lg sz-btn" data-bs-toggle="modal" data-bs-target="#activateAccount" data-act="Promote To Stockist">
-                            <i class="las la-plus-circle"></i> @lang('Activate user Account')
+    {{-- ── Ambassador + Activate row ─────────────────────────────────────── --}}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex mt-4 flex-wrap align-items-center gap-3">
+
+                {{-- Ambassador status badge + toggle --}}
+                <form action="{{ route('admin.users.ambassador.toggle', $user->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    @if($user->ambassador)
+                        <button type="submit" class="btn btn-sm btn--warning btn--shadow"
+                            onclick="return confirm('Remove Ambassador status from {{ addslashes($user->fullname) }}?')"
+                            style="font-size:.8rem;padding:6px 16px;">
+                            <i class="las la-star"></i> Ambassador
+                            <span class="badge bg-white text-warning ms-1" style="font-size:.65rem;">Active · Click to remove</span>
                         </button>
-                    </div>
-                </div>
+                    @else
+                        <button type="submit" class="btn btn-sm btn--outline--warning btn--shadow"
+                            onclick="return confirm('Tag {{ addslashes($user->fullname) }} as Ambassador?')"
+                            style="font-size:.8rem;padding:6px 16px;">
+                            <i class="las la-star"></i> Tag as Ambassador
+                        </button>
+                    @endif
+                </form>
+
+                @if($user->profile_complete == 0 && $user->section == 2)
+                    <button class="btn btn--danger btn--shadow btn-lg sz-btn"
+                        data-bs-toggle="modal" data-bs-target="#activateAccount" data-act="Promote To Stockist">
+                        <i class="las la-plus-circle"></i> @lang('Activate user Account')
+                    </button>
+                @endif
             </div>
         </div>
-    @endif
+    </div>
     
     <div class="row"> 
         <div class="col-12">
@@ -86,6 +106,15 @@
                 </div>
                 <div class="col-xxl-3 col-lg-4 col-sm-6">
                     <x-widget type="2" value="{{ showAmount($user->pairing_bonus ?? 0) }}" title="Pairing Bonus (Lifetime)" style="7" link="#" icon="las la-balance-scale" bg="6" />
+                </div>
+                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                    <x-widget type="2" value="{{ showAmount($user->repurchase_award ?? 0) }}" title="Repurchase Award Wallet" style="7" link="#" icon="las la-medal" bg="14" />
+                </div>
+                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                    <x-widget type="2" value="{{ showAmount($user->key_in_bonus ?? 0) }}" title="Key-In Bonus (Lifetime)" style="7" link="#" icon="las la-keyboard" bg="17" />
+                </div>
+                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                    <x-widget type="2" value="{{ showAmount($user->acb ?? 0) }}" title="ACB Bonus (Achievers Celebrated)" style="7" link="#" icon="las la-star" bg="2" />
                 </div>
 
                 {{-- ── Binary Tree PV ── --}}

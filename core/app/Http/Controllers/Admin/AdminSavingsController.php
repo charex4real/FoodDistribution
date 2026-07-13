@@ -38,7 +38,7 @@ class AdminSavingsController extends Controller
             'is_active'       => 'nullable|boolean',
         ]);
 
-        $duration = $request->type === 'fixed' ? $request->duration_months : null;
+        $duration = $request->type == 'fixed' ? $request->duration_months : null;
 
         $exists = SavingsSetting::where('type', $request->type)
                     ->where('duration_months', $duration)
@@ -124,7 +124,7 @@ class AdminSavingsController extends Controller
     {
         $saving = SavingsProduct::with('user')->findOrFail($id);
 
-        if ($saving->status === 'closed') {
+        if ($saving->status == 'closed') {
             return response()->json(['status' => 'error', 'message' => 'This savings product is already closed.'], 422);
         }
 
@@ -172,7 +172,7 @@ class AdminSavingsController extends Controller
 
         $cycle = $id ? FarmCycle::findOrFail($id) : new FarmCycle();
         // Prevent editing a matured cycle's status
-        if ($id && $cycle->status === 'matured') {
+        if ($id && $cycle->status == 'matured') {
             $notify[] = ['error', 'Matured cycles cannot be edited.'];
             return back()->withNotify($notify);
         }
@@ -192,7 +192,7 @@ class AdminSavingsController extends Controller
     {
         $cycle = FarmCycle::findOrFail($id);
 
-        if ($cycle->status !== 'open') {
+        if ($cycle->status != 'open') {
             $notify[] = ['error', 'Only open cycles can be closed.'];
             return back()->withNotify($notify);
         }
@@ -217,7 +217,7 @@ class AdminSavingsController extends Controller
             // Lock the row so concurrent admin clicks cannot both dispatch the job
             $cycle = FarmCycle::lockForUpdate()->findOrFail($id);
 
-            if ($cycle->status !== 'closed') {
+            if ($cycle->status != 'closed') {
                 $error = 'Only closed cycles can be matured. Close the cycle first.';
                 return;
             }

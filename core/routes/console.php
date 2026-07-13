@@ -21,3 +21,17 @@ Schedule::command('award:check-qualifications')
     ->withoutOverlapping()
     ->runInBackground()
     ->appendOutputTo(storage_path('logs/award-check.log'));
+
+// Retry any ACB upline bonuses that were missed while the queue was down
+Schedule::command('acb:process')
+    ->hourly()
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/acb-process.log'));
+
+// Full database backup — gzip-compressed, timestamped, auto-purges after 30 days
+Schedule::command('db:backup')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/db-backup.log'));
