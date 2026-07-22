@@ -36,35 +36,7 @@ class RegisterController extends Controller
         parent::__construct();
         $this->matrixPlacementService = $matrixPlacementService;
     }
-    public function showRegistrationForm1(Request $request)
-    {
-        $pageTitle = "Register"; 
-         $refUser = null; 
-        if ($request->ref) {
-            $refUser = User::where('username', $request->ref)->first();
-            if ($refUser == null) {
-                $notify[] = ['error', 'Invalid Referral link.'];
-                return redirect()->route('home')->withNotify($notify);
-            }
-
-            $refUser = User::where('username', $request->ref)->where('status', Status::USER_ACTIVE)->first();
-
-            if ($refUser == null) {
-                $notify[] = ['error', 'Your Referral is not active. pls contact  Admin or your Referral'];
-                return redirect()->route('land')->withNotify($notify);
-            }
-            
-        } 
-
-
-        $info       = json_decode(json_encode(getIpInfo()), true);
-        $mobileCode = @implode(',', $info['code']);
-        $countries  = json_decode(file_get_contents(resource_path('views/partials/country.json')));
-
-
-        Intended::identifyRoute();
-        return view('Template::user.auth.signup', compact('pageTitle', 'refUser',  'countries', 'mobileCode'));
-    }
+    
 
     public function showRegistrationForm(Request $request)
     {
@@ -180,6 +152,21 @@ class RegisterController extends Controller
            
                 $notify[] = ['error', 'No special character or space  in username.'];
                     return back()->withNotify($notify)->withInput($request->all());
+            }
+
+
+            // check is the palcement username is your downline as Binary matrix does not allow board crossing.
+            $referBy = User::where('username', $request->referBy)->first();
+
+            //checkDownline_new(Matrix $sponsor_matrix, Matrix $user_placement_matrix)
+            if ($request->parent && $referBy) {
+                $parent = User::where('username', $request->parent)->first();
+                if ($parent) {
+                    if(!checkDownline($referBy->id,  $parent->id)){
+                        $notify[] = ['error', 'Parent must be under Sponsor tree. No Tree crossing'];
+                        return back()->withNotify($notify)->withInput($request->all());
+                    }
+                }
             }
         }
 
@@ -374,108 +361,6 @@ class RegisterController extends Controller
         $this->guard()->login($user);
         return to_route('user.home');
 
-        //return $this->registered($request, $user) ?: redirect($this->redirectPath());
-    }
-
-    public function register2(Request $request)
-    {
-
-        $this->validator($request->all())->validate();
-        $general = gs();
-        $trx = getTrx(20);
-
-        if (preg_match("/[^A-Za-z0-9_]/", trim($request->username))) {
-            $notify[] = ['info', 'Username can contain only Big/small letters, numbers and underscore.'];
-            $notify[] = ['error', 'No special character or space.'];
-            return back()->withNotify($notify)->withInput($request->all());
-        }
-
-          
-
-            if ($request->referBy) {
-                // code...
-                if (preg_match("/[^a-zA-Z0-9_]/", $request->referBy)) {
-           
-                    $notify[] = ['error', 'No special character or space  in username.'];
-                    return back()->withNotify($notify)->withInput($request->all());
-                }
-            }
-
-
-        
-
-        if (!gs('registration')) {
-            return back();
-        }
-
-        $request->session()->regenerateToken();
-
-        if (!verifyCaptcha()) {
-            $notify[] = ['error', 'Invalid captcha provided'];
-            return back()->withNotify($notify);
-        }
-
-        if(!$request->referBy){
-            $us = 1;
-            
-        }else{
-            $userCheck = User::where('username', $request->referBy)->first();
-            //$pos = getPosition($userCheck->id, $data['position']);
-            if($userCheck){
-                $us = $userCheck->id;
-            }else{
-                $notify[] = ['error', 'The Referral is not in the system. CODE: CD105'];
-                return back()->withNotify($notify)->withInput($request->all());
-            }
-           
-        }
-        //dd($request);
-        DB::beginTransaction();
-
-        try {
-            $user  = new User();
-            // checking if parent exist
-
-                 $parent_id = 0; //set parent ID
-                //User Create
-                $user->country_code = $request->country_code;
-                $user->mobile       = $request->mobile;
-                $user->address      = $request->address;
-                $user->city         = $request->city;
-                $user->state        = $request->state;
-                $user->country_name = @$request->country;
-                $user->dial_code    = $request->mobile_code;
-                $user->section      = 2;
-
-                $user->trx          =    $trx;
-                $user->username     = $request->username;
-                $user->ref_by       = $us;
-                $user->pos_id       = 1;
-                $user->email     = $request->email;
-                $user->firstname = $request->firstname; 
-                $user->lastname  =  $request->lastname;
-                // $user->pin  = $data['activation_pin'];
-                $user->password  = Hash::make($request->password);
-                $user->kv = Status::NO;
-                $user->ev = Status::YES;
-                $user->sv = Status::YES;
-                $user->ts = Status::DISABLE;
-                $user->status = Status::ACTIVE;
-                $user->tv = Status::ENABLE;
-                //$user->profile_complete = Status::YES;
-                $user->save();
-
-
-                DB::commit();
-            } catch (\Throwable $e) {
-                DB::rollBack();
-                //throw $e;
-                $notify[] = ['error', 'Please refresh your browser and try again'];
-                return back()->withNotify($notify)->withInput($request->all());
-            }
-          // dd('i am here');
-        $this->guard()->login($user);
-        return to_route('user.home');
         //return $this->registered($request, $user) ?: redirect($this->redirectPath());
     }
 

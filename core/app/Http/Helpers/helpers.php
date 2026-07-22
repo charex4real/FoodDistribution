@@ -1744,7 +1744,6 @@ function purchaseCommision($user_ID, $details, $bonus, $trxx){
             $user->balance          += $bonus;
             $user->save();
 
-            
             $transaction               = new Transaction();
             $transaction->user_id      = $user->id;
             $transaction->amount       = $bonus;
@@ -2225,13 +2224,16 @@ function updateProductPV(User $user, Product $product, $quantity, $details){
 
  function pvLog($user_id, $pv, $position, $trx_type, $details){
     
-    $pvLog  = new PvLog();
-    $pvLog->user_id = $user_id;
-    $pvLog->position = (int)$position;
-    $pvLog->amount   = $pv;
-    $pvLog->trx_type = $trx_type;
-    $pvLog->details  = $details;
-    $pvLog->save();
+    $user = User::where('id', $user_id)->where('project_id', '>', 0)->first();
+    if ($user) {
+        $pvLog  = new PvLog();
+        $pvLog->user_id = $user_id;
+        $pvLog->position = (int)$position;
+        $pvLog->amount   = $pv;
+        $pvLog->trx_type = $trx_type;
+        $pvLog->details  = $details;
+        $pvLog->save();
+    }
  }
 
 //direct bonus during registration

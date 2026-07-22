@@ -15,7 +15,7 @@ Route::namespace('User\Auth')->name('user.')->middleware(['guest', 'XssSanitizer
         Route::get('signup', 'showRegistrationForm')->name('register1');
         // Route::get('signup', 'showRegistrationForm1')->name('register1');
         Route::post('register', 'register');
-        Route::post('register2', 'register2')->name('register2');
+        //Route::post('register2', 'register2')->name('register2');
         Route::post('check-user', 'checkUser')->name('checkUser')->withoutMiddleware('guest');
     }); 
 

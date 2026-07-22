@@ -133,7 +133,7 @@ class DistributorController extends Controller
             $referrerId = $refUser->id;
         }
 
-        // check is the palcement username is your downline as Binary matrix does not all board crossing.
+        // check is the palcement username is your downline as Binary matrix does not allow board crossing.
 
         //checkDownline_new(Matrix $sponsor_matrix, Matrix $user_placement_matrix)
         if ($request->filled('parent')) {
@@ -142,13 +142,13 @@ class DistributorController extends Controller
             if ($parent) {
                 
                 if(!checkDownline($sponsor->id,  $parent->id)){
-                    $notify[] = ['error', 'Parent is not on the Sponsor tree.'];
+                    $notify[] = ['error', 'Parent must be under Sponsor tree. No Tree crossing'];
                     return back()->withNotify($notify)->withInput($request->all());
                 }
             }
         }
 
-        dd(checkDownline($sponsor->id,  $parent->id));
+        //dd(checkDownline($sponsor->id,  $parent->id));
  
         DB::beginTransaction();
         try {
@@ -303,6 +303,7 @@ class DistributorController extends Controller
                 );
             }
 
+            
             // Admin notification
             $adminNotification            = new AdminNotification();
             $adminNotification->user_id   = $newUser->id;
@@ -313,11 +314,11 @@ class DistributorController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            //$notify[] = ['error', 'Something went wrong. Please try again.'];
-            throw $e;
+            $notify[] = ['error', 'Something went wrong. Please try again.'];
+            //throw $e;
             $notify[] = ['error', 'Error: ' . $e];
             return back()->withNotify($notify)->withInput($request->except('password', 'password_confirmation'));
-            //return back()->withNotify($notify)->withInput($request->except('password', 'password_confirmation'));
+            
         }
 
         $notify[] = ['success', 'Distributor ' . $newUser->username . ' registered successfully! ' . gs('cur_sym') . showAmount($cost, currencyFormat: false) . ' debited from your VISA wallet.'];
