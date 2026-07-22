@@ -378,6 +378,27 @@ class CronController extends Controller
         }
     }
 
+    /**
+     * Dispatch matching-bonus jobs for all eligible user matrices.
+     *
+     * Artisan command : matching:dispatch
+     * Command file    : app/Console/Commands/DispatchMatchingBonusCommand.php
+     * Scheduled       : daily at 01:30 via console.php
+     * Route           : GET /matchingDispatch?token=CRON_SECRET  (name: matchingDispatch)
+     * cPanel cron     : curl -s "https://yourdomain.com/matchingDispatch?token=CRON_SECRET"
+     */
+    public function matchingDispatch()
+    {
+        try { 
+            Artisan::call('matching:dispatch');
+            $output = trim(Artisan::output());
+            return response('matching:dispatch OK — ' . $output . ' [' . now() . ']', 200);
+        } catch (\Throwable $e) {
+            \Log::error('matchingDispatch cron failed: ' . $e->getMessage());
+            return response('matching:dispatch FAILED: ' . $e->getMessage(), 500);
+        }
+    }
+
     private function matchingBound()
     { 
         $generalSetting = gs();
@@ -418,7 +439,7 @@ class CronController extends Controller
                 $bonus = $pair * $generalSetting->bv_price;
 
                 $payment = User::find($uex->user_id);
-                $payment->balance += $bonus;
+                $payment->matching_bonus += $bonus;
                 $payment->save();
 
                 $user = $payment;
@@ -428,17 +449,17 @@ class CronController extends Controller
                 $trx->amount = $bonus;
                 $trx->charge = 0;
                 $trx->trx_type = '+';
-                $trx->post_balance = $payment->balance;
-                $trx->remark = 'binary_commission';
+                $trx->post_balance = $payment->matching_bonus;
+                $trx->remark = 'matching_bonus';
                 $trx->trx = getTrx();
                 $trx->details = 'Paid ' . showAmount($bonus) . ' For ' . $pair * $generalSetting->total_bv . ' BV.';
                 $trx->save();
 
                 notify($user, 'MATCHING_BONUS', [
-                    'amount' => showAmount($bonus,currencyFormat:false),
-                    'paid_bv' => $pair * $generalSetting->total_bv,
-                    'post_balance' => showAmount($payment->balance,currencyFormat:false),
-                    'trx' =>  $trx->trx,
+                    'amount'       => showAmount($bonus, currencyFormat: false),
+                    'paid_bv'      => $pair * $generalSetting->total_bv,
+                    'post_balance' => showAmount($payment->matching_bonus, currencyFormat: false),
+                    'trx'          => $trx->trx,
                 ]);
 
                 $paidbv = $pair * $generalSetting->total_bv;

@@ -653,6 +653,67 @@ body { background: #F2F5F8 !important; }
     .bk-mlm-card:nth-child(odd):not(:last-child) { border-bottom: 1px solid #F3F4F6; }
 }
 
+/* ── ACB strip (dashboard, ACT members only) ──────────────── */
+.bk-acb-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);
+    border-radius: 0 0 14px 14px;
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: filter .2s;
+    flex-wrap: wrap;
+}
+.bk-acb-strip:hover { filter: brightness(1.06); }
+.bk-acb-strip-left { display: flex; align-items: center; gap: 12px; }
+.bk-acb-icon {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: #fde68a;
+    flex-shrink: 0;
+}
+.bk-acb-label { font-size: .82rem; font-weight: 700; color: #fff; margin: 0 0 2px; }
+.bk-acb-sub   { font-size: .68rem; color: rgba(255,255,255,.65); margin: 0; }
+.bk-acb-balance { text-align: right; }
+.bk-acb-val { display: block; font-size: 1.1rem; font-weight: 800; color: #fde68a; line-height: 1; }
+.bk-acb-cta { font-size: .68rem; color: rgba(255,255,255,.7); margin-top: 4px; display: block; }
+.bk-acb-cta i { font-size: .65rem; }
+
+/* ── Autoship strip (dashboard, shown when balance > 0) ─────── */
+.bk-autoship-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: linear-gradient(135deg, #0e4f5e 0%, #0891b2 100%);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: filter .2s;
+    flex-wrap: wrap;
+}
+.bk-autoship-strip:hover { filter: brightness(1.07); }
+.bk-autoship-left { display: flex; align-items: center; gap: 12px; }
+.bk-autoship-icon {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: #a5f3fc;
+    flex-shrink: 0;
+}
+.bk-autoship-label { font-size: .82rem; font-weight: 700; color: #fff; margin: 0 0 2px; }
+.bk-autoship-sub   { font-size: .68rem; color: rgba(255,255,255,.6); margin: 0; }
+.bk-autoship-right { text-align: right; }
+.bk-autoship-val { display: block; font-size: 1.1rem; font-weight: 800; color: #a5f3fc; line-height: 1; }
+.bk-autoship-cta { font-size: .68rem; color: rgba(255,255,255,.7); margin-top: 4px; display: block; }
+.bk-autoship-cta i { font-size: .65rem; }
+
 /* ── PV Left / Right progress bars ───────────────────────── */
 .bk-pv-row {
     border-top: 1px solid #F3F4F6;

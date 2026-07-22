@@ -21,8 +21,10 @@ Route::middleware('cron.secret')->group(function () {
     Route::get('acbProcess', 'CronController@acbProcess')->name('acbProcess');
     // dump database to storage/app/db_bk/ as a timestamped gzip-compressed SQL file
     Route::get('dbBackup', 'CronController@dbBackup')->name('dbBackup');
+    // dispatch matching-bonus jobs for all eligible user matrices
+    Route::get('matchingDispatch', 'CronController@matchingDispatch')->name('matchingDispatch');
 });
-
+ 
 
 // User Support Ticket
 

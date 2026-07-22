@@ -15,7 +15,10 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Builder;
+use App\Contracts\MatchingBonusServiceInterface;
+use App\Services\MatchingBonusService;
 use App\Services\MatrixPlacementService;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -25,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Builder::mixin(new Searchable);
         $this->app->bind(MatrixPlacementService::class, MatrixPlacementService::class);
+
+        // Bind the matching-bonus interface to its concrete implementation.
+        // Swap the concrete class here to change behaviour without touching any caller.
+        $this->app->bind(MatchingBonusServiceInterface::class, MatchingBonusService::class);
     }
 
     /**
@@ -97,7 +104,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        if (gs('force_ssl')) {
+        if (gs('force_ssl') && str_starts_with(config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
 

@@ -298,12 +298,47 @@
         <div class="bk-mlm-card">
             <div class="bk-mlm-icon" style="background:#EF444420;color:#EF4444;"><i class="las la-balance-scale"></i></div>
             <div class="bk-mlm-info">
-                <p class="bk-mlm-val">{{ showAmount($user->pairing_bonus ?? 0) }}</p>
-                <p class="bk-mlm-lbl">Pairing Bonus</p>
+                <p class="bk-mlm-val">{{ showAmount($user->matching_bonus ?? 0) }}</p>
+                <p class="bk-mlm-lbl">Matching Bonus</p>
                 <p class="bk-mlm-sub">Lifetime earned</p>
             </div>
         </div>
     </div>
+
+    {{-- ACB card — only for ACB members --}}
+    @if($user->isAcb())
+    <a href="{{ route('user.acb') }}" class="bk-acb-strip" style="text-decoration:none;">
+        <div class="bk-acb-strip-left">
+            <span class="bk-acb-icon"><i class="las la-star"></i></span>
+            <div>
+                <p class="bk-acb-label">Achievers Celebrated Bonus</p>
+                <p class="bk-acb-sub">ACB Member · Earns 5%/2%/1% from downline awards</p>
+            </div>
+        </div>
+        <div class="bk-acb-balance">
+            <span class="bk-acb-val">{{ showAmount($user->acb ?? 0) }}</span>
+            <span class="bk-acb-cta">View History <i class="las la-arrow-right"></i></span>
+        </div>
+    </a>
+    @endif
+
+    {{-- Autoship card — visible only when there is a balance to action --}}
+    @php $autoshipBal = (float)($user->autoship ?? 0); @endphp
+    @if($autoshipBal > 0)
+    <a href="{{ route('user.bonus.transfer.index') }}" class="bk-autoship-strip" style="text-decoration:none;">
+        <div class="bk-autoship-left">
+            <span class="bk-autoship-icon"><i class="las la-sync-alt"></i></span>
+            <div>
+                <p class="bk-autoship-label">Autoship Balance</p>
+                <p class="bk-autoship-sub">20% of Matching Bonus · Buy a product this month to transfer</p>
+            </div>
+        </div>
+        <div class="bk-autoship-right">
+            <span class="bk-autoship-val">{{ showAmount($autoshipBal) }}</span>
+            <span class="bk-autoship-cta">Transfer <i class="las la-arrow-right"></i></span>
+        </div>
+    </a>
+    @endif
 
     {{-- PV Left / Right row --}}
     @if($userMatrix)

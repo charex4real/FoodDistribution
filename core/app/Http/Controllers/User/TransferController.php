@@ -57,9 +57,9 @@ class TransferController extends Controller
             
             'direct' => 'Direct Bonus',
             'indirect' => 'Indirect Bonus',
-            'pairing_bonus' => 'Pairing Bonus',
+            'matching_bonus' => 'Matching Bonus',
             'upgrade_bonus' => 'Upgrade Bonus',
-        ]; 
+        ];
 
         $sourceLabel = $fieldLabels[$sourceField] ?? $sourceField;
         
@@ -114,8 +114,8 @@ class TransferController extends Controller
         //dd($request);
         $fieldLabels = [
             
-            'pv_left_pairing' => 'PV left pairing bonus',
-            'pv_right_pairing' => 'PV right pairing bonus',
+            'pv_left_pairing' => 'PV left matching bonus',
+            'pv_right_pairing' => 'PV right matching bonus',
         ];
 
         $sourceLabel = $fieldLabels[$sourceField] ?? $sourceField;
@@ -154,7 +154,7 @@ class TransferController extends Controller
     public function transferAll(Request $request)
     {
         $request->validate([
-            'source_field' => 'required|in:stockist_rebate,unilevel_bonus,direct,indirect,pairing_bonus,upgrade_bonus'
+            'source_field' => 'required|in:stockist_rebate,unilevel_bonus,direct,indirect,matching_bonus,upgrade_bonus'
         ]);
 
         $user = auth()->user();
@@ -190,7 +190,7 @@ class TransferController extends Controller
                 'unilevel_bonus' => 'Unilevel Bonus',
                 'direct' => 'Direct Bonus',
                 'indirect' => 'Indirect Bonus',
-                'pairing_bonus' => 'Pairing Bonus',
+                'matching_bonus' => 'Matching Bonus',
                 'upgrade_bonus' => 'Upgrade Bonus',
             ];
 

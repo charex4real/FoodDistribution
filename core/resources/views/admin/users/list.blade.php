@@ -3,6 +3,25 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
+                <div class="card-header">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-9">
+                            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by name, email, username" value="{{ request('search') }}">
+                        </div>
+                        <div class="col-md-2">
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="">All Status</option>
+                                <option value="1" @selected(request('status') == 1)>Active</option>
+                                <option value="0" @selected(request('status') == 0)>Banned</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="las la-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
                 <div class="card-body p-0">
                     <div class="table-responsive--md  table-responsive">
                         <table class="table table--light style--two">
@@ -85,8 +104,6 @@
 
     </div>
 @endsection
-
-
 
 @push('breadcrumb-plugins')
     <x-search-form placeholder="Username / Email" />

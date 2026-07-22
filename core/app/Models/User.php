@@ -216,7 +216,16 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'ref_by');
     }
-    //
+
+    public function acbUser()
+    {
+        return $this->hasOne(AcbUser::class);
+    }
+
+    public function isAcb(): bool
+    {
+        return $this->acbUser()->exists();
+    }
 
     public function parent()
     {

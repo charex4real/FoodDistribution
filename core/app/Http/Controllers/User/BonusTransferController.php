@@ -20,10 +20,11 @@ class BonusTransferController extends Controller
         'upgrade_bonus'  => ['label' => 'Upgrade Bonus',  'icon' => 'las la-arrow-circle-up', 'color' => '#F59E0B', 'bg' => 'linear-gradient(135deg,#F59E0B,#D97706)'],
         'unilevel_bonus' => ['label' => 'Unilevel Bonus', 'icon' => 'las la-layer-group',     'color' => '#10B981', 'bg' => 'linear-gradient(135deg,#10B981,#059669)'],
         'awards'         => ['label' => 'Awards',          'icon' => 'las la-trophy',          'color' => '#F97316', 'bg' => 'linear-gradient(135deg,#F97316,#EA580C)'],
-        'pairing_bonus'      => ['label' => 'Pairing Bonus',      'icon' => 'las la-code-branch', 'color' => '#EC4899', 'bg' => 'linear-gradient(135deg,#EC4899,#BE185D)', 'requires_purchase' => true],
+        'matching_bonus'     => ['label' => 'Matching Bonus',     'icon' => 'las la-code-branch', 'color' => '#EC4899', 'bg' => 'linear-gradient(135deg,#EC4899,#BE185D)', 'requires_purchase' => true],
+        'autoship'           => ['label' => 'Autoship',           'icon' => 'las la-sync-alt',     'color' => '#0891B2', 'bg' => 'linear-gradient(135deg,#0891B2,#0E7490)',  'requires_purchase' => true, 'is_autoship' => true],
         'repurchase_award'   => ['label' => 'Repurchase Award',   'icon' => 'las la-medal',       'color' => '#0D9488', 'bg' => 'linear-gradient(135deg,#0D9488,#0F766E)'],
         'key_in_bonus'       => ['label' => 'Key-In Bonus',       'icon' => 'las la-keyboard',    'color' => '#7C3AED', 'bg' => 'linear-gradient(135deg,#7C3AED,#5B21B6)'],
-        'acb'                => ['label' => 'ACB Bonus',           'icon' => 'las la-star',        'color' => '#DC2626', 'bg' => 'linear-gradient(135deg,#DC2626,#991B1B)'],
+        'acb'                => ['label' => 'ACB Bonus',           'icon' => 'las la-star',        'color' => '#DC2626', 'bg' => 'linear-gradient(135deg,#DC2626,#991B1B)', 'requires_acb' => true],
     ];
 
     public function index()
@@ -32,11 +33,12 @@ class BonusTransferController extends Controller
         $user                  = $this->authUser();
         $hasPurchasedThisMonth = $this->hasMonthlyPurchase($user->id);
         $transfers             = Transfer::where('user_id', $user->id)->latest()->paginate(15);
-        $bonusFields           = $this->bonusFields;
+        $isAcb                 = $user->isAcb();
+        $bonusFields           = $this->visibleFields($isAcb);
         $totalTransferable     = $this->computeTotalTransferable($user, $hasPurchasedThisMonth);
 
         return view('Template::user.bonus_transfer', compact(
-            'pageTitle', 'user', 'bonusFields', 'hasPurchasedThisMonth', 'transfers', 'totalTransferable'
+            'pageTitle', 'user', 'bonusFields', 'hasPurchasedThisMonth', 'transfers', 'totalTransferable', 'isAcb'
         ));
     }
 
@@ -60,7 +62,7 @@ class BonusTransferController extends Controller
         }
 
         if (!empty($config['requires_purchase']) && !$this->hasMonthlyPurchase($user->id)) {
-            $notify[] = ['error', 'You need at least one purchase this month to transfer your Pairing Bonus.'];
+            $notify[] = ['error', 'You need at least one purchase this month to transfer your Matching Bonus.'];
             return back()->withNotify($notify);
         }
 
@@ -111,6 +113,7 @@ class BonusTransferController extends Controller
         }
 
         $hasPurchase = $this->hasMonthlyPurchase($user->id);
+        $isAcb       = $user->isAcb();
 
         // Collect eligible transfers before opening the DB transaction
         $eligible = [];
@@ -120,6 +123,9 @@ class BonusTransferController extends Controller
                 continue;
             }
             if (!empty($config['requires_purchase']) && !$hasPurchase) {
+                continue;
+            }
+            if (!empty($config['requires_acb']) && !$isAcb) {
                 continue;
             }
             $eligible[] = ['field' => $field, 'config' => $config, 'amount' => $amount];
@@ -198,8 +204,8 @@ class BonusTransferController extends Controller
             'eligible' => $has,
             'month'    => $month,
             'message'  => $has
-                ? "You have a qualifying purchase in {$month}. You can transfer your Pairing Bonus."
-                : "No qualifying purchase found for {$month}. Make at least one purchase this month to unlock Pairing Bonus transfer.",
+                ? "You have a qualifying purchase in {$month}. You can transfer your Matching Bonus."
+                : "No qualifying purchase found for {$month}. Make at least one purchase this month to unlock Matching Bonus transfer.",
             'order'    => $order ? [
                 'invoice' => $order->invoice_code,
                 'amount'  => getAmount($order->total_amount),
@@ -225,13 +231,25 @@ class BonusTransferController extends Controller
 
     private function computeTotalTransferable(User $user, bool $hasPurchase): float
     {
+        $isAcb = $user->isAcb();
         $total = 0.0;
         foreach ($this->bonusFields as $field => $config) {
             if (!empty($config['requires_purchase']) && !$hasPurchase) {
                 continue;
             }
+            if (!empty($config['requires_acb']) && !$isAcb) {
+                continue;
+            }
             $total += (float) ($user->$field ?? 0);
         }
         return $total;
+    }
+
+    private function visibleFields(bool $isAcb): array
+    {
+        return array_filter(
+            $this->bonusFields,
+            fn($cfg) => !(!$isAcb && !empty($cfg['requires_acb']))
+        );
     }
 }

@@ -156,7 +156,7 @@ class RegisterController extends Controller
             $notify[] = ['error', 'No special character or space.'];
             return back()->withNotify($notify)->withInput($request->all());
         }
-        
+         
         if($request->parent){
             
                 if (preg_match("/[^a-zA-Z0-9_]/", $request->parent)) {
@@ -267,8 +267,8 @@ class RegisterController extends Controller
                     // $user->pin  = $data['activation_pin'];
                     $user->password  = Hash::make($request->password);
                     $user->kv = Status::NO;
-                    $user->ev = Status::NO;
-                    $user->sv = Status::NO;
+                    $user->ev = Status::YES;
+                    $user->sv = Status::YES;
                     $user->ts = Status::DISABLE;
                     $user->tv = Status::ENABLE;
                     $user->project_id = $request->project_id ?: null;
@@ -336,8 +336,8 @@ class RegisterController extends Controller
                 //$user->ev = gs('ev') ? Status::NO : Status::YES;
                 //$user->sv = gs('sv') ? Status::NO : Status::YES;
                 $user->kv = Status::NO;
-                $user->ev = Status::NO;
-                $user->sv = Status::NO;
+                $user->ev = Status::YES;
+                $user->sv = Status::YES;
                 $user->ts = Status::DISABLE;
                 $user->status = Status::ACTIVE;
                 $user->tv = Status::ENABLE;
@@ -457,8 +457,8 @@ class RegisterController extends Controller
                 // $user->pin  = $data['activation_pin'];
                 $user->password  = Hash::make($request->password);
                 $user->kv = Status::NO;
-                    $user->ev = Status::NO;
-                    $user->sv = Status::NO;
+                $user->ev = Status::YES;
+                $user->sv = Status::YES;
                 $user->ts = Status::DISABLE;
                 $user->status = Status::ACTIVE;
                 $user->tv = Status::ENABLE;
@@ -547,8 +547,8 @@ class RegisterController extends Controller
         // $user->pin  = $data['activation_pin'];
         $user->password  = Hash::make($data['password']);
         $user->kv = Status::NO;
-        $user->ev = Status::NO;
-        $user->sv = Status::NO;
+        $user->ev = Status::YES;
+        $user->sv = Status::YES;
         $user->ts = Status::DISABLE;
         $user->tv = Status::ENABLE;
         $user->profile_complete = Status::YES;

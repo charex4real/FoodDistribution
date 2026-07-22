@@ -26,6 +26,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN useradd -u $uid -ms /bin/bash -g www-data $user
+RUN docker-php-ext-install bcmath
 
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 

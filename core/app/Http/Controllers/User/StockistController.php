@@ -400,7 +400,9 @@ class StockistController extends Controller
                     }
 
                     if ($quantity > 0) {
+
                         $product = Product::find($productId);
+
                         if (!$product) {
                             throw new \Exception("Product not found: {$productId}");
                         }
@@ -414,6 +416,7 @@ class StockistController extends Controller
                         
                         
                         $state_id = (int)$stockist->state_id; 
+                        
                         $product_state_price = ProductStatePrice::where('state_id', $state_id)->where('product_id', $product->id)->first();
                         
                         if (!$product_state_price) {
@@ -455,6 +458,14 @@ class StockistController extends Controller
                         //app(UnilevelService::class)->process($invoice, $user_dist, $product, $quantity, $trx);
                         
                         $this->unilevelService->process($invoice, $user_dist, $product, $quantity, $trx);
+
+                        // this is to distribute the pv up to the user upline through the parent route. So the product pv
+
+
+                        $dess = $user_dist->username . ' Purchase ' . $product->name;
+                        //dd($product);
+
+                        updateProductPV($user_dist, $product, $quantity, $dess);
 
                         // 5.) Record product PV for repurchase award tracking
                         $this->recordRepurchasePv($user_dist, $product, $quantity);
@@ -507,7 +518,7 @@ class StockistController extends Controller
             }
 
             DB::commit();
-
+ 
             return response()->json([
                 'success' => true,
                 'message' => 'Redemption processed successfully',
@@ -517,6 +528,7 @@ class StockistController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            throw $e;
              //DD($e->getMessage());
             return response()->json([
                 'success' => false,
@@ -546,6 +558,7 @@ class StockistController extends Controller
         $record = RepurchasePv::lockForUpdate()->firstOrNew(['user_id' => $user->id]);
         $record->total_pv = round((float)($record->total_pv ?? 0) + $pvEarned, 2);
         $record->save();
+
     }
 
     protected function stateLeaderCommission(Invoice $invoice, Product $product, $quantity, $trx): void

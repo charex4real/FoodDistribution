@@ -189,7 +189,7 @@
                                     <option value="{{ $project->id }}"
                                         data-amount="{{ $project->amount }}"
                                         @selected(old('project_id') == $project->id)>
-                                        {{ $project->title }} &mdash; {{ gs('cur_sym') }}{{ showAmount($project->amount) }}
+                                        {{ $project->title }} &mdash; {{ showAmount($project->amount) }}
                                     </option>
                                     @endforeach
                                 </select>

@@ -42,16 +42,23 @@
     <div class="bt-list">
         @foreach($bonusFields as $field => $cfg)
         @php
-            $balance   = (float) ($user->$field ?? 0);
-            $isPairing = !empty($cfg['requires_purchase']);
-            $isLocked  = $isPairing && !$hasPurchasedThisMonth;
-            $hasBalance = $balance > 0;
+            $balance         = (float) ($user->$field ?? 0);
+            $isPairing       = !empty($cfg['requires_purchase']);
+            $isLocked        = $isPairing && !$hasPurchasedThisMonth;
+            $isAcbField      = !empty($cfg['requires_acb']);
+            $isAutoshipField = !empty($cfg['is_autoship']);
+            $hasBalance      = $balance > 0;
+            // ACB members always see ACB row at zero; autoship and others only when balance > 0
+            if (!$hasBalance && !($isAcbField && ($isAcb ?? false))) continue;
         @endphp
-        @if(!$hasBalance) @continue @endif
 
-        <div class="bt-row {{ $isLocked ? 'bt-row--locked' : '' }}">
+        <div class="bt-row {{ $isLocked ? 'bt-row--locked' : '' }} {{ ($isAcbField && !$hasBalance) ? 'bt-row--zero' : '' }}">
             {{-- Icon --}}
-            <div class="bt-row-icon {{ $isPairing ? 'bt-row-icon--pairing' : '' }}">
+            <div class="bt-row-icon {{ ($isPairing && !$isAutoshipField) ? 'bt-row-icon--pairing' : '' }}"
+                 style="
+                    {{ $isAcbField      ? 'background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff;' : '' }}
+                    {{ $isAutoshipField ? 'background:linear-gradient(135deg,#0891B2,#0E7490);color:#fff;' : '' }}
+                 ">
                 <i class="{{ $cfg['icon'] }}"></i>
             </div>
 
@@ -59,17 +66,37 @@
             <div class="bt-row-info">
                 <span class="bt-row-name">
                     {{ $cfg['label'] }}
-                    @if($isPairing)
+                    @if($isPairing && !$isAutoshipField)
                         @if($hasPurchasedThisMonth)
                             <span class="bt-pill bt-pill--green"><i class="las la-check"></i> Eligible</span>
                         @else
                             <span class="bt-pill bt-pill--amber"><i class="las la-lock"></i> Purchase Required</span>
                         @endif
                     @endif
+                    @if($isAutoshipField)
+                        @if($hasPurchasedThisMonth)
+                            <span class="bt-pill" style="background:#cffafe;color:#0e7490;border:1px solid #a5f3fc;font-size:.65rem;"><i class="las la-check"></i> Unlocked</span>
+                        @else
+                            <span class="bt-pill bt-pill--amber"><i class="las la-lock"></i> Purchase Required</span>
+                        @endif
+                    @endif
+                    @if($isAcbField)
+                        <span class="bt-pill" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;font-size:.65rem;"><i class="las la-star"></i> ACB Member</span>
+                    @endif
                 </span>
                 <span class="bt-row-amount {{ !$hasBalance ? 'bt-row-amount--zero' : '' }}">
                     {{ showAmount($balance) }}
                 </span>
+                @if($isAutoshipField)
+                <span style="font-size:.7rem;color:#6b7280;display:block;margin-top:.2rem;line-height:1.4;">
+                    20% of Matching Bonus held here
+                    @if(!$hasPurchasedThisMonth)
+                        — <span style="color:#d97706;font-weight:600;">buy a product this month to transfer</span>
+                    @else
+                        — <span style="color:#059669;font-weight:600;">ready to transfer</span>
+                    @endif
+                </span>
+                @endif
             </div>
 
             {{-- Action --}}
@@ -77,6 +104,10 @@
                 @if($isLocked)
                     <button type="button" class="bt-btn-check" onclick="openPairingCheck()">
                         <i class="las la-shield-alt"></i> Check
+                    </button>
+                @elseif($isAcbField && !$hasBalance)
+                    <button type="button" class="bt-btn-transfer" disabled style="opacity:.4;cursor:not-allowed;">
+                        No Balance
                     </button>
                 @else
                     <button type="button" class="bt-btn-transfer"
@@ -96,7 +127,7 @@
     <div class="bt-card-foot">
         <i class="las la-info-circle"></i>
         All bonuses transfer directly into your Money Box (main wallet balance).
-        Pairing Bonus requires at least one product purchase per calendar month.
+        Matching Bonus requires at least one product purchase per calendar month.
     </div>
 </div>
 
@@ -221,10 +252,10 @@
                     </div>
                 </div>
 
-                @if(!$hasPurchasedThisMonth && ($user->pairing_bonus ?? 0) > 0)
+                @if(!$hasPurchasedThisMonth && ($user->matching_bonus ?? 0) > 0)
                 <div class="bt-notice">
                     <i class="las la-exclamation-triangle"></i>
-                    Pairing Bonus is excluded — make a purchase this month to include it.
+                    Matching Bonus is excluded — make a purchase this month to include it.
                 </div>
                 @endif
 
@@ -267,7 +298,7 @@
                 <i class="las la-code-branch"></i>
             </div>
             <div class="bt-modal-head-text">
-                <h3 class="bt-modal-title">Pairing Bonus</h3>
+                <h3 class="bt-modal-title">Matching Bonus</h3>
                 <p class="bt-modal-desc">Checking this month's purchase activity</p>
             </div>
             <button class="bt-modal-x" onclick="closePairingModal()">&times;</button>
@@ -299,9 +330,9 @@
 
                 <form action="{{ route('user.bonus.transfer.submit') }}" method="POST" id="pairingTransferForm">
                     @csrf
-                    <input type="hidden" name="bonus_field" value="pairing_bonus">
+                    <input type="hidden" name="bonus_field" value="matching_bonus">
                     <input type="hidden" name="amount" id="pairingAmountInput"
-                           value="{{ number_format($user->pairing_bonus ?? 0, 2, '.', '') }}">
+                           value="{{ number_format($user->matching_bonus ?? 0, 2, '.', '') }}">
                     <input type="hidden" name="password" id="pairingPasswordHidden">
                 </form>
             </div>
@@ -313,7 +344,7 @@
                 <p class="bt-state-msg" id="pairingErrMsg"></p>
                 <div class="bt-notice bt-notice--info">
                     <i class="las la-info-circle"></i>
-                    The Pairing Bonus relies on the binary network being active. A monthly purchase keeps it running for all members.
+                    The Matching Bonus relies on the binary network being active. A monthly purchase keeps it running for all members.
                 </div>
             </div>
         </div>
@@ -1084,7 +1115,7 @@ function openPairingCheck() {
                 { key: 'Month', val: data.month },
                 data.order ? { key: 'Invoice', val: data.order.invoice } : null,
                 data.order ? { key: 'Purchase Date', val: data.order.date } : null,
-                { key: 'Pairing Balance', val: '{{ showAmount($user->pairing_bonus ?? 0) }}' }
+                { key: 'Matching Balance', val: '{{ showAmount($user->matching_bonus ?? 0) }}' }
             ];
             rows.filter(Boolean).forEach(function(r) {
                 det.innerHTML += '<div class="bt-summary-row">' +
@@ -1149,7 +1180,7 @@ function formatNum(n) {
         var field  = el.dataset.field;
         var amount = parseFloat(el.dataset.amount) || 0;
         var label  = labelMap[field] || field;
-        if (field === 'pairing_bonus') {
+        if (field === 'matching_bonus') {
             openPairingCheck();
         } else if (field) {
             openTransferModal(field, label, amount);

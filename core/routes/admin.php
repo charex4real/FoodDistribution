@@ -601,6 +601,21 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::post('/{awardId}/credit/{userId}',  'creditUser')->name('credit');
     });
 
+    // ACT (Achievers Celebrated Bonus) member management
+    Route::controller(\App\Http\Controllers\Admin\AdminAcbController::class)->prefix('acb')->name('acb.')->group(function () {
+        Route::get('/',                   'index')->name('index');
+        Route::post('/store',             'store')->name('store');
+        Route::delete('/{acbUser}',       'destroy')->name('destroy');
+    });
+
+    // Autoship sweep — unclaimed month-end balances
+    Route::controller(\App\Http\Controllers\Admin\AdminAutoshipController::class)->prefix('autoship')->name('autoship.')->group(function () {
+        Route::get('/', 'index')->name('index');
+    });
+
+    // PV Logs
+    Route::get('pv-logs', [\App\Http\Controllers\Admin\AdminPvLogController::class, 'index'])->name('pv-logs.index');
+
     // Award Management
     Route::controller(\App\Http\Controllers\Admin\AwardController::class)->prefix('awards')->name('awards.')->group(function () {
         Route::get('/',                'index')->name('index');

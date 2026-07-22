@@ -6,6 +6,7 @@ use App\Models\Award;
 use App\Models\Matrix;
 use App\Models\UserAward;
 use App\Models\User;
+use App\Jobs\ProcessAwardAcbJob;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -102,12 +103,15 @@ class CheckUserAwardJob implements ShouldQueue
             }
 
             // e. All checks pass — create the user award
-            UserAward::create([
+            $userAward = UserAward::create([
                 'user_id'   => $this->userId,
                 'award_id'  => $award->id,
                 'status'    => 0,
                 'earned_at' => now(),
             ]);
+
+            // Dispatch ACB for uplines enrolled in acb_users
+            ProcessAwardAcbJob::dispatch($userAward->id);
 
             // Add to earned list so subsequent awards can chain
             $earnedAwardIds[] = $award->id;

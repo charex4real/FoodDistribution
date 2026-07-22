@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
  * Achievers Celebrated Bonus (ACB) processor.
  *
  * When a member receives a repurchase award, this job walks up to 3 generations
- * of their upline (via ref_by). Each upline that is tagged as an ambassador
+ * of their upline (via ref_by). Each upline enrolled in the acb_users table
  * receives a share of the award amount:
  *   Gen 1 → 5%   Gen 2 → 2%   Gen 3 → 1%
  *
@@ -65,7 +65,7 @@ class ProcessAcbBonusJob implements ShouldQueue
                     break;
                 }
 
-                if ($upline->ambassador) {
+                if ($upline->isAcb()) {
                     $bonus = round($awardAmount * $pct, 2);
                     $upline->increment('acb', $bonus);
                     $upline->refresh();

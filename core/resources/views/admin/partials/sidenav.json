@@ -186,13 +186,13 @@
         ]
     },
     "plan": {
-        "title": "Manage Project",
+        "title": "Manage Investment",
         "icon": "las la-paper-plane",
         "counters": [],
         "menu_active": "admin.plan*",
         "submenu": [{
-                "keyword": ["All Projects","Recharge","Flexi load","Active stockist","Inactive stockist"],
-                "title": "All Project",
+                "keyword": ["All Investment","Investment","Flexi load","project"],
+                "title": "All Investment",
                 "route_name": "admin.plan.index",
                 "menu_active": "admin.plan.index"
             }
@@ -464,6 +464,24 @@
                 "route_name": "admin.users.kyc.pending",
                 "menu_active": "admin.users.kyc.pending",
                 "counter": "kycPendingUsersCount"
+            },
+            {
+                "keyword": ["ACB Members", "ACB", "Achievers Celebrated Bonus", "Ambassador"],
+                "title": "ACB Members",
+                "route_name": "admin.acb.index",
+                "menu_active": "admin.acb*"
+            },
+            {
+                "keyword": ["Autoship", "Autoship Balances", "Autoship Gained", "Autoship Lost", "Autoship Sweep", "Matching Hold", "Month End"],
+                "title": "Autoship",
+                "route_name": "admin.autoship.index",
+                "menu_active": "admin.autoship*"
+            },
+            {
+                "keyword": ["PV Log", "PV Logs", "Point Volume", "Binary PV", "Left PV", "Right PV", "PV History", "Pairing Volume"],
+                "title": "PV Log",
+                "route_name": "admin.pv-logs.index",
+                "menu_active": "admin.pv-logs*"
             }
         ]
     },

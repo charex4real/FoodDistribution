@@ -52,7 +52,9 @@
                     <li><i class="las la-receipt"></i> You will receive an invoice code after payment</li>
                     <li><i class="las la-store"></i> Present the code at any authorised stockist to redeem</li>
                     <li><i class="las la-clock"></i> Please do not share code with members</li>
-                    <li><i class="las la-undo"></i> Refunds are processed within 7 business days</li>
+                    <!--
+                    <li><i class="las la-undo"></i> Refunds are processed within 7 business days</li> 
+                    -->
                 </ul>
             </div>
         </div>

@@ -10,10 +10,10 @@
                             <thead>
                                 <tr>
                                     <th>@lang('User')</th>
-                                    <th>@lang('invoice_code')</th>
-                                    <th>@lang('Price')</th>
-                                    <th>@lang('Total Price')</th>
-                                    <th>@lang('Quantity')</th>
+                                    <th>@lang('Invoice')</th>
+                                    <th>@lang('Items')</th>
+                                    <th>@lang('Total')</th>
+                                    <th>@lang('Date')</th>
                                     <th>@lang('Status')</th>
                                     <th>@lang('Action')</th>
                                 </tr>
@@ -21,7 +21,6 @@
                             <tbody>
                                 @forelse($orders as $order)
                                     <tr>
-
                                         <td>
                                             <span class="fw-bold">{{ $order->user->fullname }}</span>
                                             <br>
@@ -30,19 +29,29 @@
                                             </span>
                                         </td>
                                         <td>{{ $order->invoice_code }}</td>
-
-                                        <td>{{ showAmount($order->price) }} </td>
-                                        <td>{{ showAmount($order->total_price) }}</td>
-                                        <td>{{ $order->quantity }}</td>
-                                        <td>
-                                            @php echo $order->statusOrderBadge @endphp
-                                        </td>
+                                        <td>{{ $order->items->count() }}</td>
+                                        <td>{{ showAmount($order->total_amount) }}</td>
+                                        <td>{{ showDateTime($order->created_at) }}</td>
+                                        <td>@php echo $order->statusOrderBadge @endphp</td>
                                         <td>
                                             <div class="button--group">
-                                                
-                                                <button class="btn btn-sm btn-outline--success orderDetailsBtn" data-order='@json($order)'
-                                                    data-date="{{ showDateTime($order->created_at) }}" data-status="{{ $order->statusOrderBadge }}"><i
-                                                        class="las la-desktop"></i>@lang('Details')</button>
+                                                <button class="btn btn-sm btn-outline--success orderDetailsBtn"
+                                                    data-id="{{ $order->id }}"
+                                                    data-invoice="{{ $order->invoice_code }}"
+                                                    data-total="{{ showAmount($order->total_amount) }}"
+                                                    data-trx="{{ $order->trx }}"
+                                                    data-date="{{ showDateTime($order->created_at) }}"
+                                                    data-status="{{ $order->statusOrderBadge }}"
+                                                    data-items='@json($order->items->map(fn($i) => ["name" => $i->product->name ?? "—", "qty" => $i->quantity, "price" => showAmount($i->price)]))'>
+                                                    <i class="las la-desktop"></i>@lang('Details')
+                                                </button>
+
+                                                @if($order->status == \App\Constants\Status::ORDER_PENDING)
+                                                <button class="btn btn-sm btn-outline--primary orderStatusBtn"
+                                                    data-action="{{ route('admin.order.status', $order->id) }}">
+                                                    <i class="las la-edit"></i>@lang('Update Status')
+                                                </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -64,8 +73,9 @@
         </div>
     </div>
 
+    {{-- Order Details Modal --}}
     <div class="modal fade" id="orderDetailsModal">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">@lang('Order Details')</h5>
@@ -73,36 +83,69 @@
                         <i class="las la-times"></i>
                     </button>
                 </div>
-
                 <div class="modal-body">
-                    <ul class="list-group list-group-flush">
+                    <ul class="list-group list-group-flush mb-3">
                         <li class="list-group-item d-flex justify-content-between">
-                            <b>@lang('Product')</b> <a class="product" href=""></a>
+                            <b>@lang('Invoice')</b> <span class="detail-invoice"></span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
-                            <b>@lang('Quantity') </b> <span class="quantity"></span>
+                            <b>@lang('Username')</b> <span class="detail-username"></span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
-                            <b>@lang('Price') </b> <span class="price"></span>
+                            <b>@lang('Transaction')</b> <span class="detail-trx"></span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
-                            <b>@lang('Total Price') </b> <span class="total-price"></span>
+                            <b>@lang('Order Date')</b> <span class="detail-date"></span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
-                            <b>@lang('Username')</b> <span class="username"></span>
+                            <b>@lang('Total')</b> <span class="detail-total fw-bold"></span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
-                            <b>@lang('Transition No')</b> <span class="trx"></span>
+                            <b>@lang('Status')</b> <span class="detail-status"></span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <b>@lang('Order Date') </b> <span class="date"></span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <b>@lang('Status') </b> <span class="status"></span>
-                        </li>
-
                     </ul>
+                    <h6 class="mb-2">@lang('Items')</h6>
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>@lang('Product')</th>
+                                <th>@lang('Qty')</th>
+                                <th>@lang('Unit Price')</th>
+                            </tr>
+                        </thead>
+                        <tbody class="detail-items"></tbody>
+                    </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Update Status Modal --}}
+    <div class="modal fade" id="orderStatusModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@lang('Update Order Status')</h5>
+                    <button class="close" data-bs-dismiss="modal" type="button" aria-label="Close">
+                        <i class="las la-times"></i>
+                    </button>
+                </div>
+                <form method="POST" id="orderStatusForm">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>@lang('Status')</label>
+                            <select name="status" class="form-control">
+                                <option value="1">@lang('Shipped')</option>
+                                <option value="2">@lang('Cancel')</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')</button>
+                        <button type="submit" class="btn btn-primary">@lang('Submit')</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -114,34 +157,32 @@
 
 @push('script')
     <script>
-        (function($) {
+        (function ($) {
             "use strict";
 
-            $('.orderBtn').on('click', function() {
-                var modal = $('#orderStatusModal');
-                modal.find('form').attr('action', $(this).data('action'));
+            $('.orderDetailsBtn').on('click', function () {
+                var modal   = $('#orderDetailsModal');
+                var btn     = $(this);
+                var items   = btn.data('items');
+
+                modal.find('.detail-invoice').text(btn.data('invoice'));
+                modal.find('.detail-username').text(btn.closest('tr').find('a').text());
+                modal.find('.detail-trx').text(btn.data('trx'));
+                modal.find('.detail-date').html(btn.data('date'));
+                modal.find('.detail-total').text(btn.data('total'));
+                modal.find('.detail-status').html(btn.data('status'));
+
+                var rows = '';
+                $.each(items, function (i, item) {
+                    rows += '<tr><td>' + item.name + '</td><td>' + item.qty + '</td><td>' + item.price + '</td></tr>';
+                });
+                modal.find('.detail-items').html(rows);
                 modal.modal('show');
             });
 
-            $('.orderDetailsBtn').on('click', function() {
-                var modal = $('#orderDetailsModal');
-                var order = $(this).data('order');
-                var date = $(this).data('date');
-                var status = $(this).data('status');
-                var curSym = `{{ gs('cur_sym') }}`;
-                var price = curSym + parseFloat(order.price).toFixed(2);
-                var totalPrice = curSym + parseFloat(order.total_price).toFixed(2);
-                var url = (`{{ route('admin.product.edit', ':id') }}`).replace(":id", order.product_id);
-                modal.find('.username').text(order.user.username);
-                modal.find('.trx').text(order.trx);
-                modal.find('.product').text(order.product.name);
-                modal.find('.product').attr('href', url);
-                modal.find('.quantity').text(order.quantity);
-                modal.find('.quantity').text(order.quantity);
-                modal.find('.price').text(price);
-                modal.find('.total-price').text(totalPrice);
-                modal.find('.status').html(status);
-                modal.find('.date').html(date);
+            $('.orderStatusBtn').on('click', function () {
+                var modal = $('#orderStatusModal');
+                modal.find('#orderStatusForm').attr('action', $(this).data('action'));
                 modal.modal('show');
             });
         })(jQuery);

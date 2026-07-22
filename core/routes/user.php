@@ -331,6 +331,7 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
                 Route::get('pv-log', 'pvlog')->name('pv.log');
                 Route::get('awards', 'myAwards')->name('awards');
                 Route::get('repurchase-award', 'repurchaseAward')->name('repurchase.award');
+                Route::get('acb', [\App\Http\Controllers\User\AcbController::class, 'index'])->name('acb');
                 Route::get('my-tree', 'myTree')->name('my.tree');
 
                 Route::get('my-stages', 'myTreeStages')->name('my.stages');

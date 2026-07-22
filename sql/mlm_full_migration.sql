@@ -6,7 +6,7 @@
 -- without errors or data loss.
 --
 -- Generated : 2026-07-03
--- Updated   : 2026-07-13
+-- Updated   : 2026-07-18
 -- ============================================================
 -- EXECUTION ORDER
 --   STEP  1 — Create `projects` table
@@ -120,19 +120,28 @@ SET @sql := IF(@col = 0,
     'SELECT ''unilevel_bonus already exists, skipped'' AS info');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- pairing_bonus
+-- matching_bonus (renamed from pairing_bonus)
+-- Rename existing pairing_bonus column if it exists
 SET @col := (SELECT COUNT(*) FROM information_schema.COLUMNS
              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'pairing_bonus');
+SET @sql := IF(@col > 0,
+    'ALTER TABLE `users` RENAME COLUMN `pairing_bonus` TO `matching_bonus`',
+    'SELECT ''pairing_bonus not found, skipping rename'' AS info');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Add matching_bonus if it still does not exist (fresh install)
+SET @col := (SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'matching_bonus');
 SET @sql := IF(@col = 0,
-    'ALTER TABLE `users` ADD COLUMN `pairing_bonus` DECIMAL(15,2) NOT NULL DEFAULT ''0.00'' COMMENT ''Lifetime pairing bonus'' AFTER `unilevel_bonus`',
-    'SELECT ''pairing_bonus already exists, skipped'' AS info');
+    'ALTER TABLE `users` ADD COLUMN `matching_bonus` DECIMAL(15,2) NOT NULL DEFAULT ''0.00'' COMMENT ''Lifetime matching bonus'' AFTER `unilevel_bonus`',
+    'SELECT ''matching_bonus already exists, skipped'' AS info');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- awards  (wallet balance earned from binary PV awards)
 SET @col := (SELECT COUNT(*) FROM information_schema.COLUMNS
              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'awards');
 SET @sql := IF(@col = 0,
-    'ALTER TABLE `users` ADD COLUMN `awards` DECIMAL(15,2) NOT NULL DEFAULT ''0.00'' COMMENT ''Lifetime binary award wallet balance'' AFTER `pairing_bonus`',
+    'ALTER TABLE `users` ADD COLUMN `awards` DECIMAL(15,2) NOT NULL DEFAULT ''0.00'' COMMENT ''Lifetime binary award wallet balance'' AFTER `matching_bonus`',
     'SELECT ''awards already exists, skipped'' AS info');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
@@ -562,32 +571,6 @@ CREATE TABLE IF NOT EXISTS `pv_logs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- ──────────────────────────────────────────────────────────────
--- STEP 17: Create `bv_logs` table
--- Tracks Business Volume (BV) movements — used for matching/pairing
--- bonus calculations. Mirrors pv_logs structure.
--- Used by BvLog model — no dedicated Laravel migration exists;
--- this table was created manually on the live server.
--- ──────────────────────────────────────────────────────────────
-
-CREATE TABLE IF NOT EXISTS `bv_logs` (
-    `id`         BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
-    `user_id`    BIGINT UNSIGNED  NOT NULL,
-    `position`   TINYINT(1)       NOT NULL DEFAULT 0   COMMENT '1=left, 2=right',
-    `amount`     DECIMAL(15,2)    NOT NULL DEFAULT '0.00',
-    `trx_type`   VARCHAR(1)       NOT NULL              COMMENT '+ credit, - debit/flush',
-    `details`    TEXT             DEFAULT NULL,
-    `created_at` TIMESTAMP        NULL DEFAULT NULL,
-    `updated_at` TIMESTAMP        NULL DEFAULT NULL,
-
-    PRIMARY KEY (`id`),
-    KEY `bv_logs_user_id_index`            (`user_id`),
-    KEY `bv_logs_position_trx_type_index`  (`position`, `trx_type`),
-    KEY `bv_logs_user_id_position_index`   (`user_id`, `position`),
-    CONSTRAINT `bv_logs_user_id_foreign`
-        FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 -- ──────────────────────────────────────────────────────────────
 -- Done. Verify with:
@@ -604,4 +587,44 @@ CREATE TABLE IF NOT EXISTS `bv_logs` (
 --   SHOW TABLES LIKE 'awards';
 --   SHOW TABLES LIKE 'transfers';
 --   SHOW TABLES LIKE '%v_logs';
+--   SHOW TABLES LIKE 'matching_bonus_logs';
 -- ──────────────────────────────────────────────────────────────
+
+-- ============================================================
+-- 2026-07-18 : matching_bonus_logs
+-- Records every matching-bonus payout run per user matrix.
+-- ============================================================
+
+SET @tbl := (SELECT COUNT(*) FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'matching_bonus_logs');
+
+SET @sql := IF(@tbl = 0, '
+CREATE TABLE `matching_bonus_logs` (
+  `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`          BIGINT UNSIGNED NOT NULL,
+  `matrix_id`        BIGINT UNSIGNED NOT NULL,
+  `project_id`       BIGINT UNSIGNED NOT NULL,
+  `matches`          INT UNSIGNED    NOT NULL DEFAULT 0 COMMENT ''Number of matches earned in this run'',
+  `pv_per_match`     DECIMAL(15,2)   NOT NULL DEFAULT ''0.00'' COMMENT ''MATCHING_NUMBER at time of processing'',
+  `bonus_per_match`  DECIMAL(15,2)   NOT NULL DEFAULT ''0.00'' COMMENT ''project pairing_per_day at time of processing'',
+  `total_bonus`      DECIMAL(15,2)   NOT NULL DEFAULT ''0.00'' COMMENT ''matches x bonus_per_match'',
+  `pv_left_before`   DECIMAL(15,2)   NOT NULL DEFAULT ''0.00'',
+  `pv_right_before`  DECIMAL(15,2)   NOT NULL DEFAULT ''0.00'',
+  `pv_left_after`    DECIMAL(15,2)   NOT NULL DEFAULT ''0.00'',
+  `pv_right_after`   DECIMAL(15,2)   NOT NULL DEFAULT ''0.00'',
+  `trx`              VARCHAR(40)     NOT NULL DEFAULT '''' COMMENT ''Links to transactions.trx'',
+  `processed_at`     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at`       TIMESTAMP       NULL DEFAULT NULL,
+  `updated_at`       TIMESTAMP       NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `matching_bonus_logs_trx_unique` (`trx`),
+  KEY `mbl_user_date`    (`user_id`, `processed_at`),
+  KEY `mbl_date`         (`processed_at`),
+  CONSTRAINT `mbl_user_fk`    FOREIGN KEY (`user_id`)    REFERENCES `users`    (`id`) ON DELETE CASCADE,
+  CONSTRAINT `mbl_matrix_fk`  FOREIGN KEY (`matrix_id`)  REFERENCES `matrices` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `mbl_project_fk` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT=''Audit log of every matching-bonus payout per user matrix run'';
+', 'SELECT ''matching_bonus_logs already exists, skipped'' AS info');
+
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

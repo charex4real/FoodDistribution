@@ -43,7 +43,7 @@
                         $grpSavings = request()->routeIs(['user.savings*', 'user.loans*']);
                         $grpFinance = request()->routeIs(['user.deposit*', 'user.withdraw*', 'user.transactions', 'user.bonus.transfer*']);
                         $grpTree    = request()->routeIs(['user.my.tree', 'user.my.stages', 'user.binary*', 'user.pv.log']);
-                        $grpAwards  = request()->routeIs(['user.awards', 'user.repurchase.award']);
+                        $grpAwards  = request()->routeIs(['user.awards', 'user.repurchase.award', 'user.acb']);
                         $grpProject = request()->routeIs(['user.project.*']);
                         $grpShop    = request()->routeIs(['product*', 'user.orders*', 'user.stockist*']);
                         $grpAccount = request()->routeIs(['user.notifications', 'user.profile*', 'user.kyc*', 'user.guarantor*', 'user.twofactor']);
@@ -139,6 +139,42 @@
                         </ul>
                     </div>
                     @endif
+                    {{-- ── SHOP ─────────────────────────────────── --}}
+                    <div class="bk-nav-group {{ $grpShop ? 'open' : '' }}">
+                        <button class="bk-nav-group-toggle" type="button">
+                            <span class="bank-nav-icon"><i class="las la-shopping-bag"></i></span>
+                            <span>Shop</span>
+                            <i class="las la-angle-right bk-nav-chevron"></i>
+                        </button>
+                        <ul class="bk-nav-group-body">
+                            <li>
+                                <a href="{{ route('products') }}" class="bank-nav-link {{ menuActive('product*') }}">
+                                    <span class="bank-nav-icon"><i class="las la-store"></i></span>
+                                    <span>Browse Shop</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.orders.index') }}" class="bank-nav-link {{ menuActive('user.orders*') }}">
+                                    <span class="bank-nav-icon"><i class="las la-box"></i></span>
+                                    <span>Orders</span>
+                                </a>
+                            </li>
+                            @if(returnStockist(auth()->id()))
+                            <li>
+                                <a href="{{ route('user.stockist.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.dashboard') }}">
+                                    <span class="bank-nav-icon"><i class="las la-store-alt"></i></span>
+                                    <span>Stockist Dashboard</span>
+                                </a>
+                            </li>
+                            @endif
+                            <li>
+                                <a href="{{ route('user.stockist.find') }}" class="bank-nav-link {{ menuActive('user.stockist.fin') }}">
+                                    <span class="bank-nav-icon"><i class="las la-map-marker"></i></span>
+                                    <span>Find Stockist</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
                     {{-- ── SAVINGS & LOANS ──────────────────────── --}}
                     <div class="bk-nav-group {{ $grpSavings ? 'open' : '' }}">
@@ -232,46 +268,22 @@
                                     <span>Repurchase Award</span>
                                 </a>
                             </li>
+                            @if(auth()->user()->isAcb())
+                            <li>
+                                <a href="{{ route('user.acb') }}" class="bank-nav-link {{ menuActive('user.acb') }}">
+                                    <span class="bank-nav-icon"><i class="las la-star"></i></span>
+                                    <span>ACB Bonus</span>
+                                    @if((float)auth()->user()->acb > 0)
+                                        <span class="bank-nav-badge" style="background:#fef9c3;color:#854d0e;font-size:.6rem;padding:2px 7px;border-radius:20px;font-weight:800;margin-left:auto;">{{ showAmount(auth()->user()->acb) }}</span>
+                                    @endif
+                                </a>
+                            </li>
+                            @endif
                         </ul>
                     </div>
                     @endif
 
-                    {{-- ── SHOP ─────────────────────────────────── --}}
-                    <div class="bk-nav-group {{ $grpShop ? 'open' : '' }}">
-                        <button class="bk-nav-group-toggle" type="button">
-                            <span class="bank-nav-icon"><i class="las la-shopping-bag"></i></span>
-                            <span>Shop</span>
-                            <i class="las la-angle-right bk-nav-chevron"></i>
-                        </button>
-                        <ul class="bk-nav-group-body">
-                            <li>
-                                <a href="{{ route('products') }}" class="bank-nav-link {{ menuActive('product*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-store"></i></span>
-                                    <span>Browse Shop</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.orders.index') }}" class="bank-nav-link {{ menuActive('user.orders*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-box"></i></span>
-                                    <span>Orders</span>
-                                </a>
-                            </li>
-                            @if(returnStockist(auth()->id()))
-                            <li>
-                                <a href="{{ route('user.stockist.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.dashboard') }}">
-                                    <span class="bank-nav-icon"><i class="las la-store-alt"></i></span>
-                                    <span>Stockist Dashboard</span>
-                                </a>
-                            </li>
-                            @endif
-                            <li>
-                                <a href="{{ route('user.stockist.find') }}" class="bank-nav-link {{ menuActive('user.stockist.fin') }}">
-                                    <span class="bank-nav-icon"><i class="las la-map-marker"></i></span>
-                                    <span>Find Stockist</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                    
 
                     {{-- ── ACCOUNT ──────────────────────────────── --}}
                     <div class="bk-nav-group {{ $grpAccount ? 'open' : '' }}">

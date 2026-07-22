@@ -91,37 +91,38 @@
                     <span>{{ showAmount($cart->total_amount, 2) }}</span>
                 </div>
 
-                {{-- Wallet balance --}}
+                {{-- Product Wallet balance --}}
+                @php $productWallet = auth()->user()->product_wallet ?? 0; @endphp
                 <div class="cart-wallet-box">
                     <div class="cart-wallet-row">
-                        <span><i class="las la-wallet"></i> Wallet Balance</span>
-                        <span class="cart-wallet-amt">{{ showAmount(auth()->user()->balance) }}</span>
+                        <span><i class="las la-shopping-bag"></i> Product Wallet</span>
+                        <span class="cart-wallet-amt">{{ showAmount($productWallet) }}</span>
                     </div>
-                    @if(auth()->user()->balance < $cart->total_amount)
+                    @if($productWallet < $cart->total_amount)
                         <div class="cart-wallet-alert warn">
                             <i class="las la-exclamation-triangle"></i>
-                            You need {{ showAmount($cart->total_amount - auth()->user()->balance) }} more
+                            You need {{ showAmount($cart->total_amount - $productWallet) }} more in your Product Wallet
                         </div>
                     @else
                         <div class="cart-wallet-alert ok">
                             <i class="las la-check-circle"></i>
-                            Sufficient balance available
+                            Sufficient Product Wallet balance
                         </div>
                     @endif
                 </div>
 
                 {{-- Checkout --}}
-                @if(auth()->user()->balance >= $cart->total_amount)
+                @if($productWallet >= $cart->total_amount)
                     <a href="{{ route('user.checkout') }}" class="cart-checkout-btn">
                         <i class="las la-lock"></i> Proceed to Checkout
                     </a>
                 @else
                     <button class="cart-checkout-btn disabled" disabled>
-                        <i class="las la-lock"></i> Insufficient Funds
+                        <i class="las la-lock"></i> Insufficient Product Wallet
                     </button>
-                    <a href="{{ route('user.deposit.index') }}" class="cart-topup-btn">
-                        <i class="las la-plus-circle"></i> Top Up Wallet
-                    </a>
+                    <p class="cart-secure-note" style="color:#DC2626;margin-top:.5rem;">
+                        <i class="las la-info-circle"></i> Products are purchased using your Product Wallet only.
+                    </p>
                 @endif
 
                 <p class="cart-secure-note">

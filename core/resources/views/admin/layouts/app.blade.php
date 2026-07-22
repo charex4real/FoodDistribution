@@ -2,24 +2,11 @@
 @section('content')
 @php
     $sidenav = file_get_contents(resource_path('views/admin/partials/sidenav.json'));
-
-    $sidenavs = file_get_contents(resource_path('views/admin/partials/sidenavs.json'));
 @endphp
     <!-- page-wrapper start -->
     <div class="page-wrapper default-version">
  
         @include('admin.partials.sidenav')
-        
-        {{--
-        @if(auth('admin')->user()->hasRole('admin|super-admin'))
-            @include('admin.partials.sidenav')
-        @else
-            @include('admin.partials.sidenavs')
-        @endif
-        --}}
-        
-           
-        
         @include('admin.partials.topnav')
 
         <div class="container-fluid px-3 px-sm-0">

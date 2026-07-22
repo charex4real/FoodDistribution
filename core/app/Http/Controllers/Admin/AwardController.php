@@ -106,7 +106,7 @@ class AwardController extends Controller
 
         return response()->json(['success' => true]);
     }
-
+ 
     public function payments(Request $request)
     {
         $pageTitle = 'Award Payments';

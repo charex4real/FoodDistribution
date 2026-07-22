@@ -25,7 +25,7 @@ class UnilevelService
         }
 
         // Load only active generations allocated to this project, keyed by generation number 
-        $generations = $project->unilevelGen erations()
+        $generations = $project->unilevelGenerations()
             ->where('unilevel_generations.status', true)
             ->get()
             ->keyBy('number');

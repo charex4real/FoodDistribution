@@ -105,7 +105,7 @@
                     <x-widget type="2" value="{{ showAmount($user->unilevel_bonus ?? 0) }}" title="Unilevel Bonus (Lifetime)" style="7" link="#" icon="las la-sitemap" bg="17" />
                 </div>
                 <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <x-widget type="2" value="{{ showAmount($user->pairing_bonus ?? 0) }}" title="Pairing Bonus (Lifetime)" style="7" link="#" icon="las la-balance-scale" bg="6" />
+                    <x-widget type="2" value="{{ showAmount($user->matching_bonus ?? 0) }}" title="Matching Bonus (Lifetime)" style="7" link="#" icon="las la-balance-scale" bg="6" />
                 </div>
                 <div class="col-xxl-3 col-lg-4 col-sm-6">
                     <x-widget type="2" value="{{ showAmount($user->repurchase_award ?? 0) }}" title="Repurchase Award Wallet" style="7" link="#" icon="las la-medal" bg="14" />
@@ -304,10 +304,10 @@
                                 </div>
                                 <ul class="list-group mt-3">
                                     <li class="list-group-item d-flex justify-content-between">
-                                        <span>@lang('Name')</span> {{ __($user->id) }}
+                                        <span>@lang('Project')</span> {{ __($user->project?->title) }}
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between">
-                                        <span>@lang('ID')</span> {{ __($user->fullname) }}
+                                        <span>@lang('Name')</span> {{ __($user->fullname) }}
                                     </li>
                                     <li class="list-group-item rounded-0 d-flex justify-content-between">
                                         <span>@lang('Username')</span> {{ $user->username }}
@@ -997,7 +997,7 @@
 @endsection
 
 @push('breadcrumb-plugins')
-    @if(auth('admin')->user()->hasRole('Owner|super-admin'))
+    @if(auth('admin')->user()->hasRole('super-admin'))
         <a class="btn btn-sm btn-outline--primary" href="{{ route('admin.users.login', $user->id) }}" target="_blank"><i class="las la-sign-in-alt"></i>@lang('Login as User')</a>
     @endif
 @endpush

@@ -10,7 +10,7 @@ use App\Models\BvLog;
 use App\Notify\Notify;
 use App\Models\Matrix;
 use App\Models\Rmatrix;
-
+use App\Models\Product;
 use App\Models\Project;
 use App\Models\Stockist;
 use App\Models\Sorder;
@@ -46,23 +46,32 @@ use App\Models\UserStageProgress;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-function newTransaction(User $user, $details, $remark, $amount, $trx_type = '+', $trx = 'null', $bonus_type = 1, $charge = 0){
+function newTransaction(User $user, $details, $remark, $amount, $trx_type = '+', $trx = 'null', $bonus_type = 1, $charge = 0, $field_post_balance = null){
+
+
+    $field_post_balance = $field_post_balance ?? null;
+
 
     $trx = $trx ?? getTrx(10);
     $transaction               = new Transaction();
     $transaction->user_id      = $user->id;
     $transaction->amount       = $amount;
     $transaction->charge       = $charge;
-    $transaction->trx_type     = '+';
+    $transaction->trx_type     = $trx_type;
     $transaction->details      = $details;
     $transaction->remark       = $remark;
     $transaction->trx          = $trx;
-    $transaction->post_balance = $user->balance;
+    $transaction->post_balance = $user->$field_post_balance;
     $transaction->bonus_type   = $bonus_type;
     $transaction->save();
 }
 
 //
+function rDollar()
+{  
+    return 600;    
+}
+
 function returnTheReferrerUser(User $user)
 {
     if ($user) {
@@ -129,10 +138,9 @@ function productPurchase(User $user, $trxx, $amount){
         $trx->save();
 
         notify($user, 'PROJECT_PURCHASED', [
-            'shopping'         => 'Products purchase',
             'amount'       => showAmount($amount, currencyFormat: false),
             'trx'          => $trxx,
-            'post_balance' => showAmount($user->balance, currencyFormat: false),
+            'post_balance' => showAmount($user->product_wallet, currencyFormat: false),
         ]);
 }
 
@@ -1903,19 +1911,36 @@ function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_ma
             'stage_id' => 1
         ]);
 
+        // get the project the user is subscribe to
 
-
+        $project = $user->project;
         $details = 'direct bonus gotten from username: '.$user->username;
-        // the section process the direct bonus as set by the admin in $project->direct_commission
-        directBonus($user, $details);
+        // the section process the direct bonus as set by the admin in 
+       
 
-        $dets = $user->username . ' Subscribed to ' . $user->project->title . ' Project.';
+        directBonus($user, $details, $project->direct_commission, $user->trx, );
 
+        $user1 = User::find($user->ref_by);
+
+        $inDirect_bonus_details = 'Indirect bonus gotten from username: '.$user->username. ' Subscribing to '.$project->title;
+        $amt = $project->indirect_commission;
+        indirectBonus($user1, $amt, $inDirect_bonus_details, $trx);
+
+        
+
+        $dets = $user->username . ' Subscribed to ' . $user->project->title . ' Project.'; 
         // Next we distribute the PV along the user Tree.
-        updatePV($user, $dets);
+
+        updatePV($user, $dets, $user->project->pv);
 
         // Cash back is credited to product_wallet AFTER payment is confirmed (visa/Paystack settled)
-        processCashBack($user, null, $user->project->title . ' subscription');
+
+        $project = $user->project;
+        $trx = $user->trx;
+        $det_cashback = $project->title . ' subscription cash back';
+
+        processCashBack($user, $project, $trx, $det_cashback);
+
 
         $adminNotification            = new AdminNotification();
         $adminNotification->user_id   = $user->id;
@@ -1969,7 +1994,116 @@ function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_ma
     return to_route('user.home');
 }
 
- function upLinePvOnUpgrade($user, $pvAmount, $details){
+/**
+ * Optimized genealogy check for production at scale (millions of users).
+ * 
+ * Checks if parent_id exists in the downline (descendants) of sponsor_id
+ * using an iterative BFS approach to avoid recursion stack overflow.
+ * 
+ * @param int $sponsor_id      The root user ID to search downline from
+ * @param int $parent_id       The user ID to search for in the downline
+ * @return bool                True if parent_id is in sponsor_id's downline, false otherwise
+ * 
+ * Performance:
+ * - Time: O(n) worst-case (entire tree), O(1) best-case (found immediately)
+ * - Space: O(w) where w = max width of tree (typically 2 for binary matrix)
+ * - DB queries: O(log n) average case with optimal indexing
+ * 
+ * Requires index on: (stage_id, user_id, left, right) for optimal performance
+ */
+function checkDownline($sponsor_id, $parent_id){
+    // === VALIDATION ===
+    $sponsor_id = (int) $sponsor_id;
+    $parent_id = (int) $parent_id;
+    if ($sponsor_id === $parent_id) {
+        // code...
+        return true;
+    }
+    
+    // Quick exits for invalid inputs
+    if ($sponsor_id <= 0 || $parent_id <= 0) {
+        return false;
+    }
+
+    
+    // === STAGE 1 ONLY ===
+    $stageId = 1;
+    
+    // === GET ROOT USER'S MATRIX ENTRY ===
+    $rootMatrix = Matrix::where('stage_id', $stageId)
+        ->where('user_id', $sponsor_id)
+        ->select('id', 'user_id', 'left', 'right')
+        ->first();
+    
+    if (!$rootMatrix) {
+        return false; // Root user has no matrix in this stage
+    }
+    
+    // === ITERATIVE BFS (BREADTH-FIRST SEARCH) ===
+    // Using array queue instead of recursion prevents stack overflow on deep trees
+    $queue = [];
+    $visited = [];
+    
+    // Start with root's immediate children
+    if ($rootMatrix->left > 0) {
+        $queue[] = $rootMatrix->left;
+    }
+    if ($rootMatrix->right > 0) {
+        $queue[] = $rootMatrix->right;
+    }
+    
+    // Early exit if parent is a direct child
+    if (in_array($parent_id, $queue)) {
+        return true;
+    }
+    
+    // === PROCESS QUEUE LEVEL BY LEVEL ===
+    // Process in batches to reduce number of database queries
+    $batchSize = 100; // Process up to 100 nodes per query
+    
+    while (!empty($queue)) {
+        // Extract batch from queue
+        $batch = array_splice($queue, 0, $batchSize);
+        $batchKeys = array_flip($batch); // Convert to assoc for faster lookup
+        
+        // Mark batch as visited
+        $visited = array_merge($visited, $batchKeys);
+        
+        // === BATCH QUERY: Get all children for the batch ===
+        $children = Matrix::where('stage_id', $stageId)
+            ->whereIn('user_id', $batch)
+            ->select('user_id', 'left', 'right')
+            ->get();
+        
+        foreach ($children as $matrix) {
+            // Check left child
+            if ($matrix->left > 0) {
+                if ($matrix->left == $parent_id) {
+                    return true; // FOUND!
+                }
+                // Add to queue if not visited (avoid cycles)
+                if (!isset($visited[$matrix->left])) {
+                    $queue[] = $matrix->left;
+                }
+            }
+            
+            // Check right child
+            if ($matrix->right > 0) {
+                if ($matrix->right === $parent_id) {
+                    return true; // FOUND!
+                }
+                // Add to queue if not visited (avoid cycles)
+                if (!isset($visited[$matrix->right])) {
+                    $queue[] = $matrix->right;
+                }
+            }
+        }
+    }
+    
+    // Not found in downline
+    return false;
+}
+function upLinePvOnUpgrade($user, $pvAmount, $details){
     /* This function simply allocate pv to a single parent. 
         check if the parent exist and detect the leg to allocate the pv. 
         then  call pvlog function for documentation. 
@@ -2006,10 +2140,9 @@ function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_ma
         }
     }
  }
+ 
+ function updatePV(User $user, $details, $pv){
 
- function updatePV(User $user, $details){
-
-        $pv     = $user->project->pv;
         $user_m = Matrix::where('stage_id', 1)->where('user_id', $user->id)->first();
 
         // User has no stage-1 matrix record — nothing to propagate
@@ -2046,6 +2179,49 @@ function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_ma
         }
 
 }
+//This is called in stockistController when a user bought products
+function updateProductPV(User $user, Product $product, $quantity, $details){
+
+    $pv = (float)$product->pv * $quantity;
+    /*
+        if ($pvEarned <= 0) {
+         return;
+        }
+    */
+
+    $user_m = Matrix::where('user_id', $user->id)->where('stage_id', 1)->first();
+
+    // User has no stage-1 matrix record — nothing to propagate
+    if (!$user_m || !$user_m->parent_id) {
+        return;
+    }
+   
+    $user_child = $user->id;
+    $user_id    = $user_m->parent_id;
+
+    while ($user_id) {
+        $user_matrix = Matrix::where('user_id', $user_id)->where('stage_id', 1)->first();
+        if (!$user_matrix) {
+            break;
+        }
+        if ($user_matrix->left == $user_child) {
+            $user_matrix->pv_left         += $pv;
+            $user_matrix->pv_left_pairing += $pv;
+            $position = 1;
+        } else {
+            $user_matrix->pv_right         += $pv;
+            $user_matrix->pv_right_pairing += $pv;
+            $position = 2;
+        }
+        $user_matrix->save();
+
+        pvLog($user_matrix->user_id, $pv, $position, '+', $details);
+
+        $user_child = $user_matrix->user_id;
+        $user_id    = $user_matrix->parent_id;
+    }
+
+}
 
  function pvLog($user_id, $pv, $position, $trx_type, $details){
     
@@ -2059,43 +2235,80 @@ function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_ma
  }
 
 //direct bonus during registration
-function directBonus(User $user, $details=null, $trx = false, $direct_com = false){
+function  directBonus(User $user, $details, $direct_commission, $trx = null){
     
-    if(!$trx)
-    $trx =   $user->trx ?? getTrx();
-
-    //$user  = User::find($user_id);
-
+    
+    $trx = $trx ?? getTrx();
     $user_to_credit = User::lockForUpdate()->find($user->ref_by);
     // The direct referal set for this project can be gotten from $user->project->direct_commission;
-
-    $direct_commission = $direct_com ?? $user->project->direct_commission;
-
     if ($user_to_credit) {
         if ($direct_commission > 0) {
-
-            $user_to_credit->direct_bonus += $direct_commission;
+            
+            $user_to_credit->direct_bonus += (float)$direct_commission;
             $user_to_credit->save();
 
             $remark = 'direct_commission';
-            // work on this later 
-            // for those how have subscribe for saving and loan
-            //creditSavingsAccount;
-
-            $transaction               = new Transaction();
-            $transaction->user_id      = $user_to_credit->id;
-            $transaction->amount       = $direct_commission;
-            $transaction->post_balance = $user_to_credit->balance;
-            $transaction->charge       = 0;
-            $transaction->trx_type     = '+';
-            $transaction->details      = $details;
-            $transaction->trx          = $trx;
-            $transaction->remark       = $remark;
-            $transaction->save();
+            $bonus_type = 16;
+            $charge = 0;
+            
+            newTransaction($user_to_credit, $details, $remark, $direct_commission, '+', $trx, $bonus_type, $charge, 'direct_bonus');
         }
     }
 }
 
+
+//direct bonus during registration
+function indirectBonus(User $user, $amount, $details, $trx){
+    
+  
+    $trx = $trx ?? getTrx();
+    // lets start the search for the 4 indirect user to credit
+    $user1 = User::find($user->ref_by);
+
+    $remark = 'Indirect_bonus_commission';
+    $bonus_type = 17;
+    $charge = 0;
+
+    if ($user1) {
+        $amt1 = $amount * 0.06;
+        $user1->indirect_bonus += $amt1;
+        $user1->save();
+        newTransaction($user1, $details, $remark, $amt1, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        $user2 = User::find($user1->ref_by);
+
+    if ($user2) {
+        $amt2 = $amount * 0.03;
+        $user2->indirect_bonus += $amt2;
+        $user2->save();
+        newTransaction($user2, $details, $remark, $amt2, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        $user3 = User::find($user2->ref_by);
+
+    if ($user3) {
+        $amt3 = $amount * 0.02;
+        $user3->indirect_bonus += $amt3;
+        $user3->save();
+        newTransaction($user3, $details, $remark, $amt3, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        $user4 = User::find($user3->ref_by);
+
+    if ($user4) {
+        $amt4 = $amount * 0.01;
+        $user4->indirect_bonus += $amt4;
+        $user4->save();
+        newTransaction($user4, $details, $remark, $amt4, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        $user5 = User::find($user4->ref_by);
+
+    if ($user5) {
+        $amt5 = $amount * 0.01;
+        $user5->indirect_bonus += $amt5;
+        $user5->save();
+        newTransaction($user5, $details, $remark, $amt5, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        
+    } //5th
+    } //4th
+    } //3rd
+    } //2nd
+    } //1st
+}
 
 /**
  * Credit cash-back from a project subscription/upgrade to the user's product_wallet.
@@ -2103,18 +2316,16 @@ function directBonus(User $user, $details=null, $trx = false, $direct_com = fals
  * Call this AFTER the payment has been confirmed (visa deducted or Paystack settled).
  *
  * @param  User        $user      The subscribing / upgrading user
- * @param  float|null  $onAmount  Base amount for % calculation; defaults to project->amount
+    project->amount
  * @param  string|null $context   Extra label appended to the transaction detail
  */
-function processCashBack(User $user, ?float $onAmount = null, ?string $context = null): void
+function processCashBack(User $user, $project, $trx, $details): void
 {
-    $project = $user->project;
-    if (!$project || (float) $project->cash_back <= 0) {
+    
+    if (!$project) {
         return;
     }
-
-    $base           = $onAmount ?? (float) $project->amount;
-    $cashBackAmount = round((float) $project->cash_back / 100 * $base, 2);
+    $cashBackAmount = $project->amount;
 
     if ($cashBackAmount <= 0) {
         return;
@@ -2122,22 +2333,33 @@ function processCashBack(User $user, ?float $onAmount = null, ?string $context =
 
     $user->product_wallet += $cashBackAmount;
     $user->save();
-
     $sym = gs('cur_sym');
-    $txn               = new Transaction();
-    $txn->user_id      = $user->id;
-    $txn->amount       = $cashBackAmount;
-    $txn->charge       = 0;
-    $txn->trx_type     = '+';
-    $txn->details      = 'Cash back'
-                         . ($context ? ' — ' . $context : '')
-                         . ' (' . number_format((float) $project->cash_back, 2) . '% of '
-                         . $sym . number_format($base, 2) . ')';
-    $txn->remark       = 'cash_back';
-    $txn->trx          = getTrx();
-    $txn->post_balance = $user->product_wallet;
-    $txn->save();
+    $remark = 'cash_back';
+    newTransaction($user, $details, $remark, $cashBackAmount, '+', $trx, 13, 0, 'product_wallet');
+    
 }
+
+function processUpgradeCashBack(User $user, $cashBackDiff, $details, $trx): void
+{   
+    // line 161 
+    // user/ProjectController
+    //$upgradeCost
+    //($user, $cashBackDiff, $uDetails, $trx)
+    
+
+    if ($cashBackDiff <= 0) {
+        return;
+    }
+
+    $user->product_wallet += $cashBackDiff;
+    $user->save();
+    $sym = gs('cur_sym');
+    $remark = 'upgrade_cash_back';
+
+    newTransaction($user, $details, $remark, $cashBackDiff, '+', $trx, 13, 0, 'product_wallet');
+    
+}
+
 
 function referralStageMAtrix($user_id, $details=null, $stage=1, $bonus_type=5, $trx = null)
 {

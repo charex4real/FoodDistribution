@@ -198,7 +198,25 @@ class ManageUsersController extends Controller
         } else {
             $users = User::query();
         }
-        return $users->searchable(['username', 'email'])->orderBy('id', 'desc')->paginate(getPaginate());
+        
+        // Apply text search
+        $users = $users->searchable(['username', 'email', 'firstname', 'lastname']);
+        
+        // Apply advanced filters
+        $users = $this->applyAdvancedFilters($users);
+        
+        return $users->orderBy('id', 'desc')->paginate(getPaginate());
+    }
+    
+    protected function applyAdvancedFilters($query)
+    {
+        // Filter by status
+        if (request()->has('status') && request('status') !== '') {
+            $status = request('status') == 1 ? Status::USER_ACTIVE : Status::USER_BAN;
+            $query->where('status', $status);
+        }
+        
+        return $query;
     }
 
 

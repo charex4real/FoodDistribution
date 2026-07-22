@@ -86,7 +86,7 @@ class AdminUserController extends Controller
     public function destroy(Admin $admin)
     {
         // Prevent deleting yourself
-        if ($admin->id === auth()->id()) {
+        if ($admin->id == auth()->id()) {
             return redirect()->route('admin.admins.index')
                 ->with('error', 'You cannot delete your own account.');
         }

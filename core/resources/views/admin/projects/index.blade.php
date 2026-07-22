@@ -271,7 +271,7 @@
                     <span class="proj-detail-val highlight">{{ showAmount($proj->indirect_commission) }}</span>
                 </div>
                 <div class="proj-detail-row">
-                    <span class="proj-detail-lbl"><i class="las la-balance-scale"></i> Pairing Cap/Day</span>
+                    <span class="proj-detail-lbl"><i class="las la-balance-scale"></i> Matching Cap/Day</span>
                     <span class="proj-detail-val">{{ $proj->pairing_per_day > 0 ? showAmount($proj->pairing_per_day) : 'Unlimited' }}</span>
                 </div>
                 <div class="proj-detail-row">
@@ -464,7 +464,7 @@
                         <div class="proj-form-section-head">Pairing (Binary Tree)</div>
 
                         <div>
-                            <label class="form-label fw-semibold">Max Pairing Bonus/Day <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Max Matching Bonus/Day <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">{{ gs('cur_sym') }}</span>
                                 <input type="number" name="pairing_per_day" id="f_pairing_per_day" class="form-control" min="0" step="0.01" required value="0">
