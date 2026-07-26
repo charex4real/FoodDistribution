@@ -59,7 +59,7 @@ class OrderController extends Controller
 
             if ($user->product_wallet < $cartTotal) {
                 DB::rollBack();
-                return response()->json(['success' => false, 'message' => 'Insufficient Product Wallet balance']);
+                return response()->json(['success' => false, 'message' => 'Insufficient Re-purchase wallet balance']);
             }
 
             $stateId = $cart->state_the_id;

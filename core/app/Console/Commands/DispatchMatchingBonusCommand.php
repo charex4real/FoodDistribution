@@ -23,13 +23,14 @@ use Illuminate\Support\Facades\Log;
  *
  * Scheduled : daily at 01:00 via routes/console.php
  * cPanel     : curl -s "https://yourdomain.com/matchingDispatch?token=CRON_SECRET"
- */
+ */ 
+
 class DispatchMatchingBonusCommand extends Command
 {
     protected $signature   = 'matching:dispatch';
     protected $description = 'Dispatch matching-bonus jobs for all eligible user matrices.';
 
-    public function handle(): int
+    public function handle(): int 
     {
         $threshold = MatchingBonusService::MATCHING_NUMBER;
         $dispatched = 0;

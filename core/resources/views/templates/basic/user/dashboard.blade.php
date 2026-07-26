@@ -259,7 +259,7 @@
             <div class="bk-mlm-icon" style="background:#7C3AED20;color:#7C3AED;"><i class="las la-shopping-bag"></i></div>
             <div class="bk-mlm-info">
                 <p class="bk-mlm-val">{{ showAmount($user->product_wallet ?? 0) }}</p>
-                <p class="bk-mlm-lbl">Product Wallet</p>
+                <p class="bk-mlm-lbl">Re-purchase Wallet</p>
                 <p class="bk-mlm-sub">Used for product purchases</p>
             </div>
         </div>

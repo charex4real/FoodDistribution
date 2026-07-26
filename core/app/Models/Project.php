@@ -29,7 +29,7 @@ class Project extends Model
         'upgrade_allowed'     => 'boolean',
         'is_default'          => 'boolean',
         'status'              => 'boolean',
-    ];
+    ]; 
 
     // ── Relationships ──────────────────────────────────────────────
 
@@ -47,6 +47,7 @@ class Project extends Model
             'generation_id'
         )->orderBy('number');
     }
+
 
     // ── Scopes ─────────────────────────────────────────────────────
 

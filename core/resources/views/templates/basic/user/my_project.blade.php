@@ -90,11 +90,11 @@
                     </div>
                     <div class="mp-stat">
                         <p class="mp-stat-val">{{ showAmount($project->direct_commission, currencyFormat: false) }}</p>
-                        <p class="mp-stat-lbl">Direct Comm.</p>
+                        <p class="mp-stat-lbl">Direct bonus.</p>
                     </div>
                     <div class="mp-stat">
                         <p class="mp-stat-val">{{ showAmount($project->indirect_commission, currencyFormat: false) }}</p>
-                        <p class="mp-stat-lbl">Indirect Comm.</p>
+                        <p class="mp-stat-lbl">Indirect bonus.</p>
                     </div>
                 </div>
 

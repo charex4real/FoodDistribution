@@ -82,18 +82,18 @@
                 @php $productWallet = auth()->user()->product_wallet ?? 0; @endphp
                 <div class="chk-wallet-box">
                     <div class="chk-wallet-row">
-                        <span><i class="las la-shopping-bag"></i> Product Wallet</span>
+                        <span><i class="las la-shopping-bag"></i> Re-purchase wallet</span>
                         <span class="chk-wallet-amt">{{ showAmount($productWallet, 2) }}</span>
                     </div>
                     @if($productWallet < $cart->total_amount)
                         <div class="chk-wallet-alert warn">
                             <i class="las la-exclamation-triangle"></i>
-                            You need {{ showAmount($cart->total_amount - $productWallet) }} more in your Product Wallet to complete this purchase.
+                            You need {{ showAmount($cart->total_amount - $productWallet) }} more in your Re-purchase wallet to complete this purchase.
                         </div>
                     @else
                         <div class="chk-wallet-alert ok">
                             <i class="las la-check-circle"></i>
-                            Your Product Wallet has sufficient funds.
+                            Your Re-purchase wallet has sufficient funds.
                         </div>
                     @endif
                 </div>
@@ -104,10 +104,10 @@
                     </button>
                 @else
                     <button type="button" class="chk-pay-btn disabled" disabled>
-                        <i class="las la-lock"></i> Insufficient Product Wallet
+                        <i class="las la-lock"></i> Insufficient Re-purchase wallet
                     </button>
                     <p class="chk-secure mt-2" style="color:#DC2626;">
-                        <i class="las la-info-circle"></i> Products can only be purchased using your Product Wallet balance.
+                        <i class="las la-info-circle"></i> Products can only be purchased using your Re-purchase wallet balance.
                     </p>
                 @endif
 

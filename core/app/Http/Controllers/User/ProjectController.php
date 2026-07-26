@@ -52,7 +52,7 @@ class ProjectController extends Controller
                     ->where('upgrade_allowed', true)
                     ->lockForUpdate()
                     ->first();
-
+ 
                 if (!$targetProject) {
                     throw new \RuntimeException('This project is not available for upgrade.');
                 }
@@ -109,14 +109,15 @@ class ProjectController extends Controller
                 $dollar = rDollar();
 
 
-                $currentUpgradeCommisison = $currentProject ? round(($currentProject->amount * ($currentProject->upgrade_bonus / 100)) * $dollar, 2) : 0.0;
+                $currentUpgradeCommisison = $currentProject ? round(($currentProject->pv * ($currentProject->upgrade_bonus / 100)) * $dollar, 2) : 0.0;
 
-                $newUpgradeCommission=  round(($targetProject->amount * ($targetProject->upgrade_bonus / 100)) * $dollar, 2);
+                $newUpgradeCommission=  round(($targetProject->pv * ($targetProject->upgrade_bonus / 100)) * $dollar, 2);
+                
 
                 $upgrade_commisison = round($newUpgradeCommission - $currentUpgradeCommisison, 2);
 
 
-                $current_InDirecCommisison = $currentProject ? (float) $currentProject->indirect_commisison : 0.0;
+                $current_InDirecCommisison = $currentProject ? (float) $currentProject->amount : 0.0;
                 
                 // the section is under reviews. 
                 // Some user have no Project so this takes care of the errors 
@@ -125,42 +126,11 @@ class ProjectController extends Controller
 
                 $details ='Upgrade bonus gotten from '.$user->username.' upgrading to  '.$targetProject->title.' from '.$current_Project_title;
 
-                directBonus($user, $details, $trx, $upgrade_commisison);
-
-                // Let process the indirect commission for the upgrade bonus
-                $indirect_commisison = round((float) $targetProject->indirect_commisison - $current_InDirecCommisison, 2);
-
-                $user1 = User::find($user->ref_by);
-                dd($user1);
-
-                if($user1){
-                    $inDirect_bonus_details = 'Indirect bonus gotten from username: '.$user->username. 'upgrading to '.$current_Project_title;
-                    indirectBonus($user1, $indirect_commisison, $inDirect_bonus_details, $trx);
-                }
-                
-
-                // 4.) Upgrade bonus to sponsor (percentage difference in PVs)
-                // $project->upgrade_bonus is in % percentage.
-                // so i will get the difference in PV.
-
-                $currentPV = $currentProject ? $currentProject->pv : 0;
-                // also we have to be sure admin did not post the wrong pv or nagetive pv
-                $targetPV = $targetProject->pv ?? 0;
-
-                $diffPV = $targetPV - $currentPV;
-                // now get the pv to the percentage as set by the admin to the 
-                $uplinePVDiff = round($diffPV * ((int)$targetProject->upgrad_bonus / 100));
-
-                $details2 =$user->username.' upgradedto  '.$targetProject->title.' from '.$current_Project_title;
+                upgradeBonus($user, $details, $upgrade_commisison, $trx);
 
                 
-                // the old one upLinePvOnUpgrade($user, $uplinePVDiff, $details2);
-                // the new one
-                updatePV($user, $details2, $uplinePVDiff); 
-               
 
-
-                // 5. Cash back difference credited to product_wallet
+                // 4. Cash back difference credited to product_wallet
                 //    New cash back - old cash back (what user already received at registration)
                
 
@@ -170,11 +140,36 @@ class ProjectController extends Controller
                     : 0.0;
 
                 $cashBackDiff = round($newCashBack - $oldCashBack, 2);
-                $uDetails = 'upgrade to ' . $targetProject->title;
+                $uDetails = 'Repurchase wallet gotten from an upgrade to ' . $targetProject->title;
+                processUpgradeCashBack($user, $cashBackDiff, $uDetails, $trx);
+                
+                // 5.) Upgrade bonus to sponsor (percentage difference in PVs)
+                // $project->upgrade_bonus is in % percentage.
+                // so i will get the difference in PV.
 
-                if ($cashBackDiff) {
-                    processUpgradeCashBack($user, $cashBackDiff, $uDetails, $trx);
+                $currentPV = $currentProject ? $currentProject->pv : 0;
+                // also we have to be sure admin did not post the wrong pv or nagetive pv
+                $targetPV = $targetProject->pv ?? 0;
+
+                $uplinePVDiff = $targetPV - $currentPV; 
+                $details2 =$user->username.' upgraded to  '.$targetProject->title.' from '.$current_Project_title;
+    
+                // the old one upLinePvOnUpgrade($user, $uplinePVDiff, $details2);
+                // the new one
+                
+
+                updatePV($user, $details2, $uplinePVDiff); 
+                //dd($uplinePVDiff);
+
+                // 6.) Let process the indirect commission for the upgrade bonus
+                
+                $user1 = User::find($user->ref_by);
+                
+                if($user1){
+                    $inDirect_bonus_details = 'Indirect bonus gotten from username: '.$user->username. 'upgrading to '.$current_Project_title;
+                    indirectBonus($user1, $uplinePVDiff, $inDirect_bonus_details, $trx);
                 }
+
 
             });
         } catch (\RuntimeException $e) {

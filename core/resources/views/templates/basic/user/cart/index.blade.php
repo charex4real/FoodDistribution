@@ -91,22 +91,22 @@
                     <span>{{ showAmount($cart->total_amount, 2) }}</span>
                 </div>
 
-                {{-- Product Wallet balance --}}
+                {{-- Re-purchase wallet balance --}}
                 @php $productWallet = auth()->user()->product_wallet ?? 0; @endphp
                 <div class="cart-wallet-box">
                     <div class="cart-wallet-row">
-                        <span><i class="las la-shopping-bag"></i> Product Wallet</span>
+                        <span><i class="las la-shopping-bag"></i> Re-purchase wallet</span>
                         <span class="cart-wallet-amt">{{ showAmount($productWallet) }}</span>
                     </div>
                     @if($productWallet < $cart->total_amount)
                         <div class="cart-wallet-alert warn">
                             <i class="las la-exclamation-triangle"></i>
-                            You need {{ showAmount($cart->total_amount - $productWallet) }} more in your Product Wallet
+                            You need {{ showAmount($cart->total_amount - $productWallet) }} more in your Re-purchase wallet
                         </div>
                     @else
                         <div class="cart-wallet-alert ok">
                             <i class="las la-check-circle"></i>
-                            Sufficient Product Wallet balance
+                            Sufficient Re-purchase wallet balance
                         </div>
                     @endif
                 </div>
@@ -118,10 +118,10 @@
                     </a>
                 @else
                     <button class="cart-checkout-btn disabled" disabled>
-                        <i class="las la-lock"></i> Insufficient Product Wallet
+                        <i class="las la-lock"></i> Insufficient Re-purchase wallet
                     </button>
                     <p class="cart-secure-note" style="color:#DC2626;margin-top:.5rem;">
-                        <i class="las la-info-circle"></i> Products are purchased using your Product Wallet only.
+                        <i class="las la-info-circle"></i> Products are purchased using your Re-purchase wallet only.
                     </p>
                 @endif
 

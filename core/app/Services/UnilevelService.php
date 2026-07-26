@@ -16,10 +16,12 @@ class UnilevelService
      *   Gen 1 → the user who made the purchase ($user)
      *   Gen 2 → $user->ref_by (direct sponsor)
      *   Gen N → N-1 levels above the purchaser
-     */
+     */ 
+
     public function process(Invoice $invoice, User $user, Product $product, int $quantity, string $trx): void
     {
         $project = $user->project;
+        //dd($project);
         if (!$project) {
             return;
         }
@@ -33,11 +35,13 @@ class UnilevelService
         if ($generations->isEmpty()) {
             return;
         }
-
+       
         $prb = round((float) ($product->prb ?? 0), 2);
         if ($prb <= 0) {
             return;
         }
+        
+        $pv = (float)$product->pv;
 
         $maxGenNumber = $generations->keys()->max();
 
@@ -48,7 +52,8 @@ class UnilevelService
         while ($current != null && $genNumber <= $maxGenNumber) {
             if ($generations->has($genNumber)) {
                 $gen         = $generations->get($genNumber);
-                $bonusAmount = round($prb * ((float) $gen->percentage / 100) * $quantity, 2);
+                $bonusAmount = round(($prb *((float)$gen->percentage / 100) * $pv) * $quantity, 2);
+                //dd($bonusAmount);
 
                 if ($bonusAmount > 0) {
                     // Re-fetch with lock to prevent concurrent writes on the same user
@@ -66,7 +71,7 @@ class UnilevelService
                             $user->username,
                             $project->title
                         );
-                        
+                         
                         unilevelBonusTransaction(
                             $recipient->id,
                             $recipient->unilevel_bonus,

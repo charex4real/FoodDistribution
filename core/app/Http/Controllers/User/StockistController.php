@@ -456,14 +456,15 @@ class StockistController extends Controller
 
                         // Project-based unilevel bonus: distributes PRB up the ref_by chain
                         //app(UnilevelService::class)->process($invoice, $user_dist, $product, $quantity, $trx);
-                        
+                         
                         $this->unilevelService->process($invoice, $user_dist, $product, $quantity, $trx);
-
+                        //dd($user_dist);
                         // this is to distribute the pv up to the user upline through the parent route. So the product pv
 
 
-                        $dess = $user_dist->username . ' Purchase ' . $product->name;
+                        $dess = $user_dist->username . ' Purchase ' . $quantity.' qty of '.$product->name;
                         //dd($product);
+
 
                         updateProductPV($user_dist, $product, $quantity, $dess);
 

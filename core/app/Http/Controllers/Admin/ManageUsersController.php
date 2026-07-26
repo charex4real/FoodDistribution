@@ -853,7 +853,7 @@ class ManageUsersController extends Controller
     }
 
 
-    // Product Wallet (repurchase wallet used for buying products)
+    // Re-purchase wallet (repurchase wallet used for buying products)
     public function addSubBalanceProductWallet(Request $request, int $id)
     {
         $request->validate([
@@ -873,17 +873,17 @@ class ManageUsersController extends Controller
             $transaction->trx_type  = '+';
             $transaction->remark    = 'product_wallet_add';
             $notifyTemplate         = 'BAL_ADD';
-            $notify[]               = ['success', 'Product wallet credited successfully'];
+            $notify[]               = ['success', 'Re-purchase wallet credited successfully'];
         } else {
             if ($amount > (float) $user->product_wallet) {
-                $notify[] = ['error', $user->username . ' does not have sufficient product wallet balance.'];
+                $notify[] = ['error', $user->username . ' does not have sufficient Re-purchase wallet balance.'];
                 return back()->withNotify($notify);
             }
             $user->product_wallet  -= $amount;
             $transaction->trx_type  = '-';
             $transaction->remark    = 'product_wallet_subtract';
             $notifyTemplate         = 'BAL_SUB';
-            $notify[]               = ['success', 'Product wallet debited successfully'];
+            $notify[]               = ['success', 'Re-purchase wallet debited successfully'];
         }
 
         $user->save();

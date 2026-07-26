@@ -80,7 +80,7 @@
                 {{-- ── MLM / Project Bonuses ── --}}
                 <div class="col-12 mt-2 mb-0">
                     <p class="text-muted fw-semibold" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">
-                        <i class="las la-sitemap me-1"></i> MLM &amp; Product Wallets
+                        <i class="las la-sitemap me-1"></i> MLM &amp; Re-purchase wallets
                         @if($user->project)
                             &nbsp;·&nbsp;
                             <span class="badge" style="background:{{ $user->project->color }};font-size:.65rem;">
@@ -90,7 +90,7 @@
                     </p>
                 </div>
                 <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <x-widget type="2" value="{{ showAmount($user->product_wallet ?? 0) }}" title="Product Wallet" style="7" link="#" icon="las la-shopping-bag" bg="9" />
+                    <x-widget type="2" value="{{ showAmount($user->product_wallet ?? 0) }}" title="Re-purchase wallet" style="7" link="#" icon="las la-shopping-bag" bg="9" />
                 </div>
                 <div class="col-xxl-3 col-lg-4 col-sm-6">
                     <x-widget type="2" value="{{ showAmount($user->direct_bonus ?? 0) }}" title="Direct Bonus (Lifetime)" style="7" link="#" icon="las la-hand-holding-usd" bg="2" />
@@ -195,12 +195,12 @@
                 </div>
                 <div class="flex-fill">
                     <button class="btn btn--success btn--shadow w-100 btn-lg bal-btn-pw" data-bs-toggle="modal" data-bs-target="#addSubModalProductWallet" data-act="add">
-                        <i class="las la-plus-circle"></i> @lang('+ Product Wallet')
+                        <i class="las la-plus-circle"></i> @lang('+ Re-purchase wallet')
                     </button>
                 </div>
                 <div class="flex-fill">
                     <button class="btn btn--danger btn--shadow w-100 btn-lg bal-btn-pw" data-bs-toggle="modal" data-bs-target="#addSubModalProductWallet" data-act="sub">
-                        <i class="las la-minus-circle"></i> @lang('- Product Wallet')
+                        <i class="las la-minus-circle"></i> @lang('- Re-purchase wallet')
                     </button>
                 </div>
                 @endif
@@ -853,14 +853,14 @@
     </div>
     
 
-    {{-- Add / Sub Product Wallet MODAL --}}
+    {{-- Add / Sub Re-purchase wallet MODAL --}}
     <div class="modal fade" id="addSubModalProductWallet" role="dialog" tabindex="-1">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <span class="pw-type"></span>
-                        <span>@lang('Product Wallet')</span>
+                        <span>@lang('Re-purchase wallet')</span>
                     </h5>
                     <button class="close" data-bs-dismiss="modal" type="button" aria-label="Close">
                         <i class="las la-times"></i>

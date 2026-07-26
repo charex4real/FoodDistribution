@@ -196,7 +196,7 @@ class DistributorController extends Controller
                 }
 
                 $parentId = $placement->user_id;
-                $position = ((int) $placement->left === 0) ? 'left' : 'right';
+                $position = ((int) $placement->left == 0) ? 'left' : 'right';
             }
 
             // Create the new user
@@ -260,22 +260,26 @@ class DistributorController extends Controller
 
             //Next is process Direct bonus
         
-
+            //dd($project->direct_commission);
             directBonus($newUser,  $details, $project->direct_commission, $trx);
             // Indirect bonus is inside the direct bonus
             // the indirect bonus start from the sponsor referer. 
+
+
             $user1 = User::find($newUser->ref_by);
             $inDirect_bonus_details = 'Indirect bonus gotten from username: '.$newUser->username. ' Subscribing to '.$project->title;
-            $amt = $project->indirect_commission;
-            indirectBonus($user1, $amt, $inDirect_bonus_details, $trx);
+            
+
+            indirectBonus($user1, $project->pv, $inDirect_bonus_details, $trx);
            
 
             $detls = $newUser->username . ' Subscribed to ' . $newUser->project->title . ' Project.';
             $pv = $newUser->project->pv;
+
             updatePV($newUser, $detls, $pv); 
 
             // Cash back credited to the new user's product_wallet after visa deduction is settled
-            $detss = $project->title . ' subscription cash back';
+            $detss = $project->title . ' subscription cash back to Repurchase wallet';
             processCashBack($newUser, $project, $trx, $detss);
 
             // Key-In Bonus: 2% of registration fee to the sponsor who keyed in the registration

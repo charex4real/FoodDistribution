@@ -1913,24 +1913,26 @@ function complete_registration_pin(User $user, Rmatrix $rmatrix, $user_parent_ma
         // get the project the user is subscribe to
 
         $project = $user->project;
+        $pv = $project->pv;
+
         $details = 'direct bonus gotten from username: '.$user->username;
         // the section process the direct bonus as set by the admin in 
        
 
-        directBonus($user, $details, $project->direct_commission, $user->trx, );
+        directBonus($user, $details, $project->direct_commission, $user->trx);
+
 
         $user1 = User::find($user->ref_by);
 
         $inDirect_bonus_details = 'Indirect bonus gotten from username: '.$user->username. ' Subscribing to '.$project->title;
-        $amt = $project->indirect_commission;
-        indirectBonus($user1, $amt, $inDirect_bonus_details, $trx);
 
         
+        indirectBonus($user1, $pv, $inDirect_bonus_details, $trx);
 
         $dets = $user->username . ' Subscribed to ' . $user->project->title . ' Project.'; 
         // Next we distribute the PV along the user Tree.
 
-        updatePV($user, $dets, $user->project->pv);
+        updatePV($user, $dets, $pv);
 
         // Cash back is credited to product_wallet AFTER payment is confirmed (visa/Paystack settled)
 
@@ -2039,7 +2041,7 @@ function checkDownline($sponsor_id, $parent_id){
     }
     
     // === ITERATIVE BFS (BREADTH-FIRST SEARCH) ===
-    // Using array queue instead of recursion prevents stack overflow on deep trees
+    // I am Using array queue to prevents stack overflow on deep trees
     $queue = [];
     $visited = [];
     
@@ -2143,12 +2145,12 @@ function upLinePvOnUpgrade($user, $pvAmount, $details){
  function updatePV(User $user, $details, $pv){
 
         $user_m = Matrix::where('stage_id', 1)->where('user_id', $user->id)->first();
-
+        
         // User has no stage-1 matrix record — nothing to propagate
         if (!$user_m || !$user_m->parent_id) {
             return;
         }
-
+        
         $user_child = $user->id;
         $user_id    = $user_m->parent_id;
 
@@ -2172,7 +2174,7 @@ function upLinePvOnUpgrade($user, $pvAmount, $details){
             $user_matrix->save();
 
             pvLog($user_matrix->user_id, $pv, $position, '+', $details);
-
+            
             $user_child = $user_matrix->user_id;
             $user_id    = $user_matrix->parent_id;
         }
@@ -2229,16 +2231,17 @@ function updateProductPV(User $user, Product $product, $quantity, $details){
         $pvLog  = new PvLog();
         $pvLog->user_id = $user_id;
         $pvLog->position = (int)$position;
-        $pvLog->amount   = $pv;
+        $pvLog->amount   += $pv;
         $pvLog->trx_type = $trx_type;
         $pvLog->details  = $details;
         $pvLog->save();
+        //dd($pvLog);
     }
  }
 
 //direct bonus during registration
 function  directBonus(User $user, $details, $direct_commission, $trx = null){
-    
+   // dd($direct_commission);
     
     $trx = $trx ?? getTrx();
     $user_to_credit = User::lockForUpdate()->find($user->ref_by);
@@ -2260,9 +2263,31 @@ function  directBonus(User $user, $details, $direct_commission, $trx = null){
 
 
 //direct bonus during registration
-function indirectBonus(User $user, $amount, $details, $trx){
+function  upgradeBonus(User $user, $details, $direct_commission, $trx = null){
+   // dd($direct_commission);
     
-  
+    $trx = $trx ?? getTrx();
+    $user_to_credit = User::lockForUpdate()->find($user->ref_by);
+    // The direct referal set for this project can be gotten from $user->project->direct_commission;
+    if ($user_to_credit) {
+        if ($direct_commission > 0) {
+            
+            $user_to_credit->upgrade_bonus += (float)$direct_commission;
+            $user_to_credit->save();
+
+            $remark = 'upgrade_commission';
+            $bonus_type = 16;
+            $charge = 0;
+            
+            newTransaction($user_to_credit, $details, $remark, $direct_commission, '+', $trx, $bonus_type, $charge, 'direct_bonus');
+        }
+    }
+}
+
+//direct bonus during registration
+function indirectBonus(User $user, $pv, $details, $trx){
+    
+//    dd($amount);
     $trx = $trx ?? getTrx();
     // lets start the search for the 4 indirect user to credit
     $user1 = User::find($user->ref_by);
@@ -2270,40 +2295,47 @@ function indirectBonus(User $user, $amount, $details, $trx){
     $remark = 'Indirect_bonus_commission';
     $bonus_type = 17;
     $charge = 0;
+    $dollar = rDollar();
+    
+   
 
+    $pv = (float)$pv * (float)$dollar; // Ensure PV is treated as a float
+    
     if ($user1) {
-        $amt1 = $amount * 0.06;
+
+        $amt1 = $pv * 0.06;
+        //dd($amt1);
         $user1->indirect_bonus += $amt1;
         $user1->save();
-        newTransaction($user1, $details, $remark, $amt1, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        newTransaction($user1, $details, $remark, $amt1, '+', $trx, $bonus_type, $charge, 'indirect_bonus');
         $user2 = User::find($user1->ref_by);
 
     if ($user2) {
-        $amt2 = $amount * 0.03;
+        $amt2 = $pv * 0.03;
         $user2->indirect_bonus += $amt2;
         $user2->save();
-        newTransaction($user2, $details, $remark, $amt2, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        newTransaction($user2, $details, $remark, $amt2, '+', $trx, $bonus_type, $charge, 'indirect_bonus');
         $user3 = User::find($user2->ref_by);
 
     if ($user3) {
-        $amt3 = $amount * 0.02;
+        $amt3 = $pv * 0.02;
         $user3->indirect_bonus += $amt3;
         $user3->save();
-        newTransaction($user3, $details, $remark, $amt3, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        newTransaction($user3, $details, $remark, $amt3, '+', $trx, $bonus_type, $charge, 'indirect_bonus');
         $user4 = User::find($user3->ref_by);
 
     if ($user4) {
-        $amt4 = $amount * 0.01;
+        $amt4 = $pv * 0.01;
         $user4->indirect_bonus += $amt4;
         $user4->save();
-        newTransaction($user4, $details, $remark, $amt4, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        newTransaction($user4, $details, $remark, $amt4, '+', $trx, $bonus_type, $charge, 'indirect_bonus');
         $user5 = User::find($user4->ref_by);
 
     if ($user5) {
-        $amt5 = $amount * 0.01;
+        $amt5 = $pv * 0.01 ;
         $user5->indirect_bonus += $amt5;
         $user5->save();
-        newTransaction($user5, $details, $remark, $amt5, '+', $trx, $bonus_type, 0, 'indirect_bonus');
+        newTransaction($user5, $details, $remark, $amt5, '+', $trx, $bonus_type, $charge, 'indirect_bonus');
         
     } //5th
     } //4th
