@@ -134,7 +134,12 @@ class UserController extends Controller
         $totalDividends   = auth()->user()->shtransactions()->where('status', 'completed')->sum('amount');
         $userMatrix       = Matrix::where('user_id', auth()->id())->first();
 
-        return view('Template::user.dashboard', compact('pageTitle', 'totalDeposit', 'totalWithdraw', 'completeWithdraw', 'pendingWithdraw', 'totalRef', 'totalBvCut', 'total_ref', 'total_ref_debit', 'recentTransactions', 'totalShares', 'totalDividends', 'userMatrix'));
+        $unreadAdminNoticeCount = NotificationLog::where('user_id', auth()->id())->where('is_admin_notice', true)->where('user_read', false)->count();
+        $latestAdminNotice      = $unreadAdminNoticeCount > 0
+            ? NotificationLog::where('user_id', auth()->id())->where('is_admin_notice', true)->where('user_read', false)->latest()->first()
+            : null;
+
+        return view('Template::user.dashboard', compact('pageTitle', 'totalDeposit', 'totalWithdraw', 'completeWithdraw', 'pendingWithdraw', 'totalRef', 'totalBvCut', 'total_ref', 'total_ref_debit', 'recentTransactions', 'totalShares', 'totalDividends', 'userMatrix', 'unreadAdminNoticeCount', 'latestAdminNotice'));
     }
     public function land()
     {
@@ -157,7 +162,12 @@ class UserController extends Controller
         $totalDividends   = auth()->user()->shtransactions()->where('status', 'completed')->sum('amount');
         $userMatrix       = Matrix::where('user_id', auth()->id())->first();
 
-        return view('Template::user.dashboard', compact('pageTitle', 'totalDeposit', 'totalWithdraw', 'completeWithdraw', 'pendingWithdraw', 'totalRef', 'totalBvCut', 'total_ref', 'total_ref_debit', 'recentTransactions', 'totalShares', 'totalDividends', 'userMatrix'));
+        $unreadAdminNoticeCount = NotificationLog::where('user_id', auth()->id())->where('is_admin_notice', true)->where('user_read', false)->count();
+        $latestAdminNotice      = $unreadAdminNoticeCount > 0
+            ? NotificationLog::where('user_id', auth()->id())->where('is_admin_notice', true)->where('user_read', false)->latest()->first()
+            : null;
+
+        return view('Template::user.dashboard', compact('pageTitle', 'totalDeposit', 'totalWithdraw', 'completeWithdraw', 'pendingWithdraw', 'totalRef', 'totalBvCut', 'total_ref', 'total_ref_debit', 'recentTransactions', 'totalShares', 'totalDividends', 'userMatrix', 'unreadAdminNoticeCount', 'latestAdminNotice'));
     }
 
 
@@ -1247,17 +1257,15 @@ class UserController extends Controller
                             ->orderBy('id', 'desc')
                             ->paginate(getPaginate());
 
-        $user->notifications_read_at = now();
-        $user->save();
- 
+        NotificationLog::where('user_id', $user->id)->where('user_read', false)->update(['user_read' => true]);
+
         return view('Template::user.notifications', compact('pageTitle', 'notifications'));
     }
 
     public function markNotificationsRead()
     {
         $user = auth()->user();
-        $user->notifications_read_at = now();
-        $user->save();
+        NotificationLog::where('user_id', $user->id)->where('user_read', false)->update(['user_read' => true]);
         return response()->json(['success' => true]);
     }
 }

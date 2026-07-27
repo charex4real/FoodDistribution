@@ -23,6 +23,8 @@ Route::middleware('cron.secret')->group(function () {
     Route::get('dbBackup', 'CronController@dbBackup')->name('dbBackup');
     // dispatch matching-bonus jobs for all eligible user matrices
     Route::get('matchingDispatch', 'CronController@matchingDispatch')->name('matchingDispatch');
+    // sweep unclaimed autoship balances to admin (guarded internally to last day/hour of month)
+    Route::get('autoshipSweep', 'CronController@autoshipSweep')->name('autoshipSweep');
 });
  
 

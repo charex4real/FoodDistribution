@@ -613,6 +613,18 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::get('/', 'index')->name('index');
     });
 
+    // Direct notices — admin-composed personal notices sent to a single user
+    Route::controller(\App\Http\Controllers\Admin\AdminNoticeController::class)->prefix('notices')->name('notices.')->group(function () {
+        Route::get('/',        'index')->name('index');
+        Route::get('/create',  'create')->name('create');
+        Route::post('/',       'store')->name('store');
+    });
+
+    // Key-in bonus — 2% registration bonus paid to the sponsor who keyed in the signup
+    Route::controller(\App\Http\Controllers\Admin\AdminKeyInBonusController::class)->prefix('key-in-bonus')->name('key-in-bonus.')->group(function () {
+        Route::get('/', 'index')->name('index');
+    });
+
     // PV Logs
     Route::get('pv-logs', [\App\Http\Controllers\Admin\AdminPvLogController::class, 'index'])->name('pv-logs.index');
 

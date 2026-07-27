@@ -1,270 +1,226 @@
-
-@extends($activeTemplate . 'layouts.master_stockist')
-@section('title', 'Checkout - Stockist Order')
+@extends($activeTemplate . 'layouts.master')
 
 @section('content')
-@include($activeTemplate.'layouts.breadcrumb')
-<div class="container-fluid py-4">
-    <div class="container">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h3 fw-bold text-dark mb-1">Checkout</h1>
-                        <p class="text-muted mb-0">Review your order and complete purchase</p>
+<div class="nc-wrap" id="ncWrap">
+    <br>
+{{-- ── Page Header ─────────────────────────────────── --}}
+<div class="sl-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="sl-page-title mb-1">Checkout</h4>
+        <p class="sl-page-subtitle mb-0">Review your order and complete purchase.</p>
+    </div>
+    <a href="{{ route('user.stockist.inventory.catalog') }}" class="sl-btn sl-btn-outline">
+        <i class="las la-arrow-left me-1"></i> Back to Catalog
+    </a>
+</div>
+
+@if(empty($cart))
+    <div class="sl-card">
+        <div class="sl-empty-state">
+            <div class="sl-empty-icon"><i class="las la-shopping-cart"></i></div>
+            <p class="sl-empty-title">Your Cart is Empty</p>
+            <p class="sl-empty-sub">Add some products to your cart before checking out.</p>
+            <a href="{{ route('user.stockist.inventory.catalog') }}" class="sl-btn sl-btn-primary mt-3">
+                <i class="las la-shopping-cart me-1"></i> Browse Products
+            </a>
+        </div>
+    </div>
+@else
+    @php $subtotal = 0; @endphp
+    <div class="row g-4">
+        {{-- ── LEFT: Order summary + notes ─────────────── --}}
+        <div class="col-12 col-lg-8">
+            <div class="sl-card mb-4">
+                <div class="sl-card-header"><i class="las la-shopping-bag me-1"></i> Order Summary</div>
+                <div class="sl-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="sl-table" aria-label="Cart items">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($cart as $item)
+                                @php
+                                    $itemTotal = $item['price'] * $item['quantity'];
+                                    $subtotal += $itemTotal;
+                                @endphp
+                                <tr>
+                                    <td data-label="Product">
+                                        <div class="sl-table-name">
+                                            @if($item['image'])
+                                                <img src="{{ getImage(getFilePath('products') . '/' . $item['image'], getFilePath('products')) }}"
+                                                     alt="{{ $item['name'] }}" class="sl-table-avatar" style="object-fit:cover;">
+                                            @else
+                                                <div class="sl-table-avatar" style="background:#F3F4F6;color:#9CA3AF;">
+                                                    <i class="las la-box"></i>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <p class="fw-600 mb-0">{{ $item['name'] }}</p>
+                                                <small class="text-muted">SKU: {{ $item['product_id'] }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td data-label="Price">{{ showAmount($item['price']) }}</td>
+                                    <td data-label="Quantity">
+                                        <div class="sl-qty-stepper" style="max-width:120px;">
+                                            <button type="button" class="sl-qty-btn qty-dec" tabindex="-1">&minus;</button>
+                                            <input type="number"
+                                                   class="sl-qty-input quantity-update"
+                                                   value="{{ $item['quantity'] }}"
+                                                   min="1"
+                                                   max="{{ $item['max_quantity'] }}"
+                                                   data-product-id="{{ $item['product_id'] }}">
+                                            <button type="button" class="sl-qty-btn qty-inc" tabindex="-1">&plus;</button>
+                                        </div>
+                                    </td>
+                                    <td data-label="Total" class="fw-700" style="color:var(--sl-green);">{{ showAmount($itemTotal) }}</td>
+                                    <td data-label="">
+                                        <button class="sl-btn sl-btn-outline remove-item" style="color:#DC2626;border-color:#FECACA;" data-product-id="{{ $item['product_id'] }}" title="Remove">
+                                            <i class="las la-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="text-end">
-                        <a href="{{ route('user.stockist.inventory.catalog') }}" class="btn btn-outline-success">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Catalog
-                        </a>
-                    </div>
+                </div>
+            </div>
+
+            <div class="sl-card">
+                <div class="sl-card-header"><i class="las la-sticky-note me-1"></i> Order Notes (optional)</div>
+                <div class="sl-card-body">
+                    <textarea class="sl-input" id="orderNotes" rows="3"
+                              placeholder="Add any special instructions or notes for your order…"></textarea>
                 </div>
             </div>
         </div>
 
-        @if(empty($cart))
-            <div class="row justify-content-center">
-                <div class="col-md-6 text-center">
-                    <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-body py-5">
-                            <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
-                            <h4 class="text-muted mb-3">Your Cart is Empty</h4>
-                            <p class="text-muted mb-4">Add some products to your cart before checking out.</p>
-                            <a href="{{ route('user.stockist.inventory.catalog') }}" class="btn btn-success">
-                                <i class="fas fa-shopping-cart me-2"></i>Browse Products
+        {{-- ── RIGHT: Order total ──────────────────────── --}}
+        <div class="col-12 col-lg-4">
+            <div class="sl-preview-card sticky-lg-top" style="top:100px;">
+                <div class="sl-preview-header"><i class="las la-receipt me-2"></i>Order Total</div>
+                <div class="sl-preview-body">
+                    <div class="sl-preview-row">
+                        <span>Subtotal</span>
+                        <strong>{{ showAmount($subtotal) }}</strong>
+                    </div>
+                    <div class="sl-preview-row">
+                        <span>Shipping</span>
+                        <strong style="color:var(--sl-green);">FREE</strong>
+                    </div>
+                    <div class="sl-preview-divider"></div>
+                    <div class="sl-preview-row sl-preview-total">
+                        <span>Total</span>
+                        <strong id="grandTotal">{{ showAmount($subtotal) }}</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+                        <span class="fw-600" style="font-size:.85rem;"><i class="las la-wallet me-1" style="color:var(--sl-green);"></i>Wallet Balance</span>
+                        <strong style="color:var(--sl-green);">{{ showAmount($stockist->wallet) }}</strong>
+                    </div>
+
+                    @if($stockist->wallet < $subtotal)
+                        <div class="alert sl-alert-warning" style="font-size:.8rem;">
+                            <i class="las la-exclamation-triangle me-1"></i>
+                            Insufficient balance. You need {{ showAmount($subtotal - $stockist->wallet) }} more.
+                        </div>
+                    @else
+                        <div class="alert sl-alert-success" style="font-size:.8rem;">
+                            <i class="las la-check-circle me-1"></i>
+                            Sufficient balance available
+                        </div>
+                    @endif
+
+                    <div class="d-grid mt-3">
+                        @if($stockist->wallet >= $subtotal)
+                            <button type="button" class="sl-btn sl-btn-primary" style="padding:.75rem 1rem;font-size:.9rem;" id="placeOrderBtn">
+                                <i class="las la-check-circle me-1"></i> Place Order
+                            </button>
+                        @else
+                            <button class="sl-btn sl-btn-outline" style="padding:.75rem 1rem;font-size:.9rem;opacity:.6;pointer-events:none;" disabled>
+                                <i class="las la-lock me-1"></i> Insufficient Funds
+                            </button>
+                            <a href="#" class="sl-btn sl-btn-outline mt-2">
+                                <i class="las la-plus-circle me-1"></i> Top Up Wallet
                             </a>
-                        </div>
+                        @endif
                     </div>
+
+                    <p class="text-center text-muted mt-3 mb-0" style="font-size:.72rem;">
+                        <i class="las la-shield-alt me-1"></i> Secure payment &middot; Funds deducted from wallet
+                    </p>
                 </div>
             </div>
-        @else
-            <div class="row">
-                <!-- Order Summary -->
-                <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm rounded-3 mb-4">
-                        <div class="card-header bg-white py-3">
-                            <h5 class="mb-0">
-                                <i class="fas fa-shopping-bag me-2 text-success"></i>
-                                Order Summary
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Price</th>
-                                            <th>Quantity</th>
-                                            <th>Total</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @php
-                                            $subtotal = 0;
-                                        @endphp
-                                        @foreach($cart as $item)
-                                        @php
-                                            $itemTotal = $item['price'] * $item['quantity'];
-                                            $subtotal += $itemTotal;
-                                        @endphp
-                                        <tr>
-                                            <td> 
-                                                <div class="d-flex align-items-center">
-                                                    @if($item['image'])
-                                                        <img src="{{ getImage(getFilePath('products') . '/' . $item['image'], getFilePath('products')) }}" alt="{{ $item['name'] }}" 
-                                                             class="rounded me-3"
-                                                             style="width: 50px; height: 50px; object-fit: cover;">
-
-                                                    @else
-                                                        <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
-                                                             style="width: 50px; height: 50px;">
-                                                            <i class="fas fa-box text-muted"></i>
-                                                        </div>
-                                                    @endif
-                                                    <div>
-                                                        <h6 class="mb-0">{{ $item['name'] }}</h6>
-                                                        <small class="text-muted">SKU: {{ $item['product_id'] }}</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>₦{{ number_format($item['price'], 2) }}</td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <input type="number" 
-                                                           class="form-control form-control-sm quantity-update"
-                                                           value="{{ $item['quantity'] }}" 
-                                                           min="1" 
-                                                           max="{{ $item['max_quantity'] }}"
-                                                           style="width: 80px;"
-                                                           data-product-id="{{ $item['product_id'] }}">
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <strong class="text-success">₦{{ number_format($itemTotal, 2) }}</strong>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-outline-danger btn-sm remove-item" 
-                                                        data-product-id="{{ $item['product_id'] }}">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order Notes -->
-                    <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-header bg-white py-3">
-                            <h5 class="mb-0">
-                                <i class="fas fa-sticky-note me-2 text-info"></i>
-                                Order Notes (Optional)
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <textarea class="form-control" id="orderNotes" rows="3" 
-                                      placeholder="Add any special instructions or notes for your order..."></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Total & Payment -->
-                <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-3 sticky-top" style="top: 100px;">
-                        <div class="card-header bg-gradient-success text-white rounded-top">
-                            <h5 class="mb-0 text-center">Order Total</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Order Breakdown -->
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted">Subtotal:</span>
-                                    <span class="fw-semibold">₦{{ number_format($subtotal, 2) }}</span>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="text-muted">Shipping:</span>
-                                    <span class="text-success fw-semibold">FREE</span>
-                                </div>
-                                <hr>
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <span class="fw-bold fs-5">Total:</span>
-                                    <span class="fw-bold fs-5 text-success" id="grandTotal">
-                                        ₦{{ number_format($subtotal, 2) }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Wallet Information -->
-                            <div class="wallet-info mb-4 p-3 bg-light rounded-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-semibold">
-                                        <i class="fas fa-wallet me-2 text-success"></i>
-                                        Wallet Balance
-                                    </span>
-                                    <span class="fw-bold text-success">₦{{ number_format($stockist->wallet, 2) }}</span>
-                                </div>
-                                
-                                @if($stockist->wallet < ($subtotal))
-                                    <div class="alert alert-warning small mb-0 mt-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>
-                                        Insufficient balance. You need ₦{{ number_format(($subtotal) - $stockist->wallet, 2) }} more.
-                                    </div>
-                                @else
-                                    <div class="alert alert-success small mb-0 mt-2">
-                                        <i class="fas fa-check-circle me-1"></i>
-                                        Sufficient balance available
-                                    </div>
-                                @endif
-                            </div>
-                            
-                            <!-- Place Order Button -->
-                            <div class="d-grid">
-                                @if($stockist->wallet >= ($subtotal))
-                                    <button type="button" class="btn btn-success btn-lg rounded-pill py-3 fw-semibold" id="placeOrderBtn">
-                                        <i class="fas fa-check-circle me-2"></i>
-                                        Place Order
-                                    </button>
-                                @else
-                                    <button class="btn btn-secondary btn-lg rounded-pill py-3 fw-semibold" disabled>
-                                        <i class="fas fa-lock me-2"></i>
-                                        Insufficient Funds
-                                    </button>
-                                    <a href="#" class="btn btn-outline-warning mt-2 rounded-pill">
-                                        <i class="fas fa-plus-circle me-2"></i>
-                                        Top Up Wallet
-                                    </a>
-                                @endif
-                            </div>
-                            
-                            <!-- Security Notice -->
-                            <div class="text-center mt-3">
-                                <small class="text-muted">
-                                    <i class="fas fa-shield-alt me-1"></i>
-                                    Secure payment · Funds deducted from wallet
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
+        </div>
     </div>
-</div>
+@endif
 
-<!-- Loading Modal -->
 <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 bg-transparent shadow-none">
             <div class="modal-body text-center">
-                <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status">
+                <div class="spinner-border mb-3" style="width:3rem;height:3rem;color:#fff;" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
-                <h5 class="text-white">Processing Order...</h5>
+                <h5 class="text-white">Processing Order…</h5>
                 <p class="text-white-50 mb-0">Please wait while we process your order</p>
             </div>
         </div>
     </div>
 </div>
-
+</
 @endsection
+
 @push('modal')
-<!-- Success Modal -->
 <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModal" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body text-center p-4">
-                <div class="text-success mb-3">
-                    <i class="fas fa-check-circle fa-4x"></i>
+                <div class="mb-3" style="color:var(--sl-green);">
+                    <i class="las la-check-circle" style="font-size:3.5rem;"></i>
                 </div>
-                <h4 class="text-dark mb-3">Order Placed Successfully!</h4>
+                <h4 class="mb-3">Order Placed Successfully!</h4>
                 <p class="text-muted mb-4" id="successMessage"></p>
                 <div class="d-grid gap-2">
-                    <a href="{{ route('user.stockist.inventory.orders') }}" class="btn btn-success rounded-pill">
-                        <i class="fas fa-list me-2"></i>View Orders
+                    <a href="{{ route('user.stockist.inventory.orders') }}" class="sl-btn sl-btn-primary">
+                        <i class="las la-list me-1"></i> View Orders
                     </a>
-                    <a href="{{ route('user.stockist.inventory.dashboard') }}" class="btn btn-outline-success rounded-pill">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    <a href="{{ route('user.stockist.inventory.dashboard') }}" class="sl-btn sl-btn-outline">
+                        <i class="las la-tachometer-alt me-1"></i> Dashboard
                     </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 @endpush
+
 @push('script')
 <script>
 $(document).ready(function() {
     let grandTotal = {{ $subtotal * 1.05 }};
 
-    // Update quantity
+    $('.qty-dec, .qty-inc').on('click', function() {
+        const input = $(this).closest('.sl-qty-stepper').find('.quantity-update');
+        const min = parseInt(input.attr('min'));
+        const max = parseInt(input.attr('max'));
+        let value = parseInt(input.val()) || min;
+
+        value = $(this).hasClass('qty-inc') ? value + 1 : value - 1;
+        if (value < min) value = min;
+        if (value > max) value = max;
+
+        input.val(value).trigger('change');
+    });
+
     $('.quantity-update').on('change', function() {
         const productId = $(this).data('product-id');
         const quantity = $(this).val();
@@ -289,10 +245,8 @@ $(document).ready(function() {
         });
     });
 
-    // Remove item
     $('.remove-item').on('click', function() {
         const productId = $(this).data('product-id');
-        //alert(productId);
         if (confirm('Are you sure you want to remove this item from your cart?')) {
             $.ajax({
                 url: "{{ route('user.stockist.inventory.cart.update') }}",
@@ -315,13 +269,11 @@ $(document).ready(function() {
         }
     });
 
-    // Place order
     $('#placeOrderBtn').on('click', function() {
         const notes = $('#orderNotes').val();
         const button = $(this);
         const originalText = button.html();
 
-        // Show loading
         $('#loadingModal').modal('show');
 
         $.ajax({
@@ -333,7 +285,7 @@ $(document).ready(function() {
             },
             success: function(response) {
                 $('#loadingModal').modal('hide');
-                
+
                 if (response.success) {
                     $('#successMessage').html(`
                         Your order <strong>${response.order_number}</strong> has been placed successfully!<br>

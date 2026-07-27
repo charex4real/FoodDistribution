@@ -74,6 +74,13 @@ class Notify
 	public $pushImage;
 
     /**
+    * Admin ID, when this notification is a direct notice composed by an admin
+    *
+    * @var int|null
+    */
+	public $adminId;
+
+    /**
     * Assign value to sendVia and setting property
     *
     * @param null $sendVia
@@ -112,6 +119,7 @@ class Notify
 			$notify->createLog = $this->createLog;
 			$notify->userColumn = $this->userColumn;
 			$notify->pushImage = $this->pushImage;
+			$notify->adminId = $this->adminId;
 			$notify->send();
 		}
 	}

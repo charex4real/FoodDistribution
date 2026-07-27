@@ -10,4 +10,9 @@ class NotificationLog extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function notifyingAdmin()
+    {
+        return $this->belongsTo(Admin::class, 'sent_by_admin_id');
+    }
 }

@@ -1,321 +1,200 @@
-@extends($activeTemplate . 'layouts.master_stockist')
-@section('title', 'Order Details - ' . $order->order_number)
+@extends($activeTemplate . 'layouts.master')
+
 @section('content')
-@include($activeTemplate.'layouts.breadcrumb')
-<div class="container-fluid py-4">
-    <div class="container">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h3 fw-bold text-dark mb-1">Order Details</h1>
-                        <p class="text-muted mb-0">Order #{{ $order->order_number }}</p>
+<div class="nc-wrap" id="ncWrap">
+    <br>
+{{-- ── Page Header ─────────────────────────────────── --}}
+<div class="sl-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="sl-page-title mb-1">Order Details</h4>
+        <p class="sl-page-subtitle mb-0">Order #{{ $order->order_number }}</p>
+    </div>
+    <a href="{{ route('user.stockist.inventory.orders') }}" class="sl-btn sl-btn-outline">
+        <i class="las la-arrow-left me-1"></i> Back to Orders
+    </a>
+</div>
+
+<div class="row g-4">
+    {{-- ── LEFT: Status, items, notes ──────────────────── --}}
+    <div class="col-12 col-lg-8">
+
+        <div class="sl-card mb-4">
+            <div class="sl-card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="sl-status-icon sl-status-icon-{{ $order->status }}">
+                            @switch($order->status)
+                                @case('pending') <i class="las la-clock"></i> @break
+                                @case('approved') <i class="las la-check"></i> @break
+                                @case('processing') <i class="las la-cog"></i> @break
+                                @case('shipped') <i class="las la-shipping-fast"></i> @break
+                                @case('delivered') <i class="las la-check-circle"></i> @break
+                                @case('cancelled') <i class="las la-times"></i> @break
+                            @endswitch
+                        </div>
+                        <div>
+                            <h5 class="fw-700 text-capitalize mb-1">{{ $order->status }}</h5>
+                            <p class="text-muted mb-0" style="font-size:.82rem;">
+                                Order placed on {{ $order->created_at->format('F j, Y \a\t g:i A') }}
+                            </p>
+                            @if($order->approved_at)
+                                <p class="mb-0" style="font-size:.78rem;color:var(--sl-green);">Approved on {{ $order->approved_at->format('F j, Y') }}</p>
+                            @endif
+                            @if($order->delivered_at)
+                                <p class="mb-0" style="font-size:.78rem;color:var(--sl-green);">Delivered on {{ $order->delivered_at->format('F j, Y') }}</p>
+                            @endif
+                        </div>
                     </div>
                     <div class="text-end">
-                        <a href="{{ route('user.stockist.inventory.orders') }}" class="btn btn-outline-success">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Orders
-                        </a>
+                        <h3 class="fw-800 mb-0" style="color:var(--sl-green);">{{ showAmount($order->grand_total) }}</h3>
+                        <small class="text-muted">Total Amount</small>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row">
-            <!-- Order Information -->
-            <div class="col-lg-8">
-                <!-- Order Status Card -->
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
-                    <div class="card-body p-4">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center">
-                                    <div class="status-icon me-4">
-                                        @switch($order->status)
-                                            @case('pending')
-                                                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" 
-                                                     style="width: 60px; height: 60px;">
-                                                    <i class="fas fa-clock fa-lg text-white"></i>
-                                                </div>
-                                                @break
-                                            @case('approved')
-                                                <div class="bg-info rounded-circle d-flex align-items-center justify-content-center" 
-                                                     style="width: 60px; height: 60px;">
-                                                    <i class="fas fa-check fa-lg text-white"></i>
-                                                </div>
-                                                @break
-                                            @case('processing')
-                                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
-                                                     style="width: 60px; height: 60px;">
-                                                    <i class="fas fa-cog fa-lg text-white"></i>
-                                                </div>
-                                                @break
-                                            @case('shipped')
-                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
-                                                     style="width: 60px; height: 60px;">
-                                                    <i class="fas fa-shipping-fast fa-lg text-white"></i>
-                                                </div>
-                                                @break
-                                            @case('delivered')
-                                                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" 
-                                                     style="width: 60px; height: 60px;">
-                                                    <i class="fas fa-check-circle fa-lg text-white"></i>
-                                                </div>
-                                                @break
-                                            @case('cancelled')
-                                                <div class="bg-danger rounded-circle d-flex align-items-center justify-content-center" 
-                                                     style="width: 60px; height: 60px;">
-                                                    <i class="fas fa-times fa-lg text-white"></i>
-                                                </div>
-                                                @break
-                                        @endswitch
-                                    </div>
-                                    <div>
-                                        <h4 class="fw-bold text-capitalize mb-1">{{ $order->status }}</h4>
-                                        <p class="text-muted mb-0">
-                                            Order placed on {{ $order->created_at->format('F j, Y \a\t g:i A') }}
-                                        </p>
-                                        @if($order->approved_at)
-                                            <p class="text-success mb-0 small">
-                                                Approved on {{ $order->approved_at->format('F j, Y') }}
-                                            </p>
-                                        @endif
-                                        @if($order->delivered_at)
-                                            <p class="text-success mb-0 small">
-                                                Delivered on {{ $order->delivered_at->format('F j, Y') }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                <div class="total-amount">
-                                    <h3 class="fw-bold text-success mb-0">₦{{ number_format($order->grand_total, 2) }}</h3>
-                                    <small class="text-muted">Total Amount</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Items -->
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">
-                            <i class="fas fa-boxes me-2 text-success"></i>
-                            Order Items
-                        </h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Price</th>
-                                        <th>Quantity</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($order->items as $item)
-
-                                    <tr>
-                                        <td> 
-                                            <div class="d-flex align-items-center"> 
-                                                @if($item->product->thumbnail)
-                                                    <img src="{{ getImage(getFilePath('products') . '/' . $item->product->thumbnail, getFilePath('products')) }}" 
-                                                         alt="{{ $item->product->name }}" 
-                                                         class="rounded me-3"
-                                                         style="width: 50px; height: 50px; object-fit: cover;">
-                                                    
-                                                @else
-                                                    <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
-                                                         style="width: 50px; height: 50px;">
-                                                        <i class="fas fa-box text-muted"></i>
-                                                    </div>
-                                                @endif
-                                                <div>
-                                                    <h6 class="mb-0">{{ $item->product->name }}</h6>
-                                                    <small class="text-muted">SKU: {{ $item->product->id }}</small>
-                                                </div>
+        <div class="sl-card mb-4">
+            <div class="sl-card-header"><i class="las la-boxes me-1"></i> Order Items</div>
+            <div class="sl-card-body p-0">
+                <div class="table-responsive">
+                    <table class="sl-table" aria-label="Order items">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($order->items as $item)
+                            <tr>
+                                <td data-label="Product">
+                                    <div class="sl-table-name">
+                                        @if($item->product->thumbnail)
+                                            <img src="{{ getImage(getFilePath('products') . '/' . $item->product->thumbnail, getFilePath('products')) }}"
+                                                 alt="{{ $item->product->name }}" class="sl-table-avatar" style="object-fit:cover;">
+                                        @else
+                                            <div class="sl-table-avatar" style="background:#F3F4F6;color:#9CA3AF;">
+                                                <i class="las la-box"></i>
                                             </div>
-                                        </td>
-                                        <td>₦{{ number_format($item->unit_price, 2) }}</td>
-                                        <td>
-                                            <span class="badge bg-secondary fs-6">{{ $item->quantity }}</span>
-                                        </td>
-                                        <td>
-                                            <strong class="text-success">₦{{ number_format($item->total_price, 2) }}</strong>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <td colspan="3" class="text-end fw-bold">Subtotal:</td>
-                                        <td class="fw-bold">₦{{ number_format($order->total_amount, 2) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" class="text-end fw-bold">Tax (5%):</td>
-                                        <td class="fw-bold">₦{{ number_format($order->tax_amount, 2) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" class="text-end fw-bold">Shipping:</td>
-                                        <td class="fw-bold text-success">₦{{ number_format($order->shipping_cost, 2) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" class="text-end fw-bold fs-5">Grand Total:</td>
-                                        <td class="fw-bold fs-5 text-success">₦{{ number_format($order->grand_total, 2) }}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                                        @endif
+                                        <div>
+                                            <p class="fw-600 mb-0">{{ $item->product->name }}</p>
+                                            <small class="text-muted">SKU: {{ $item->product->id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="Price">{{ showAmount($item->unit_price) }}</td>
+                                <td data-label="Quantity">{{ $item->quantity }}</td>
+                                <td data-label="Total" class="fw-600" style="color:var(--sl-green);">{{ showAmount($item->total_price) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-700">Subtotal:</td>
+                                <td class="fw-700">{{ showAmount($order->total_amount) }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end fw-700">Tax (5%):</td>
+                                <td class="fw-700">{{ showAmount($order->tax_amount) }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end fw-700">Shipping:</td>
+                                <td class="fw-700" style="color:var(--sl-green);">{{ showAmount($order->shipping_cost) }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end fw-800">Grand Total:</td>
+                                <td class="fw-800" style="color:var(--sl-green);">{{ showAmount($order->grand_total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if($order->notes)
+        <div class="sl-card">
+            <div class="sl-card-header"><i class="las la-sticky-note me-1"></i> Order Notes</div>
+            <div class="sl-card-body">
+                <p class="text-muted mb-0">{{ $order->notes }}</p>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    {{-- ── RIGHT: Summary + timeline ───────────────────── --}}
+    <div class="col-12 col-lg-4">
+        <div class="sl-card mb-4">
+            <div class="sl-card-header"><i class="las la-file-invoice me-1"></i> Order Summary</div>
+            <div class="sl-card-body">
+                <div class="sl-info-row">
+                    <span class="fw-600">Order Number</span>
+                    <code>{{ $order->order_number }}</code>
+                </div>
+                <div class="sl-info-row">
+                    <span class="fw-600">Order Date</span>
+                    <span>{{ $order->created_at->format('M j, Y') }}</span>
+                </div>
+                <div class="sl-info-row">
+                    <span class="fw-600">Items</span>
+                    <span>{{ $order->items->count() }}</span>
+                </div>
+                <div class="sl-info-row">
+                    <span class="fw-600">Total Units</span>
+                    <span>{{ $order->items->sum('quantity') }}</span>
+                </div>
+                <div class="sl-info-row">
+                    <span class="fw-600">Payment Method</span>
+                    <span style="color:var(--sl-green);">Wallet</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sl-card">
+            <div class="sl-card-header"><i class="las la-history me-1"></i> Order Timeline</div>
+            <div class="sl-card-body">
+                <div class="sl-timeline-item">
+                    <div class="sl-timeline-icon" style="background:var(--sl-green);"><i class="las la-shopping-cart"></i></div>
+                    <div>
+                        <p class="fw-600 mb-0">Order Placed</p>
+                        <small class="text-muted">{{ $order->created_at->format('M j, Y \a\t g:i A') }}</small>
                     </div>
                 </div>
 
-                @if($order->notes)
-                <!-- Order Notes -->
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">
-                            <i class="fas fa-sticky-note me-2 text-info"></i>
-                            Order Notes
-                        </h5>
+                @if($order->approved_at)
+                <div class="sl-timeline-item">
+                    <div class="sl-timeline-icon" style="background:var(--sl-blue);"><i class="las la-check"></i></div>
+                    <div>
+                        <p class="fw-600 mb-0">Order Approved</p>
+                        <small class="text-muted">{{ $order->approved_at->format('M j, Y \a\t g:i A') }}</small>
                     </div>
-                    <div class="card-body">
-                        <p class="text-muted mb-0">{{ $order->notes }}</p>
+                </div>
+                @endif
+
+                @if($order->shipped_at)
+                <div class="sl-timeline-item">
+                    <div class="sl-timeline-icon" style="background:#6366F1;"><i class="las la-shipping-fast"></i></div>
+                    <div>
+                        <p class="fw-600 mb-0">Order Shipped</p>
+                        <small class="text-muted">{{ $order->shipped_at->format('M j, Y \a\t g:i A') }}</small>
+                    </div>
+                </div>
+                @endif
+
+                @if($order->delivered_at)
+                <div class="sl-timeline-item">
+                    <div class="sl-timeline-icon" style="background:var(--sl-green);"><i class="las la-check-circle"></i></div>
+                    <div>
+                        <p class="fw-600 mb-0">Order Delivered</p>
+                        <small class="text-muted">{{ $order->delivered_at->format('M j, Y \a\t g:i A') }}</small>
                     </div>
                 </div>
                 @endif
             </div>
-
-            <!-- Order Summary & Timeline -->
-            <div class="col-lg-4">
-                <!-- Order Summary -->
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
-                    <div class="card-header bg-gradient-primary text-white py-3 rounded-top">
-                        <h5 class="mb-0 text-center">Order Summary</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="info-item d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded-2">
-                            <span class="fw-semibold">Order Number:</span>
-                            <code>{{ $order->order_number }}</code>
-                        </div>
-                        <div class="info-item d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded-2">
-                            <span class="fw-semibold">Order Date:</span>
-                            <span>{{ $order->created_at->format('M j, Y') }}</span>
-                        </div>
-                        <div class="info-item d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded-2">
-                            <span class="fw-semibold">Items:</span>
-                            <span>{{ $order->items->count() }}</span>
-                        </div>
-                        <div class="info-item d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded-2">
-                            <span class="fw-semibold">Total Units:</span>
-                            <span>{{ $order->items->sum('quantity') }}</span>
-                        </div>
-                        <div class="info-item d-flex justify-content-between align-items-center p-2 bg-light rounded-2">
-                            <span class="fw-semibold">Payment Method:</span>
-                            <span class="text-success">Wallet</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Timeline -->
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="mb-0">
-                            <i class="fas fa-history me-2 text-info"></i>
-                            Order Timeline
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="timeline">
-                            <div class="timeline-item d-flex mb-3">
-                                <div class="timeline-icon me-3">
-                                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 40px; height: 40px;">
-                                        <i class="fas fa-shopping-cart text-white"></i>
-                                    </div>
-                                </div>
-                                <div class="timeline-content flex-grow-1">
-                                    <h6 class="mb-1 fw-semibold">Order Placed</h6>
-                                    <small class="text-muted">{{ $order->created_at->format('M j, Y \a\t g:i A') }}</small>
-                                </div>
-                            </div>
-
-                            @if($order->approved_at)
-                            <div class="timeline-item d-flex mb-3">
-                                <div class="timeline-icon me-3">
-                                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 40px; height: 40px;">
-                                        <i class="fas fa-check text-white"></i>
-                                    </div>
-                                </div>
-                                <div class="timeline-content flex-grow-1">
-                                    <h6 class="mb-1 fw-semibold">Order Approved</h6>
-                                    <small class="text-muted">{{ $order->approved_at->format('M j, Y \a\t g:i A') }}</small>
-                                </div>
-                            </div>
-                            @endif
-
-                            @if($order->shipped_at)
-                            <div class="timeline-item d-flex mb-3">
-                                <div class="timeline-icon me-3">
-                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 40px; height: 40px;">
-                                        <i class="fas fa-shipping-fast text-white"></i>
-                                    </div>
-                                </div>
-                                <div class="timeline-content flex-grow-1">
-                                    <h6 class="mb-1 fw-semibold">Order Shipped</h6>
-                                    <small class="text-muted">{{ $order->shipped_at->format('M j, Y \a\t g:i A') }}</small>
-                                </div>
-                            </div>
-                            @endif
-
-                            @if($order->delivered_at)
-                            <div class="timeline-item d-flex">
-                                <div class="timeline-icon me-3">
-                                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 40px; height: 40px;">
-                                        <i class="fas fa-check-circle text-white"></i>
-                                    </div>
-                                </div>
-                                <div class="timeline-content flex-grow-1">
-                                    <h6 class="mb-1 fw-semibold">Order Delivered</h6>
-                                    <small class="text-muted">{{ $order->delivered_at->format('M j, Y \a\t g:i A') }}</small>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
+</div>
 @endsection
-
-@push('style')
-<style>
-.timeline-item {
-    position: relative;
-}
-
-.timeline-item:not(:last-child):after {
-    content: '';
-    position: absolute;
-    left: 20px;
-    top: 50px;
-    bottom: -20px;
-    width: 2px;
-    background: #e9ecef;
-}
-
-.status-icon .bg-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important; }
-.status-icon .bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; }
-.status-icon .bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
-.status-icon .bg-success { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important; }
-</style>
-@endpush

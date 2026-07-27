@@ -303,7 +303,32 @@
                 <p class="bk-mlm-sub">Lifetime earned</p>
             </div>
         </div>
+        <div class="bk-mlm-card">
+            <div class="bk-mlm-icon" style="background:#7C3AED20;color:#7C3AED;"><i class="las la-keyboard"></i></div>
+            <div class="bk-mlm-info">
+                <p class="bk-mlm-val">{{ showAmount($user->key_in_bonus ?? 0) }}</p>
+                <p class="bk-mlm-lbl">Key-In Bonus</p>
+                <p class="bk-mlm-sub">Lifetime earned</p>
+            </div>
+        </div>
     </div>
+
+    {{-- Notices strip — visible only when there's an unread admin notice --}}
+    @if(($unreadAdminNoticeCount ?? 0) > 0)
+    <a href="{{ route('user.notifications') }}" class="bk-notice-strip" style="text-decoration:none;">
+        <div class="bk-notice-left">
+            <span class="bk-notice-icon"><i class="las la-user-shield"></i></span>
+            <div>
+                <p class="bk-notice-label">Personal Notice from Admin</p>
+                <p class="bk-notice-sub">{{ $latestAdminNotice->subject ?? 'You have a new notice' }}</p>
+            </div>
+        </div>
+        <div class="bk-notice-right">
+            <span class="bk-notice-count">{{ $unreadAdminNoticeCount > 9 ? '9+' : $unreadAdminNoticeCount }}</span>
+            <span class="bk-notice-cta">View <i class="las la-arrow-right"></i></span>
+        </div>
+    </a>
+    @endif
 
     {{-- ACB card — only for ACB members --}}
     @if($user->isAcb())
@@ -351,8 +376,8 @@
         </div>
         <div class="bk-pv-bars">
             @php
-                $pvL   = (float)($userMatrix->pv_left  ?? 0);
-                $pvR   = (float)($userMatrix->pv_right ?? 0);
+                $pvL   = (float)($userMatrix->pv_left_pairing  ?? 0);
+                $pvR   = (float)($userMatrix->pv_right_pairing ?? 0);
                 $pvMax = max($pvL, $pvR, 1);
             @endphp
             <div class="bk-pv-leg">

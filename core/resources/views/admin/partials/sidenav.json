@@ -482,6 +482,18 @@
                 "title": "PV Log",
                 "route_name": "admin.pv-logs.index",
                 "menu_active": "admin.pv-logs*"
+            },
+            {
+                "keyword": ["Notices", "Direct Notice", "Send Notice", "Personal Notification", "Message User"],
+                "title": "Direct Notices",
+                "route_name": "admin.notices.index",
+                "menu_active": "admin.notices*"
+            },
+            {
+                "keyword": ["Key-In Bonus", "Key In Bonus", "Registration Bonus", "Keyed In"],
+                "title": "Key-In Bonus",
+                "route_name": "admin.key-in-bonus.index",
+                "menu_active": "admin.key-in-bonus*"
             }
         ]
     },

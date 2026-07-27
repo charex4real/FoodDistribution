@@ -18,6 +18,7 @@ use App\Models\NotificationLog;
 use App\Rules\FileTypeValidate;
 use App\Http\Controllers\Controller;
 use App\Models\NotificationTemplate;
+use App\Services\AdminNoticeService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -984,18 +985,17 @@ class ManageUsersController extends Controller
             $imageUrl = fileUploader($request->image, getFilePath('push'));
         }
 
-        $template = NotificationTemplate::where('act', 'DEFAULT')->where($request->via . '_status', Status::ENABLE)->exists();
-        if (!$template) {
-            $notify[] = ['warning', 'Default notification template is not enabled'];
-            return back()->withNotify($notify);
-        }
-
         $user = User::findOrFail($id);
-        notify($user, 'DEFAULT', [
-            'subject' => $request->subject,
-            'message' => $request->message,
-        ], [$request->via], pushImage: $imageUrl);
-        $notify[] = ['success', 'Notification sent successfully'];
+        [$success, $message] = (new AdminNoticeService())->send(
+            $user,
+            $request->via,
+            $request->subject,
+            $request->message,
+            $imageUrl,
+            auth('admin')->id()
+        );
+
+        $notify[] = [$success ? 'success' : 'warning', $success ? 'Notification sent successfully' : $message];
         return back()->withNotify($notify);
     }
 

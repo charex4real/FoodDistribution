@@ -389,13 +389,25 @@ class CronController extends Controller
      */
     public function matchingDispatch()
     {
-        try { 
+        try {
             Artisan::call('matching:dispatch');
             $output = trim(Artisan::output());
             return response('matching:dispatch OK — ' . $output . ' [' . now() . ']', 200);
         } catch (\Throwable $e) {
             \Log::error('matchingDispatch cron failed: ' . $e->getMessage());
             return response('matching:dispatch FAILED: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function autoshipSweep()
+    {
+        try {
+            Artisan::call('autoship:sweep');
+            $output = trim(Artisan::output());
+            return response('autoship:sweep OK — ' . $output . ' [' . now() . ']', 200);
+        } catch (\Throwable $e) {
+            \Log::error('autoshipSweep cron failed: ' . $e->getMessage());
+            return response('autoship:sweep FAILED: ' . $e->getMessage(), 500);
         }
     }
 

@@ -72,6 +72,7 @@ class MatchingBonusService implements MatchingBonusServiceInterface
         try {
             return DB::transaction(function () use ($matrixId) {
                 $matrix = Matrix::lockForUpdate()->find($matrixId);
+                //dd($matrix);
 
                 if (!$matrix) {
                     Log::warning('[MatchingBonus] Matrix not found inside lock.', ['matrix_id' => $matrixId]);
@@ -105,6 +106,38 @@ class MatchingBonusService implements MatchingBonusServiceInterface
                     Log::info('[MatchingBonus] Project pairing_per_day is 0 — no payment.', ['user_id' => $user->id, 'matrix_id' => $matrixId]);
                     return null;
                 }
+
+                // ── Daily pairing limit enforcement ────────────────────────
+                $maxPairingSlots = (int) $user->project->max_pairing_slots;
+                if ($maxPairingSlots > 0) { 
+                    $todayMatches = MatchingBonusLog::dailyMatchCount($user->id, now()->toDateString());
+                    $remainingSlots = $maxPairingSlots - $todayMatches;
+
+                    if ($remainingSlots <= 0) {
+                        Log::info('[MatchingBonus] Daily pairing limit reached.', [
+                            'user_id' => $user->id,
+                            'matrix_id' => $matrixId,
+                            'max_slots' => $maxPairingSlots,
+                            'today_matches' => $todayMatches,
+                        ]);
+                        return null;
+                    }
+
+                    // Enforce the remaining daily limit
+                    $matches = min($matches, $remainingSlots);
+
+                    if ($matches > $remainingSlots) {
+                        Log::info('[MatchingBonus] Daily pairing limit enforced.', [
+                            'user_id' => $user->id,
+                            'matrix_id' => $matrixId,
+                            'calculated_matches' => $this->calculateMatches($pvLeft, $pvRight),
+                            'allowed_matches' => $matches,
+                            'max_slots' => $maxPairingSlots,
+                            'today_matches' => $todayMatches,
+                        ]);
+                    }
+                }
+                // ──────────────────────────────────────────────────────────
 
                 $pvDeducted = $matches * self::MATCHING_NUMBER;
                 $totalBonus = round($matches * $bonusPerMatch, 2);

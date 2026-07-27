@@ -38,7 +38,7 @@ class DispatchMatchingBonusCommand extends Command
         $this->info("Querying matrices with pv_left_pairing >= {$threshold} AND pv_right_pairing >= {$threshold}...");
 
         try {
-            Matrix::where('is_active', true)
+            Matrix::where('stage_id', 1)
                 ->where('pv_left_pairing',  '>=', $threshold)
                 ->where('pv_right_pairing', '>=', $threshold)
                 ->chunkById(200, function ($matrices) use (&$dispatched) {

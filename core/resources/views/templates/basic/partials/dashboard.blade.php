@@ -1,7 +1,6 @@
 @php
-    $notifReadAt      = auth()->user()->notifications_read_at;
     $unreadNotifCount = \App\Models\NotificationLog::where('user_id', auth()->id())
-        ->when($notifReadAt, fn($q) => $q->where('created_at', '>', $notifReadAt))
+        ->where('user_read', false)
         ->count();
 @endphp
 <section class="bank-dashboard">
@@ -164,6 +163,30 @@
                                 <a href="{{ route('user.stockist.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.dashboard') }}">
                                     <span class="bank-nav-icon"><i class="las la-store-alt"></i></span>
                                     <span>Stockist Dashboard</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.profile') }}" class="bank-nav-link {{ menuActive('user.stockist.profile') }}">
+                                    <span class="bank-nav-icon"><i class="las la-user-circle"></i></span>
+                                    <span>Stockist Profile</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.history') }}" class="bank-nav-link {{ menuActive('user.stockist.history') }}">
+                                    <span class="bank-nav-icon"><i class="las la-history"></i></span>
+                                    <span>Redemption History</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.inventory.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.dashboard') }}">
+                                    <span class="bank-nav-icon"><i class="las la-boxes"></i></span>
+                                    <span>Inventory</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.inventory.orders') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.orders') }}">
+                                    <span class="bank-nav-icon"><i class="las la-shopping-basket"></i></span>
+                                    <span>My Stockist Orders</span>
                                 </a>
                             </li>
                             @endif

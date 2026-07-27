@@ -20,7 +20,7 @@ class BonusTransferController extends Controller
         'upgrade_bonus'  => ['label' => 'Upgrade Bonus',  'icon' => 'las la-arrow-circle-up', 'color' => '#F59E0B', 'bg' => 'linear-gradient(135deg,#F59E0B,#D97706)'],
         'unilevel_bonus' => ['label' => 'Unilevel Bonus', 'icon' => 'las la-layer-group',     'color' => '#10B981', 'bg' => 'linear-gradient(135deg,#10B981,#059669)'],
         'awards'         => ['label' => 'Awards',          'icon' => 'las la-trophy',          'color' => '#F97316', 'bg' => 'linear-gradient(135deg,#F97316,#EA580C)'],
-        'matching_bonus'     => ['label' => 'Matching Bonus',     'icon' => 'las la-code-branch', 'color' => '#EC4899', 'bg' => 'linear-gradient(135deg,#EC4899,#BE185D)', 'requires_purchase' => true],
+        'matching_bonus'     => ['label' => 'Matching Bonus',     'icon' => 'las la-code-branch', 'color' => '#EC4899', 'bg' => 'linear-gradient(135deg,#EC4899,#BE185D)', 'requires_purchase' => false],
         'autoship'           => ['label' => 'Autoship',           'icon' => 'las la-sync-alt',     'color' => '#0891B2', 'bg' => 'linear-gradient(135deg,#0891B2,#0E7490)',  'requires_purchase' => true, 'is_autoship' => true],
         'repurchase_award'   => ['label' => 'Repurchase Award',   'icon' => 'las la-medal',       'color' => '#0D9488', 'bg' => 'linear-gradient(135deg,#0D9488,#0F766E)'],
         'key_in_bonus'       => ['label' => 'Key-In Bonus',       'icon' => 'las la-keyboard',    'color' => '#7C3AED', 'bg' => 'linear-gradient(135deg,#7C3AED,#5B21B6)'],

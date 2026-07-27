@@ -148,6 +148,13 @@ class NotifyProcess{
     protected $sentFrom = null;
 
     /**
+    * Admin ID, when this notification is a direct notice composed by an admin
+    *
+    * @var int|null
+    */
+    public $adminId;
+
+    /**
     * Get the final message after replacing the short code.
     *
     * Also custom message will be return from here if notification template doesn't exist.
@@ -273,6 +280,8 @@ class NotifyProcess{
 		    $notificationLog->subject = $this->subject;
 		    $notificationLog->image = @$this->pushImage ?? null;
 		    $notificationLog->message = $type == 'email' ? $this->finalMessage : strip_tags($this->finalMessage);
+		    $notificationLog->is_admin_notice = (bool) $this->adminId;
+		    $notificationLog->sent_by_admin_id = $this->adminId;
 		    $notificationLog->save();
 		}
 	}

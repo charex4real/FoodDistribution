@@ -1,321 +1,249 @@
+@extends($activeTemplate . 'layouts.master')
 
-@extends($activeTemplate . 'layouts.master_stockist')
-@section('title', 'Stockist Dashboard')
 @section('content')
- @include($activeTemplate.'layouts.breadcrumb')
-<div class="container-fluid py-4">
-    <div class="container">
-        <!-- Header -->
+<div class="nc-wrap" id="ncWrap">
+    <br>
+{{-- ── Page Header ─────────────────────────────────── --}}
+<div class="sl-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="sl-page-title mb-1">Stockist Dashboard</h4>
+        <p class="sl-page-subtitle mb-0">Welcome back, {{ auth()->user()->fullname }}.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="sl-status sl-status-active">Active Stockist</span>
+        <a href="{{ route('user.stockist.history') }}" class="sl-btn sl-btn-outline">
+            <i class="las la-history me-1"></i> Redemption History
+        </a>
+    </div>
+</div>
 
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                       <!--  <h1 class="h3 fw-bold text-dark mb-1">Stockist Dashboard</h1> -->
-                        <p class="mb-0 fw-bold">Welcomeee back, {{ auth()->user()->fullname }}</p>
+{{-- ── Stats cards ───────────────────────────────────── --}}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-sm-6 col-xl-3">
+        <div class="sl-stat-card sl-stat-primary">
+            <div class="sl-stat-icon"><i class="las la-file-invoice"></i></div>
+            <div class="sl-stat-body">
+                <p class="sl-stat-label">Stockist Rebate</p>
+                <h3 class="sl-stat-value">{{ showAmount(auth()->user()->stockist->wallet) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-6 col-xl-3">
+        <div class="sl-stat-card sl-stat-info">
+            <div class="sl-stat-icon"><i class="las la-receipt"></i></div>
+            <div class="sl-stat-body">
+                <p class="sl-stat-label">Total Redemptions</p>
+                <h3 class="sl-stat-value">{{ $stats['total_redemptions'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-6 col-xl-3">
+        <div class="sl-stat-card sl-stat-gold">
+            <div class="sl-stat-icon"><i class="las la-calendar-day"></i></div>
+            <div class="sl-stat-body">
+                <p class="sl-stat-label">Today's Redemptions</p>
+                <h3 class="sl-stat-value">{{ $stats['today_redemptions'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-6 col-xl-3">
+        <div class="sl-stat-card sl-stat-success">
+            <div class="sl-stat-icon"><i class="las la-coins"></i></div>
+            <div class="sl-stat-body">
+                <p class="sl-stat-label">Total Processed</p>
+                <h3 class="sl-stat-value">{{ showAmount($stats['total_amount']) }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    {{-- ── LEFT: Redeem + Recent ───────────────────────── --}}
+    <div class="col-12 col-lg-8">
+
+        <div class="sl-card mb-4">
+            <div class="sl-card-header"><i class="las la-qrcode me-1"></i> Redeem an Invoice</div>
+            <div class="sl-card-body">
+                <form id="redeemInvoiceForm">
+                    <label class="sl-label" for="invoiceCodeInput">Invoice Code</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <input type="text" id="invoiceCodeInput" class="invoiceC sl-input" style="flex:1;min-width:220px;"
+                               name="invoice_code" placeholder="Enter invoice code" required>
+                        <button type="submit" class="sl-btn sl-btn-primary">
+                            <i class="las la-search me-1"></i> Verify Invoice
+                        </button>
                     </div>
-                    <div class="text-end">
-                        <span class="badge bg-success fs-6">Active Stockist</span>
+                </form>
+
+                {{-- Invoice Details --}}
+                <div id="invoiceDetails" class="mt-4 d-none">
+                    <div class="sl-card" style="border-color:var(--sl-green);">
+                        <div class="sl-card-header" style="background:var(--sl-green-lt);color:var(--sl-green);">
+                            <i class="las la-check-circle me-1"></i> Invoice Verified
+                        </div>
+                        <div class="sl-card-body">
+                            <div id="invoiceItems"></div>
+                            <form id="processRedemptionForm" class="mt-2">
+                                <div id="redemptionItems"></div>
+                                <div class="mt-3">
+                                    <label class="sl-label" for="redemptionNotes">Notes (optional)</label>
+                                    <textarea class="sl-input" id="redemptionNotes" name="notes" rows="2"
+                                              placeholder="Add any notes about this redemption…"></textarea>
+                                </div>
+                                <div class="sl-form-actions mt-3" style="justify-content:flex-end;">
+                                    <button type="submit" class="sl-btn sl-btn-primary">
+                                        <i class="las la-check me-1"></i> Process Redemption
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="row mb-4">
+        <div class="sl-card">
+            <div class="sl-card-header d-flex justify-content-between align-items-center">
+                <span><i class="las la-history me-1"></i> Recent Redemptions</span>
+            </div>
+            <div class="sl-card-body p-0">
+                @if($recentRedemptions->count() > 0)
+                    <div class="table-responsive">
+                        <table class="sl-table" aria-label="Recent redemptions">
+                            <thead>
+                                <tr>
+                                    <th>Invoice</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentRedemptions as $redemption)
+                                <tr>
+                                    <td data-label="Invoice"><span class="fw-600">{{ $redemption->invoice->invoice_code }}</span></td>
+                                    <td data-label="Customer">{{ $redemption->user->username }}</td>
+                                    <td data-label="Amount" class="fw-600">{{ showAmount($redemption->total_amount) }}</td>
+                                    <td data-label="Date">{{ $redemption->created_at->format('M j, H:i') }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center py-3">
+                        <a href="{{ route('user.stockist.history') }}" class="sl-action-btn">
+                            View Full History <i class="las la-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                @else
+                    <div class="sl-empty-state">
+                        <div class="sl-empty-icon"><i class="las la-receipt"></i></div>
+                        <p class="sl-empty-title">No redemptions yet</p>
+                        <p class="sl-empty-sub">Verified redemptions you process will show up here.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
 
-            <div class="col-sm-6 col-md-3 mb-2">
-                <div class="card border-0 bg-gradient-success text-white shadow-sm rounded-3">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h4 class="fw-bold mb-0">{{ showAmount(auth()->user()->stockist->wallet) }}</h4>
-                                <small>Stockist Rebate</small>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-file-invoice fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="mb-2 col-sm-6 col-md-3">
-                <div class="card border-0 bg-gradient-primary text-white shadow-sm rounded-3">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h4 class="fw-bold mb-0">{{ $stats['total_redemptions'] }}</h4>
-                                <small>Total Redemptions</small>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-receipt fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="mb-2 col-sm-6 col-md-3">
-                <div class="card border-0 bg-gradient-warning text-white shadow-sm rounded-3">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h4 class="fw-bold mb-0">{{ $stats['today_redemptions'] }}</h4>
-                                <small>Today's Redemptions</small>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-calendar-day fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mb-2 col-sm-6 col-md-3">
-                <div class="card border-0 bg-gradient-info text-white shadow-sm rounded-3">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h5 class="fw-bold mb-0">{{ showAmount($stats['total_amount']) }}</h5>
-                                <small>Total Processed</small>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-coins fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    {{-- ── RIGHT: Quick actions + guide ────────────────── --}}
+    <div class="col-12 col-lg-4">
+
+        <div class="sl-card mb-4">
+            <div class="sl-card-header"><i class="las la-bolt me-1"></i> Quick Actions</div>
+            <div class="sl-card-body d-grid gap-2">
+                <a href="{{ route('user.stockist.history') }}" class="sl-btn sl-btn-outline">
+                    <i class="las la-history me-1"></i> Redemption History
+                </a>
+                <button type="button" class="sl-btn sl-btn-outline" onclick="clearForm()">
+                    <i class="las la-broom me-1"></i> Clear Form
+                </button>
             </div>
         </div>
 
-        <div class="row">
-            <!-- Redeem Invoice Section -->
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">
-                            <i class="fas fa-qrcode me-2 text-primary"></i>
-                            Redeem Invoice
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="redeemInvoiceForm">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Invoice Code</label>
-                                <input type="text" id="invoiceCodeInput" class="invoiceC form-control form-control-lg" 
-                                       name="invoice_code" placeholder="Enter invoice code" required
-                                       />
-                            </div>
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-success btn-lg rounded-pill px-5">
-                                    <i class="fas fa-search me-2"></i>Verify Invoice
-                                </button>
-                            </div>
-                        </form>
- 
-                        <!-- Invoice Details -->
-                        <div id="invoiceDetails" class="mt-4 d-none">
-                            <div class="card border-success">
-                                <div class="card-header bg-success text-white">
-                                    <h6 class="mb-0 text-white">Invoice Verified</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div id="invoiceItems"></div>
-                                    <form id="processRedemptionForm" class="mt-3">
-                                        <div id="redemptionItems"></div>
-                                        <div class="mb-3">
-                                            <label class="form-label fw-semibold">Notes (Optional)</label>
-                                            <textarea class="form-control" name="notes" rows="2" 
-                                                      placeholder="Add any notes about this redemption..."></textarea>
-                                        </div>
-                                        <div class="text-end">
-                                            <button type="submit" class="btn btn-success rounded-pill px-4">
-                                                <i class="fas fa-check me-2"></i>Process Redemption
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Redemptions -->
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">
-                            <i class="fas fa-history me-2 text-info"></i>
-                            Recent Redemptions
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        @if($recentRedemptions->count() > 0)
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Invoice</th>
-                                            <th>Customer</th>
-                                            <th>Amount</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($recentRedemptions as $redemption)
-                                        <tr>
-                                            <td>
-                                                <small class="fw-semibold">{{ $redemption->invoice->invoice_code }}</small>
-                                            </td>
-                                            <td>{{ $redemption->user->username }}</td>
-                                            <td>₦{{ number_format($redemption->total_amount, 2) }}</td>
-                                            <td>{{ $redemption->created_at->format('M j, H:i') }}</td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="text-center">
-                                <a href="{{ route('user.stockist.history') }}" class="btn btn-outline-primary btn-sm rounded-pill">
-                                    View Full History
-                                </a>
-                            </div>
-                        @else
-                            <div class="text-center py-4">
-                                <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">No redemptions yet</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="mb-0">
-                            <i class="fas fa-bolt me-2 text-warning"></i>
-                            Quick Actions
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <a href="{{ route('user.stockist.history') }}" class="btn btn-outline-success rounded-pill text-start">
-                                <i class="fas fa-history me-2"></i>Redemption History
-                            </a>
-                            <button class="btn btn-outline-success rounded-pill text-start" onclick="clearForm()">
-                                <i class="fas fa-broom me-2"></i>Clear Form
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Instructions -->
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="mb-0">
-                            <i class="fas fa-info-circle me-2 text-info"></i>
-                            Redemption Guide
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <ol class="small ps-3">
-                            <li class="mb-2">Enter the customer's invoice code</li>
-                            <li class="mb-2">Verify the invoice details</li>
-                            <li class="mb-2">Adjust quantities based on available stock</li>
-                            <li class="mb-2">Process partial or full redemption</li>
-                            <li class="mb-2">Provide remaining items to customer</li>
-                        </ol>
-                        <div class="alert alert-warning small mb-0">
-                            <i class="fas fa-exclamation-triangle me-1"></i>
-                            Customers can redeem remaining items at other stockists
-                        </div>
-                    </div>
+        <div class="sl-card">
+            <div class="sl-card-header"><i class="las la-info-circle me-1"></i> Redemption Guide</div>
+            <div class="sl-card-body">
+                <ol class="ps-3 mb-3" style="font-size:.85rem;color:var(--bk-text);">
+                    <li class="mb-2">Enter the customer's invoice code</li>
+                    <li class="mb-2">Verify the invoice details</li>
+                    <li class="mb-2">Adjust quantities based on available stock</li>
+                    <li class="mb-2">Process partial or full redemption</li>
+                    <li class="mb-0">Provide remaining items to customer</li>
+                </ol>
+                <div class="alert sl-alert-warning mb-0" style="font-size:.8rem;">
+                    <i class="las la-exclamation-triangle me-1"></i>
+                    Customers can redeem remaining items at other stockists
                 </div>
             </div>
         </div>
     </div>
+</div>
 </div>
 @endsection
-@push('modal')
-<!-- Success Modal -->
 
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModal" aria-hidden="true">    
+@push('modal')
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModal" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body text-center p-4">
-                <div class="text-success mb-3">
-                    <i class="fas fa-check-circle fa-4x"></i>
+                <div class="mb-3" style="color:var(--sl-green);">
+                    <i class="las la-check-circle" style="font-size:3.5rem;"></i>
                 </div>
-                <h4 class="text-dark mb-3">Redemption Successful!</h4>
+                <h4 class="mb-3">Redemption Successful!</h4>
                 <p class="text-muted mb-4" id="successMessage"></p>
                 <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-success rounded-pill" data-bs-dismiss="modal">Continue</button>
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" onclick="clearForm()">Process Another</button>
+                    <button type="button" class="sl-btn sl-btn-primary" data-bs-dismiss="modal">Continue</button>
+                    <button type="button" class="sl-btn sl-btn-outline" onclick="clearForm()">Process Another</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<div class="modal fade" id="invoiceAlreadyRedeem" tabindex="-1" aria-labelledby="invoiceAlreadyRedeem" aria-hidden="true">
 
+<div class="modal fade" id="invoiceAlreadyRedeem" tabindex="-1" aria-labelledby="invoiceAlreadyRedeem" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body text-center p-4">
-                <div class="text-success mb-3">
-                    <i class="fas fa-check-circle fa-4x"></i>
+                <div class="mb-3" style="color:#D97706;">
+                    <i class="las la-exclamation-circle" style="font-size:3.5rem;"></i>
                 </div>
-                <h4 class="text-dark mb-3">Note !!!</h4>
+                <h4 class="mb-3">Note</h4>
                 <p class="text-muted mb-4" id="copiedInvoiceText"></p>
-                <button type="button" class="btn btn-success rounded-pill px-4" data-bs-dismiss="modal">Continue</button>
+                <button type="button" class="sl-btn sl-btn-primary" data-bs-dismiss="modal">Continue</button>
             </div>
         </div>
     </div>
 </div>
-
-
 @endpush
+
 @push('script')
 <script>
 function clearForm() {
-       // alert('dd');
-        $('#redeemInvoiceForm')[0].reset();
-        $('#invoiceDetails').addClass('d-none');
-        //$('#invoiceCodeInput').focus();
-        $('.invoiceC').focus();
+    $('#redeemInvoiceForm')[0].reset();
+    $('#invoiceDetails').addClass('d-none');
+    $('.invoiceC').focus();
+}
 
-    }
 $(document).ready(function() {
-
-
 
     $('#redeemInvoiceForm').on('submit', function(e) {
         e.preventDefault();
-        var v = $('#invoiceCodeInput').val();
         var invoiceCode = $('.invoiceC').val();
-       
-        //alert(invoiceCode);
+
         $.ajax({
             url: "{{ route('user.stockist.verify.invoice') }}",
             method: 'POST',
             data: {
                 invoice_code: invoiceCode,
                 _token: "{{ csrf_token() }}"
-            }, 
-            beforeSend: function() {
-                //$('.invoiceC')[0].reset();
-                //$('.invoiceC').addClass('d-none');
             },
             success: function(response) {
                 if (response.success) {
                     displayInvoiceDetails(response);
-                    //alert(response);
                 } else {
-                    var msg = response.message;
-                    //alert(response.message);
-
-                    $('#copiedInvoiceText').html(msg);
+                    $('#copiedInvoiceText').html(response.message);
                     $('#invoiceAlreadyRedeem').modal('show');
-                  
                 }
             },
             error: function(xhr) {
@@ -340,11 +268,8 @@ $(document).ready(function() {
                 if (response.success) {
                     showSuccessModal(response);
                 } else {
-
-                    var msg = response.message;
-                    $('#copiedInvoiceText').html(msg);
+                    $('#copiedInvoiceText').html(response.message);
                     $('#invoiceAlreadyRedeem').modal('show');
-                    //alert(response.message);
                 }
             },
             error: function(xhr) {
@@ -355,12 +280,11 @@ $(document).ready(function() {
 
     function displayInvoiceDetails(response) {
         const { invoice, remaining_items, original_items } = response;
-         //alert(original_items);
 
         let itemsHtml = `
-            <h6 class="fw-bold mb-3">Order Items</h6>
+            <h6 class="fw-600 mb-3">Order Items</h6>
             <div class="table-responsive">
-                <table class="table table-sm">
+                <table class="sl-table">
                     <thead>
                         <tr>
                             <th>Product</th>
@@ -375,36 +299,35 @@ $(document).ready(function() {
         original_items.forEach(item => {
             const remaining = remaining_items[item.product_id] || 0;
             const redeemed = item.quantity - remaining;
-            
+
             itemsHtml += `
                 <tr>
-                    <td>${item.product_name}</td>
-                    <td>${item.quantity}</td>
-                    <td>${redeemed}</td>
-                    <td>${remaining}</td>
-                    <td>
-                        <input type="number" 
-                               class="form-control form-control-sm redemption-qty" 
-                               name="redeemed_items[${item.product_id}]" 
-                               value="${remaining}" 
-                               min="0" 
+                    <td data-label="Product">${item.product_name}</td>
+                    <td data-label="Original Qty">${item.quantity}</td>
+                    <td data-label="Redeemed">${redeemed}</td>
+                    <td data-label="Remaining">${remaining}</td>
+                    <td data-label="Redeem Qty">
+                        <input type="number"
+                               class="sl-input redemption-qty"
+                               name="redeemed_items[${item.product_id}]"
+                               value="${remaining}"
+                               min="0"
                                max="${remaining}"
-                               style="width: 80px;">
+                               style="width:90px;padding:.4rem .6rem;">
                     </td>
                 </tr>`;
         });
 
         itemsHtml += `</tbody></table></div>`;
-        //$('#invoiceItems').html(itemsHtml);
         $('#redemptionItems').html(itemsHtml);
         $('#invoiceDetails').removeClass('d-none');
     }
 
     function showSuccessModal(response) {
-        const message = response.remaining_items && Object.keys(response.remaining_items).length > 0 
+        const message = response.remaining_items && Object.keys(response.remaining_items).length > 0
             ? 'Partial redemption processed successfully. Customer can redeem remaining items at other stockists.'
             : 'Full redemption processed successfully. All items have been redeemed.';
-        
+
         $('#successMessage').text(message);
         $('#successModal').modal('show');
     }

@@ -507,7 +507,7 @@ function getImage_tree($image, $size = null, $defaultUser = false, $no = 0)
 }
 
 
-function notify($user, $templateName, $shortCodes = null, $sendVia = null, $createLog = true, $pushImage = null)
+function notify($user, $templateName, $shortCodes = null, $sendVia = null, $createLog = true, $pushImage = null, $adminId = null)
 {
     $globalShortCodes = [
         'site_name'       => gs('site_name'),
@@ -527,6 +527,7 @@ function notify($user, $templateName, $shortCodes = null, $sendVia = null, $crea
     $notify->user         = $user;
     $notify->createLog    = $createLog;
     $notify->pushImage    = $pushImage;
+    $notify->adminId      = $adminId;
     $notify->userColumn   = isset($user->id) ? $user->getForeignKey() : 'user_id';
     $notify->send();
 }

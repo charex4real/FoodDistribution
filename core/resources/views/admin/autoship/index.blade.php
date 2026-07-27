@@ -218,8 +218,8 @@
     <div class="as-hero">
         <div class="as-hero-icon"><i class="las la-sync-alt"></i></div>
         <div class="as-hero-body">
-            <h2>Autoship</h2>
-            <p>20% of each Matching Bonus is held here until the user buys a product. Unclaimed amounts are swept to admin on the last day of every month.</p>
+            <h2 class="text-white">Autoship</h2>
+            <p class="text-white">20% of each Matching Bonus is held here until the user buys a product. Unclaimed amounts are swept to admin on the last day of every month.</p>
         </div>
     </div>
 
@@ -312,7 +312,7 @@
                                 <div class="as-av">{{ strtoupper(substr($u->firstname,0,1)) }}{{ strtoupper(substr($u->lastname,0,1)) }}</div>
                                 <div>
                                     <div class="as-uname">{{ $u->fullname }}</div>
-                                    <div class="as-uid">@{{ $u->username }}</div>
+                                    <div class="as-uid">@ {{ $u->username }}</div>
                                 </div>
                             </div>
                         </td>
@@ -378,7 +378,7 @@
                                 <div class="as-av as-av--green">{{ strtoupper(substr($u->firstname ?? '?',0,1)) }}{{ strtoupper(substr($u->lastname ?? '',0,1)) }}</div>
                                 <div>
                                     <div class="as-uname">{{ $u->fullname ?? '—' }}</div>
-                                    <div class="as-uid">@{{ $u->username ?? '' }}</div>
+                                    <div class="as-uid">@ {{ $u->username ?? '' }}</div>
                                 </div>
                             </div>
                         </td>
@@ -454,7 +454,7 @@
                                 <div class="as-av as-av--red">{{ strtoupper(substr($u->firstname ?? '?',0,1)) }}{{ strtoupper(substr($u->lastname ?? '',0,1)) }}</div>
                                 <div>
                                     <div class="as-uname">{{ $u->fullname ?? '—' }}</div>
-                                    <div class="as-uid">@{{ $u->username ?? '' }}</div>
+                                    <div class="as-uid">@ {{ $u->username ?? '' }}</div>
                                 </div>
                             </div>
                         </td>
