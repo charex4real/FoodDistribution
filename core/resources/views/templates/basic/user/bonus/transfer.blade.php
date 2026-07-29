@@ -10,8 +10,8 @@
                 <div class="text-center mb-5">
                     <h1 class="display-6 fw-bold text-dark mb-3">Transfer Unilevel Bonus</h1>
                     <p class="text-muted">Transfer funds from your unilevel bonus to main balance</p>
-                </div>
-
+                </div> 
+                
                 <div class="row">
                     <!-- Wallet Balances -->
                     <div class="col-md-6 mb-4">

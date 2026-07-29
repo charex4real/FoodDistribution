@@ -248,6 +248,21 @@
 .dot-right { background: #e11d48; }
 .ua-pv-val { font-size: .84rem; font-weight: 800; color: #1a1f2e; }
 
+/* PV progress bars */
+.ua-pv-progress-track {
+    height: 6px; border-radius: 999px; background: #eef2f0;
+    overflow: hidden; margin-bottom: 10px;
+}
+.ua-pv-row + .ua-pv-progress-track:last-child { margin-bottom: 0; }
+.ua-pv-progress-fill {
+    height: 100%; border-radius: 999px;
+    transition: width .6s ease;
+}
+.fill-total { background: linear-gradient(90deg, #818cf8, #6366f1); }
+.fill-left  { background: linear-gradient(90deg, #4ade80, #16a34a); }
+.fill-right { background: linear-gradient(90deg, #fb7185, #e11d48); }
+.ua-card.locked .ua-pv-progress-track { background: #eef0f2; }
+
 /* Meta strip */
 .ua-meta-strip {
     padding: 10px 14px;
@@ -354,6 +369,18 @@
             $isLocked = !$earned;
 
             $cardClass = $isPaid ? 'paid' : ($isEarned ? 'earned' : 'locked');
+
+            // Progress is only meaningful while the award is still locked — pairing
+            // PV depletes as it's consumed by matching bonus payouts, so an already
+            // earned/paid award always shows as complete rather than re-computing
+            // against (possibly since-depleted) current PV.
+            if ($isLocked) {
+                $totalPct = $award->required_total_pv > 0 ? min(100, round($currentTotalPv / $award->required_total_pv * 100)) : 100;
+                $leftPct  = $award->required_left_pv  > 0 ? min(100, round($currentLeftPv  / $award->required_left_pv  * 100)) : 100;
+                $rightPct = $award->required_right_pv > 0 ? min(100, round($currentRightPv / $award->required_right_pv * 100)) : 100;
+            } else {
+                $totalPct = $leftPct = $rightPct = 100;
+            }
         @endphp
         <div class="ua-card {{ $cardClass }}">
             <div class="ua-card-head">
@@ -395,15 +422,44 @@
             <div class="ua-pv-block">
                 <div class="ua-pv-row">
                     <span class="ua-pv-label"><span class="ua-pv-dot dot-total"></span> Total PV</span>
-                    <span class="ua-pv-val">{{ number_format($award->required_total_pv, 0) }}</span>
+                    <span class="ua-pv-val">
+                        @if($isLocked)
+                            {{ number_format($currentTotalPv, 0) }} / {{ number_format($award->required_total_pv, 0) }}
+                        @else
+                            {{ number_format($award->required_total_pv, 0) }}
+                        @endif
+                    </span>
                 </div>
+                <div class="ua-pv-progress-track">
+                    <div class="ua-pv-progress-fill fill-total" style="width:{{ $totalPct }}%"></div>
+                </div>
+
                 <div class="ua-pv-row">
                     <span class="ua-pv-label"><span class="ua-pv-dot dot-left"></span> Left Leg</span>
-                    <span class="ua-pv-val">{{ number_format($award->required_left_pv, 0) }}</span>
+                    <span class="ua-pv-val">
+                        @if($isLocked)
+                            {{ number_format($currentLeftPv, 0) }} / {{ number_format($award->required_left_pv, 0) }}
+                        @else
+                            {{ number_format($award->required_left_pv, 0) }}
+                        @endif
+                    </span>
                 </div>
+                <div class="ua-pv-progress-track">
+                    <div class="ua-pv-progress-fill fill-left" style="width:{{ $leftPct }}%"></div>
+                </div>
+
                 <div class="ua-pv-row">
                     <span class="ua-pv-label"><span class="ua-pv-dot dot-right"></span> Right Leg</span>
-                    <span class="ua-pv-val">{{ number_format($award->required_right_pv, 0) }}</span>
+                    <span class="ua-pv-val">
+                        @if($isLocked)
+                            {{ number_format($currentRightPv, 0) }} / {{ number_format($award->required_right_pv, 0) }}
+                        @else
+                            {{ number_format($award->required_right_pv, 0) }}
+                        @endif
+                    </span>
+                </div>
+                <div class="ua-pv-progress-track">
+                    <div class="ua-pv-progress-fill fill-right" style="width:{{ $rightPct }}%"></div>
                 </div>
             </div>
 

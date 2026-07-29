@@ -345,7 +345,7 @@
                             @endif
                             <div>
                                 <div class="awp-user-name">{{ $payment->user->fullname ?? '—' }}</div>
-                                <div class="awp-user-handle">@{{ $payment->user->username ?? '' }}</div>
+                                <div class="awp-user-handle">@ {{ $payment->user->username ?? '' }}</div>
                             </div>
                         </div>
                     </td>

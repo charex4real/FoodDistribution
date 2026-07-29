@@ -439,7 +439,7 @@ class StockistController extends Controller
 
                         
                         // 2.) record this transaction in Stockist_store_record
-                        
+                         
                         $this->stockistStore($productId, $invoice->id, $product_state_price->price, $quantity);
                         
                         /* 3.) this is where stockist bonuses will drop.
@@ -549,6 +549,9 @@ class StockistController extends Controller
     }
     
     
+    /** Safety bound on the upline walk — real sponsorship chains never get close to this. */
+    protected const MAX_UPLINE_PV_LEVELS = 50;
+
     protected function recordRepurchasePv(User $user, Product $product, int $quantity): void
     {
         $pvEarned = round((float)($product->pv ?? 0) * $quantity, 2);
@@ -560,7 +563,47 @@ class StockistController extends Controller
         $record->total_pv = round((float)($record->total_pv ?? 0) + $pvEarned, 2);
         $record->save();
 
+        $this->shareRepurchasePvUpline($user, $pvEarned);
     }
+
+    /**
+     * Share the same repurchase PV up the binary matrix's parent route
+     * (matrices.parent_id chain, stage 1) rather than the sponsorship
+     * (ref_by) chain. Only uplines who have subscribed to a project
+     * ($user->project_id is not null) receive the PV; users without one
+     * are skipped, but the chain keeps walking upward past them regardless.
+     */
+
+    protected function shareRepurchasePvUpline(User $user, float $pvEarned): void
+    {
+        $matrix      = Matrix::where('user_id', $user->id)->where('stage_id', 1)->first();
+        $childUserId = $user->id;
+        $levels      = 0;
+
+        while ($matrix && $matrix->parent_id && $levels < self::MAX_UPLINE_PV_LEVELS) {
+            $matrix = Matrix::find($matrix->parent_id);
+            if (!$matrix) {
+                break;
+            }
+
+            $current = User::find($matrix->user_id);
+
+            if ($current && $current->project_id !== null) {
+                $uplineRecord = RepurchasePv::lockForUpdate()->firstOrNew(['user_id' => $current->id]);
+                $uplineRecord->total_pv = round((float)($uplineRecord->total_pv ?? 0) + $pvEarned, 2);
+                $uplineRecord->save();
+
+                // Same left/right resolution used by updateProductPV(), so this
+                // shared PV lands in pv_logs against the correct leg.
+                $position = $matrix->left == $childUserId ? 1 : 2;
+                pvLog($current->id, $pvEarned, $position, '+', "Repurchase PV shared from {$user->username}'s purchase");
+            }
+
+            $childUserId = $matrix->user_id;
+            $levels++;
+        }
+    }
+    
 
     protected function stateLeaderCommission(Invoice $invoice, Product $product, $quantity, $trx): void
     {

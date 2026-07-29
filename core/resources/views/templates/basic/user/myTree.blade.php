@@ -221,6 +221,33 @@ $renderNode = function (string $key) use ($tree, $nodeParent): string {
                     <span class="tree-modal-label"><i class="las la-user-friends"></i> Referred By</span>
                     <span class="tree-modal-value tree_ref">—</span>
                 </div>
+
+                <div class="bk-pv-row" id="modalPvRow">
+                    <div class="bk-pv-label">
+                        <i class="las la-project-diagram"></i> Binary Pairing PV
+                    </div>
+                    <div class="bk-pv-bars">
+                        <div class="bk-pv-leg">
+                            <div class="bk-pv-leg-top">
+                                <span class="bk-pv-leg-lbl"><i class="las la-arrow-alt-circle-left"></i> Left PV</span>
+                                <span class="bk-pv-leg-val" id="modalPvLeftVal">0.00</span>
+                            </div>
+                            <div class="bk-pv-bar-track">
+                                <div class="bk-pv-bar-fill bk-pv-left" id="modalPvLeftBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="bk-pv-leg">
+                            <div class="bk-pv-leg-top">
+                                <span class="bk-pv-leg-lbl"><i class="las la-arrow-alt-circle-right"></i> Right PV</span>
+                                <span class="bk-pv-leg-val" id="modalPvRightVal">0.00</span>
+                            </div>
+                            <div class="bk-pv-bar-track">
+                                <div class="bk-pv-bar-fill bk-pv-right" id="modalPvRightBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <a href="#" class="tree-modal-btn tree_url">
                     <i class="las la-project-diagram"></i> View Their Tree
                 </a>
@@ -271,12 +298,20 @@ window.addEventListener('resize', scaleTree);
         var img    = $(this).data('image');
         var refby  = $(this).data('refby');
         var url    = $(this).data('treeurl');
+        var pvLeft  = parseFloat($(this).data('pvleft'))  || 0;
+        var pvRight = parseFloat($(this).data('pvright')) || 0;
 
         $('.tree_name').text(name);
         $('.tree_status').text(status);
         $('.tree_plan').text(plan || '');
         $('.tree_ref').text(refby || '—');
         $('.tree_url').attr('href', url);
+
+        var pvMax = Math.max(pvLeft, pvRight, 1);
+        $('#modalPvLeftVal').text(pvLeft.toFixed(2));
+        $('#modalPvRightVal').text(pvRight.toFixed(2));
+        $('#modalPvLeftBar').css('width', Math.min(100, Math.round(pvLeft / pvMax * 100)) + '%');
+        $('#modalPvRightBar').css('width', Math.min(100, Math.round(pvRight / pvMax * 100)) + '%');
 
         // Avatar: show image, fallback to initials
         var initial = name ? name.trim().charAt(0).toUpperCase() : '?';

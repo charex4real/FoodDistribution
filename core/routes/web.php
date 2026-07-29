@@ -13,7 +13,7 @@ Route::middleware('cron.secret')->group(function () {
     Route::get('recon/{stage}', 'CronController@reconnectImmediate')->name('reconnectImme');
     // reconnect all downlines in a stage (active + inactive)
     Route::get('reconAll/{stage}', 'CronController@reconnectAll')->name('reconAll');
-    // dispatch payment processing jobs for all eligible users
+    // dispatch award payment processing jobs for all eligible users
     Route::get('paymentsDispatch', 'CronController@paymentsDispatch')->name('paymentsDispatch');
     // check and process award qualifications
     Route::get('awardCheck', 'CronController@awardCheck')->name('awardCheck');
@@ -25,6 +25,8 @@ Route::middleware('cron.secret')->group(function () {
     Route::get('matchingDispatch', 'CronController@matchingDispatch')->name('matchingDispatch');
     // sweep unclaimed autoship balances to admin (guarded internally to last day/hour of month)
     Route::get('autoshipSweep', 'CronController@autoshipSweep')->name('autoshipSweep');
+    // clear application cache (config/route/view/application) after a deploy
+    Route::get('clearCache', 'CronController@clearCache')->name('clearCache');
 });
  
 

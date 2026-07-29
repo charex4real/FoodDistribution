@@ -17,7 +17,7 @@ class RepurchaseAwardCredit extends Model
     {
         return $this->belongsTo(User::class);
     }
-
+ 
     public function award()
     {
         return $this->belongsTo(RepurchaseAward::class, 'repurchase_award_id');

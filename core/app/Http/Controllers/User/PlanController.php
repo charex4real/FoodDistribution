@@ -153,7 +153,15 @@ class PlanController extends Controller
                         ->get()
                         ->keyBy('award_id');
 
-        return view('Template::user.awards', compact('pageTitle', 'allAwards', 'earnedMap'));
+        // Same PV source used by CheckUserAwardJob to qualify awards.
+        $matrix        = Matrix::where('user_id', $user->id)->where('stage_id', 1)->first();
+        $currentLeftPv  = (float) ($matrix->pv_left  ?? 0);
+        $currentRightPv = (float) ($matrix->pv_right ?? 0);
+        $currentTotalPv = $currentLeftPv + $currentRightPv;
+
+        return view('Template::user.awards', compact(
+            'pageTitle', 'allAwards', 'earnedMap', 'currentLeftPv', 'currentRightPv', 'currentTotalPv'
+        ));
     }
 
     public function repurchaseAward()

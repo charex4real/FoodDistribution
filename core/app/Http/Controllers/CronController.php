@@ -411,6 +411,18 @@ class CronController extends Controller
         }
     }
 
+    public function clearCache()
+    {
+        try {
+            Artisan::call('optimize:clear');
+            $output = trim(Artisan::output());
+            return response('optimize:clear OK — ' . $output . ' [' . now() . ']', 200);
+        } catch (\Throwable $e) {
+            \Log::error('clearCache cron failed: ' . $e->getMessage());
+            return response('optimize:clear FAILED: ' . $e->getMessage(), 500);
+        }
+    }
+
     private function matchingBound()
     { 
         $generalSetting = gs();

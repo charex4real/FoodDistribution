@@ -1165,7 +1165,7 @@ function showSingleUserinTree_new($user, $gg = null)
 
         $userType = $stage_name;
         $stShow   = $stage_name;
-        
+
 
         //$img   = getImage('assets/images/user/profile/' . $user->image, '120x120', true);
         //$img   = getImage_tree('assets/images/user/profile/' . $user->image, '120x120', true);
@@ -1174,7 +1174,10 @@ function showSingleUserinTree_new($user, $gg = null)
 
         $refby = getUserById($user->ref_by)->username ?? '';
 
- 
+        $userMatrix = Matrix::where('user_id', $user->id)->where('stage_id', 1)->first();
+        $pvLeft     = (float) ($userMatrix->pv_left_pairing  ?? 0);
+        $pvRight    = (float) ($userMatrix->pv_right_pairing ?? 0);
+
         if (auth()->guard('admin')->user()) {
 
             $hisTree = route('admin.users.other.tree', $user->username);
@@ -1186,10 +1189,12 @@ function showSingleUserinTree_new($user, $gg = null)
         $extraData  = " data-name=\" Username: $user->username\"";
         $extraData .= " data-treeurl=\"$hisTree\"";
         $extraData .= " data-status=\"$stShow\"";
-        
-        $extraData .= " data-image=\"$img\""; 
+
+        $extraData .= " data-image=\"$img\"";
         $extraData .= " data-refby=\"$refby\"";
-        
+        $extraData .= " data-pvleft=\"$pvLeft\"";
+        $extraData .= " data-pvright=\"$pvRight\"";
+
         $res       .= "<div class=\"user showDetails\" type=\"button\" $extraData>";
         $res       .= "<img src=\"$img\" alt=\"*\"  class=\"$userType\">";
         $res       .= "<p class=\"user-name\">$user->username</p>";

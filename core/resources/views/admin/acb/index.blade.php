@@ -349,7 +349,7 @@
                                 <div class="act-avatar">{{ strtoupper(substr($u->firstname,0,1)) }}{{ strtoupper(substr($u->lastname,0,1)) }}</div>
                                 <div>
                                     <div class="act-user-name">{{ $u->fullname }}</div>
-                                    <div class="act-user-id">@{{ $u->username }}</div>
+                                    <div class="act-user-id"> {{ $u->fullname }}</div>
                                 </div>
                             </div>
                         </td>
@@ -361,7 +361,7 @@
                             <span style="color:#94a3b8;">{{ $act->created_at->diffForHumans() }}</span>
                         </td>
                         <td>
-                            <form action="{{ route('admin.acb.destroy', $act->id) }}" method="POST" onsubmit="return confirm('Remove @{{ $u->username }} from ACB?')">
+                            <form action="{{ route('admin.acb.destroy', $act->id) }}" method="POST" onsubmit="return confirm('Remove @ {{ $u->username }} from ACB?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn-act-remove">
                                     <i class="las la-times"></i> Remove
