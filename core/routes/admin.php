@@ -625,6 +625,11 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::get('/', 'index')->name('index');
     });
 
+    // Welcome Back Packages — registration/upgrade cash-back held as redeemable codes
+    Route::controller(\App\Http\Controllers\Admin\AdminWelcomePackageController::class)->prefix('welcome-pack')->name('welcome-pack.')->group(function () {
+        Route::get('/', 'index')->name('index');
+    });
+
     // PV Logs
     Route::get('pv-logs', [\App\Http\Controllers\Admin\AdminPvLogController::class, 'index'])->name('pv-logs.index');
 

@@ -4,6 +4,58 @@
 
 <div class="ord-page">
 
+    {{-- ── Welcome Packages ── --}}
+    @if(($welcomePackages ?? collect())->count())
+    <div class="ord-wp-section">
+        <div class="ord-wp-section-head">
+            <i class="las la-gift"></i>
+            <span>Welcome Packages</span>
+            <span class="ord-wp-count">{{ $welcomePackages->count() }}</span>
+        </div>
+        <div class="ord-wp-grid">
+            @foreach($welcomePackages as $wp)
+            <div class="ord-wp-card {{ $wp->isRedeemed() ? 'ord-wp-card--done' : '' }}">
+                <div class="ord-wp-top">
+                    <div class="ord-wp-icon"><i class="las la-gift"></i></div>
+                    <div class="ord-wp-info">
+                        <p class="ord-wp-title">{{ ucfirst($wp->source) }} Welcome Package</p>
+                        <p class="ord-wp-amount">{{ showAmount($wp->amount) }}</p>
+                    </div>
+                    <span class="ord-wp-badge {{ $wp->isRedeemed() ? 'ord-wp-badge--done' : 'ord-wp-badge--pend' }}">
+                        @if($wp->isRedeemed())
+                            <i class="las la-check-circle"></i> Redeemed
+                        @else
+                            <i class="las la-hourglass-half"></i> Pending
+                        @endif
+                    </span>
+                </div>
+                <div class="ord-wp-code-row">
+                    <div class="ord-wp-code-wrap">
+                        <span class="ord-wp-code-label">Code</span>
+                        <span class="ord-wp-code" id="wpCode{{ $loop->index }}">{{ $wp->code }}</span>
+                    </div>
+                    @if(!$wp->isRedeemed())
+                    <button class="ord-wp-copy-btn copy-wp-code"
+                            data-code="{{ $wp->code }}"
+                            title="Copy code">
+                        <i class="las la-copy"></i> Copy
+                    </button>
+                    @else
+                    <span class="ord-wp-redeemed-date">
+                        <i class="las la-calendar-check"></i>
+                        {{ $wp->redeemed_at?->format('M d, Y') }}
+                    </span>
+                    @endif
+                </div>
+                @if(!$wp->isRedeemed())
+                <p class="ord-wp-hint"><i class="las la-map-marker-alt"></i> Show this code to any authorized stockist to claim your gift package</p>
+                @endif
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- ── Header ── --}}
     <div class="ord-header-card">
         <div class="ord-header-left">
@@ -208,6 +260,17 @@ $(document).ready(function() {
             $('#copiedInvoiceText').html('Invoice code <strong>' + code + '</strong> copied. Present it to the stockist to redeem your products.');
             $('#copySuccessModal').modal('show');
         }).catch(function() { alert('Failed to copy invoice code.'); });
+    });
+
+    $('.copy-wp-code').on('click', function() {
+        const code = $(this).data('code');
+        const $btn = $(this);
+        navigator.clipboard.writeText(code).then(function() {
+            $('#copiedInvoiceText').html('Welcome package code <strong>' + code + '</strong> copied. Present it to any authorized stockist to redeem your gift.');
+            $('#copySuccessModal').modal('show');
+            $btn.html('<i class="las la-check"></i> Copied!');
+            setTimeout(function() { $btn.html('<i class="las la-copy"></i> Copy'); }, 2500);
+        }).catch(function() { alert('Failed to copy code.'); });
     });
 
     $('#statusFilter, #sortBy').on('change', filterAndSort);

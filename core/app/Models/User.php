@@ -27,6 +27,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $casts = [
+        'visa'     => 'integer',
         'email_verified_at'       => 'datetime',
         'kyc_data'                => 'object',
         'ver_code_send_at'        => 'datetime',

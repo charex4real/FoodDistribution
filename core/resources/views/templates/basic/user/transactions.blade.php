@@ -2,6 +2,8 @@
 
 @section('content')
 
+<div class="nc-wrap" id="ncWrap">
+    <br/>
 <div class="txn-page">
 
     {{-- ── Filter Card ── --}}
@@ -109,5 +111,6 @@
         <div>{{ paginateLinks($logs) }}</div>
     @endif
 
+</div>
 </div>
 @endsection

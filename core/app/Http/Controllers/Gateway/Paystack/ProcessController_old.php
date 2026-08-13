@@ -12,7 +12,7 @@ use App\Models\GatewayCurrency;
 use App\Models\AdminNotification;
 use App\Models\UserLogin;
  use App\Models\Pin;
-use App\Models\UserStageProgress;
+
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Gateway\PaymentController;
 use Illuminate\Http\Request;

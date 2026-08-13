@@ -6,7 +6,7 @@ use App\Jobs\ProcessDownlineReconnection;
 use App\Models\User;
 use App\Models\Matrix;
 use App\Models\MatrixStage;
-use App\Models\UserStageProgress;
+
 
 use Illuminate\Console\Command;
 

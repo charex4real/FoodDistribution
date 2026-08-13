@@ -159,7 +159,7 @@ class EpinController extends Controller
                 $pin->stats = 1;
 
             } 
-            $pin->user_id = null;
+            $pin->user_id = 0;
             $pin->status = 0;
             $pin->amount = $request->amount;
             $pin->pin = rand(10000000,99999999).'-'.rand(10000000,99999999).'-'.rand(10000000,99999999).'-'.rand(10000000,99999999);

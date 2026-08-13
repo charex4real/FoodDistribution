@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\Transfer;
 use App\Models\User;
+use App\Models\WelcomePackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -36,9 +37,11 @@ class BonusTransferController extends Controller
         $isAcb                 = $user->isAcb();
         $bonusFields           = $this->visibleFields($isAcb);
         $totalTransferable     = $this->computeTotalTransferable($user, $hasPurchasedThisMonth);
+        $welcomePackages       = WelcomePackage::where('user_id', $user->id)->latest()->get();
 
         return view('Template::user.bonus_transfer', compact(
-            'pageTitle', 'user', 'bonusFields', 'hasPurchasedThisMonth', 'transfers', 'totalTransferable', 'isAcb'
+            'pageTitle', 'user', 'bonusFields', 'hasPurchasedThisMonth', 'transfers',
+            'totalTransferable', 'isAcb', 'welcomePackages'
         ));
     }
 

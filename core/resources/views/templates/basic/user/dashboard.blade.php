@@ -330,6 +330,27 @@
     </a>
     @endif
 
+    {{-- Welcome Package strips — one per pending package --}}
+    @if(($pendingWelcomePackages ?? collect())->count())
+    @foreach($pendingWelcomePackages as $wp)
+    <div class="bk-wp-strip">
+        <div class="bk-wp-strip-left">
+            <span class="bk-wp-icon"><i class="las la-gift"></i></span>
+            <div>
+                <p class="bk-wp-label">{{ ucfirst($wp->source) }} Welcome Package &mdash; {{ showAmount($wp->amount) }}</p>
+                <p class="bk-wp-sub">Present code to a stockist to redeem your gift</p>
+            </div>
+        </div>
+        <div class="bk-wp-right">
+            <span class="bk-wp-code">{{ $wp->code }}</span>
+            <button class="bk-wp-copy" data-code="{{ $wp->code }}" title="Copy code">
+                <i class="las la-copy"></i>
+            </button>
+        </div>
+    </div>
+    @endforeach
+    @endif
+
     {{-- ACB card — only for ACB members --}}
     @if($user->isAcb())
     <a href="{{ route('user.acb') }}" class="bk-acb-strip" style="text-decoration:none;">
@@ -565,6 +586,22 @@
 @push('script')
 <script>
 (function () {
+    // Welcome package copy buttons
+    document.querySelectorAll('.bk-wp-copy').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var code = btn.dataset.code;
+            var icon = btn.querySelector('i');
+            navigator.clipboard.writeText(code).then(function() {
+                if (icon) { icon.className = 'las la-check'; }
+                btn.style.background = '#059669';
+                setTimeout(function() {
+                    if (icon) { icon.className = 'las la-copy'; }
+                    btn.style.background = '';
+                }, 2000);
+            }).catch(function() { alert('Copy failed — code: ' + code); });
+        });
+    });
+
     // Notification dismiss
     var ncClose = document.getElementById('ncClose');
     var ncWrap  = document.getElementById('ncWrap');

@@ -342,6 +342,7 @@
                 <tbody>
                     @foreach($acbMembers as $i => $act)
                     @php $u = $act->user; @endphp
+                    
                     <tr>
                         <td style="color:#94a3b8;font-size:.8rem;">{{ $acbMembers->firstItem() + $i }}</td>
                         <td>
@@ -349,7 +350,7 @@
                                 <div class="act-avatar">{{ strtoupper(substr($u->firstname,0,1)) }}{{ strtoupper(substr($u->lastname,0,1)) }}</div>
                                 <div>
                                     <div class="act-user-name">{{ $u->fullname }}</div>
-                                    <div class="act-user-id"> {{ $u->fullname }}</div>
+                                    <div class="act-user-id">@ {{ $u->username }}</div>
                                 </div>
                             </div>
                         </td>

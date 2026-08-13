@@ -2,6 +2,7 @@
     $unreadNotifCount = \App\Models\NotificationLog::where('user_id', auth()->id())
         ->where('user_read', false)
         ->count();
+        $inStockistSection = request()->routeIs('user.stockist.*'); 
 @endphp
 <section class="bank-dashboard">
     <div class="bank-layout">
@@ -44,7 +45,7 @@
                         $grpTree    = request()->routeIs(['user.my.tree', 'user.my.stages', 'user.binary*', 'user.pv.log']);
                         $grpAwards  = request()->routeIs(['user.awards', 'user.repurchase.award', 'user.acb']);
                         $grpProject = request()->routeIs(['user.project.*']);
-                        $grpShop    = request()->routeIs(['product*', 'user.orders*', 'user.stockist*']);
+                        $grpShop    = request()->routeIs(['product*', 'user.orders*']);
                         $grpAccount = request()->routeIs(['user.notifications', 'user.profile*', 'user.kyc*', 'user.guarantor*', 'user.twofactor']);
                         $pendingAwardCount = \App\Models\UserAward::where('user_id', auth()->id())->where('status', 0)->count();
                         $pendingGuarantorCount = \App\Models\GuarantorRequest::where('guarantor_id', auth()->id())->where('status', 'pending')->count();
@@ -55,6 +56,7 @@
 
                     {{-- ── MAIN (flat, no dropdown) ─────────────── --}}
                     <p class="bank-nav-label">Main</p>
+                    @if(!$inStockistSection)
                     <ul>
                         <li>
                             <a href="{{ route('user.home') }}" class="bank-nav-link {{ menuActive('user.home') }}">
@@ -93,7 +95,86 @@
                             </a>
                         </li>
                         @endif
+                        @if(returnStockist(auth()->id()))
+                        <li>
+                            <a href="{{ route('user.stockist.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.dashboard') }}">
+                                <span class="bank-nav-icon"><i class="las la-store-alt"></i></span>
+                                <span>Stockist Dashboard</span>
+                            </a>
+                        </li>
+                        @endif
                     </ul>
+                    @endif
+
+                    @if($inStockistSection)
+                        {{-- ── STOCKIST-ONLY MENU ───────────────────── --}}
+                        <ul>
+                            <li>
+                                <a href="{{ route('user.home') }}" class="bank-nav-link">
+                                    <span class="bank-nav-icon"><i class="las la-home"></i></span>
+                                    <span>Back to Main Menu</span>
+                                </a>
+                            </li>
+
+                            
+                        </ul>
+                        <p class="bank-nav-label">Stockist</p>
+                        <ul>
+                            <li>
+                                <a href="{{ route('user.stockist.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.dashboard') }}">
+                                    <span class="bank-nav-icon"><i class="las la-store-alt"></i></span>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.profile') }}" class="bank-nav-link {{ menuActive('user.stockist.profile') }}">
+                                    <span class="bank-nav-icon"><i class="las la-user-circle"></i></span>
+                                    <span>Profile</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.history') }}" class="bank-nav-link {{ menuActive('user.stockist.history') }}">
+                                    <span class="bank-nav-icon"><i class="las la-history"></i></span>
+                                    <span>Redemption History</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.inventory.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.dashboard') }}">
+                                    <span class="bank-nav-icon"><i class="las la-boxes"></i></span>
+                                    <span>Inventory</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.inventory.orders') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.orders') }}">
+                                    <span class="bank-nav-icon"><i class="las la-shopping-basket"></i></span>
+                                    <span>My Orders</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.welcome-pack.index') }}" class="bank-nav-link {{ menuActive('user.stockist.welcome-pack.index') }}">
+                                    <span class="bank-nav-icon"><i class="las la-gift"></i></span>
+                                    <span>Welcome Package</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.pos.index') }}" class="bank-nav-link {{ menuActive('user.stockist.pos.*') }}">
+                                    <span class="bank-nav-icon"><i class="las la-cash-register"></i></span>
+                                    <span>Point of Sale</span>
+                                    <span class="pos-nav-badge">POS</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <p class="bank-nav-label">Account</p>
+                        <ul>
+                            <li>
+                                <a href="{{ route('user.logout') }}" class="bank-nav-link bank-nav-logout">
+                                    <span class="bank-nav-icon"><i class="las la-sign-out-alt"></i></span>
+                                    <span>Sign Out</span>
+                                </a>
+                            </li>
+                        </ul>
+                    @else
+
                     {{-- ── USER TREE (section == 1 only) ─────────── --}}
                     @if(auth()->user()->section == 1)
                     <div class="bk-nav-group {{ $grpTree ? 'open' : '' }}">
@@ -117,12 +198,14 @@
                                     <span>Genealogy</span>
                                 </a>
                             </li>
+                            {{--
                             <li>
                                 <a href="{{ route('user.my.stages') }}" class="bank-nav-link {{ menuActive('user.my.stages') }}">
                                     <span class="bank-nav-icon"><i class="las la-layer-group"></i></span>
                                     <span>User Stages</span>
                                 </a>
                             </li>
+                            --}}
                             <li>
                                 <a href="{{ route('user.binary.list') }}" class="bank-nav-link {{ menuActive('user.binary.list') }}">
                                     <span class="bank-nav-icon"><i class="las la-list-ul"></i></span>
@@ -158,38 +241,6 @@
                                     <span>Orders</span>
                                 </a>
                             </li>
-                            @if(returnStockist(auth()->id()))
-                            <li>
-                                <a href="{{ route('user.stockist.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.dashboard') }}">
-                                    <span class="bank-nav-icon"><i class="las la-store-alt"></i></span>
-                                    <span>Stockist Dashboard</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.profile') }}" class="bank-nav-link {{ menuActive('user.stockist.profile') }}">
-                                    <span class="bank-nav-icon"><i class="las la-user-circle"></i></span>
-                                    <span>Stockist Profile</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.history') }}" class="bank-nav-link {{ menuActive('user.stockist.history') }}">
-                                    <span class="bank-nav-icon"><i class="las la-history"></i></span>
-                                    <span>Redemption History</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.inventory.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.dashboard') }}">
-                                    <span class="bank-nav-icon"><i class="las la-boxes"></i></span>
-                                    <span>Inventory</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.inventory.orders') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.orders') }}">
-                                    <span class="bank-nav-icon"><i class="las la-shopping-basket"></i></span>
-                                    <span>My Stockist Orders</span>
-                                </a>
-                            </li>
-                            @endif
                             <li>
                                 <a href="{{ route('user.stockist.find') }}" class="bank-nav-link {{ menuActive('user.stockist.fin') }}">
                                     <span class="bank-nav-icon"><i class="las la-map-marker"></i></span>
@@ -335,6 +386,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('user.change.password') }}" class="bank-nav-link {{ menuActive('user.change.password') }}">
+                                    <span class="bank-nav-icon"><i class="las la-user-cog"></i></span>
+                                    <span>Change password</span>
+                                </a>
+                            </li> 
+                            <li>
                                 <a href="{{ $kycUrl }}" class="bank-nav-link {{ menuActive(['user.kyc.form','user.kyc.data']) }}">
                                     <span class="bank-nav-icon"><i class="las la-id-card"></i></span>
                                     <span>KYC Verification</span>
@@ -370,6 +427,8 @@
                             </li>
                         </ul>
                     </div>
+
+                    @endif
 
                 </nav>
             </div>
@@ -425,6 +484,10 @@
                             <a href="{{ route('user.profile.setting') }}" class="bank-avatar-menu-item" role="menuitem">
                                 <i class="las la-user-cog"></i> Profile Settings
                             </a>
+                            <a href="{{ route('user.change.password') }}" class="bank-avatar-menu-item" role="menuitem">
+                                <i class="las la-user-cog"></i> Change.password
+                            </a>
+                            
                             <a href="{{ route('user.twofactor') }}" class="bank-avatar-menu-item" role="menuitem">
                                 <i class="las la-shield-alt"></i> 2FA Security
                             </a>

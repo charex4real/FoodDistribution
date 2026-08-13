@@ -123,7 +123,7 @@ class StockistController extends Controller
             ->take(5)
             ->get();
 
-        $stats = [
+        $stats = [ 
             'total_redemptions' => $stockist->redemptions()->count(),
             'today_redemptions' => $stockist->redemptions()->whereDate('created_at', today())->count(),
             'total_amount' => $stockist->redemptions()->sum('total_amount'),
@@ -442,10 +442,12 @@ class StockistController extends Controller
                          
                         $this->stockistStore($productId, $invoice->id, $product_state_price->price, $quantity);
                         
-                        /* 3.) this is where stockist bonuses will drop.
+                        /* 
+                        3.) this is where stockist bonuses will drop.
         
                         */
-                       $this->stockist_allocation($product, $invoice, $quantity, $trx);
+
+                       $this->stockist_allocation($product, $quantity, $trx);
 
                        
                         /* 4.) calculate the user Unilever bonus
@@ -455,7 +457,7 @@ class StockistController extends Controller
                         $user_dist  = $invoice->order->user;
 
                         // Project-based unilevel bonus: distributes PRB up the ref_by chain
-                        //app(UnilevelService::class)->process($invoice, $user_dist, $product, $quantity, $trx);
+                        //app(UnilevelService::class)->process($invoice, $user_dist, $product, $quantity, $trx); 
                          
                         $this->unilevelService->process($invoice, $user_dist, $product, $quantity, $trx);
                         //dd($user_dist);
@@ -469,7 +471,7 @@ class StockistController extends Controller
                         updateProductPV($user_dist, $product, $quantity, $dess);
 
                         // 5.) Record product PV for repurchase award tracking
-                        $this->recordRepurchasePv($user_dist, $product, $quantity);
+                        //$this->recordRepurchasePv($user_dist, $product, $quantity);
 
                         // State leaders commission (SKU-based, runs independently of unilevel)
                         $this->stateLeaderCommission($invoice, $product, $quantity, $trx);
@@ -981,7 +983,7 @@ class StockistController extends Controller
     }
 
     
-    protected function stockist_allocation(Product $product, Invoice $invoice, $quantity, $trx){
+    protected function stockist_allocation(Product $product, $quantity, $trx){
         $stockist = auth()->user()->stockist;
         
         //$user = auth()->user();
@@ -990,27 +992,27 @@ class StockistController extends Controller
         switch ($stateId) {
             case 3:
                 // plan
-                $this->akwa_ibom_state($stockist, $product, $invoice, $quantity, $trx);
+                $this->akwa_ibom_state($stockist, $product, $quantity, $trx);
                 break;
             case 25:
                 // plan
-                $this->lagos_state($stockist, $product, $invoice, $quantity, $trx);
+                $this->lagos_state($stockist, $product, $quantity, $trx);
                 break;
             case 10:
                 // plan
-                $this->delta_state($stockist, $product, $invoice, $quantity, $trx);
+                $this->delta_state($stockist, $product, $quantity, $trx);
                 break;
             case 12:
                 // plan
-                $this->edo_state($stockist, $product, $invoice, $quantity, $trx);
+                $this->edo_state($stockist, $product, $quantity, $trx);
                 break;
             case 33:
                 // plan
-                $this->rivers_state($stockist, $product, $invoice, $quantity, $trx);
+                $this->rivers_state($stockist, $product, $quantity, $trx);
                 break;
             case 15:
                 // plan
-                $this->fct_state($stockist, $product, $invoice, $quantity, $trx);
+                $this->fct_state($stockist, $product, $quantity, $trx);
                 break;
             default:
                 // code...
@@ -1021,7 +1023,7 @@ class StockistController extends Controller
 
     }
     
-    protected function fct_state($stockist, Product $product, $invoice, $quantity, $trxx){
+    protected function fct_state($stockist, Product $product, $quantity, $trxx){
 
         $upline_test = 0;
         $money = 0;
@@ -1101,7 +1103,7 @@ class StockistController extends Controller
         }
     }
  
-    protected function rivers_state($stockist, Product $product, $invoice, $quantity, $trxx){
+    protected function rivers_state($stockist, Product $product, $quantity, $trxx){
 
         $upline_test = 0;
         $money = 0;
@@ -1180,7 +1182,7 @@ class StockistController extends Controller
             //stockist mega store bonus
         }
     }
-    protected function edo_state($stockist, Product $product, $invoice, $quantity, $trxx){
+    protected function edo_state($stockist, Product $product, $quantity, $trxx){
 
         $upline_test = 0;
         $money = 0;
@@ -1259,7 +1261,7 @@ class StockistController extends Controller
             //stockist mega store bonus
         }
     }
-    protected function delta_state($stockist, Product $product, $invoice, $quantity, $trxx){
+    protected function delta_state($stockist, Product $product, $quantity, $trxx){
 
         $upline_test = 0;
         $user = auth()->user();
@@ -1338,7 +1340,7 @@ class StockistController extends Controller
         }
     }
 
-    protected function lagos_state($stockist, Product $product, $invoice, $quantity, $trxx){
+    protected function lagos_state($stockist, Product $product, $quantity, $trxx){
         $upline_test = $money = 0;
         $user = auth()->user();
         $stockist = auth()->user()->stockist;
@@ -1417,7 +1419,7 @@ class StockistController extends Controller
         }
     }
 
-    protected function akwa_ibom_state($stockist, Product $product, $invoice, $quantity, $trxx){
+    protected function akwa_ibom_state($stockist, Product $product, $quantity, $trxx){
        
         $user = auth()->user();
         $stockist = auth()->user()->stockist;
@@ -1755,27 +1757,6 @@ class StockistController extends Controller
         ]);
     }
 
-
-    public function index()
-    {
-        $user_id = auth()->id();
-        $pageTitle        = 'Stockists Dashboard';
-        $stock     = Stockist::where('user_id', $user_id)->first();
-        if(!$stock){
-            $notify[] = ['error', 'Your are not permitted to visit Stockist page'];
-            return to_route('user.home')->withNotify($notify);
-        }
-       
-        $wallet     = Stockist::where('user_id', $user_id)->first()->wallet;
-
-        //$stockist_store = Stockist_store::where('user_id', auth()->id())->with('product')->orderBy('id', 'desc')->get();
-        $products    = Product::get();
-        return view('Template::user.stock', compact('pageTitle', 'wallet', 'stock', 'products'));
-
-    }
-
-    
-
     public function redeemProduct(Request $request){
         $request->validate([
             'invoice_code' => 'required|string'
@@ -1804,118 +1785,9 @@ class StockistController extends Controller
 
         return view('Template::user.stockist.redeem-success', compact('invoice'));
     }
-    public function checkCode(Request $request)
-    {   
-        $request->validate([
-            'code'   => 'required|string|min:7'
-            
-        ]);
-
-        $data = [];
-        $dat= Order::where('order_code', $request->code)->where('status', 0)->first();
-
-        if($dat){
-            $product = Product::hasCategory()->active()->find($dat->product_id);
-            $data['productId'] = $product->id;
-            $data['price'] = showAmount($product->price);
-            $data['name'] = $product->name;
-            $data['description'] = $product->description;
-            $data['qty'] = $dat->quantity;
-            $data['userId'] = $dat->user_id;
-            $data['status'] = $dat->status;
-            $data['total'] = showAmount($product->price * $dat->quantity);
-            $data['order_code'] = $dat->order_code;
-        }
-
-        return response()->json(['data' => $data]);
-    } 
+    
 
 
-    public function purchaseDone(Request $request)
-    {
-        //dd($request);
-        $request->validate([
-            'userId'   => 'required|integer',
-            'order_code'   => 'required|string',
-            'productId'   => 'required|integer',
-            
-        ]); 
-        //dd($request->order_code);
-
-        $order= Order::where('order_code', $request->order_code)->where('product_id', $request->productId)->where('user_id', $request->userId)->where('status', 0)->first();
-
-        //dd($order);
-
-        $product = Product::hasCategory()->active()->find($request->productId);
-        $user_distributor = User::find($request->userId);
-        //dd($product);
-
-        $stockist_store = Stockist_store::where('product_id', $product->id)->where('user_id', auth()->id())->first();
-        if(!$stockist_store){
-            
-             $notify[] = ['error', 'Store Quantity is not enough to process this transaction'];
-                return back()->withNotify($notify);
-        }
-
-        if($stockist_store && $order && $user_distributor && $product){
-
-            if($stockist_store->quantity < $order->quantity){
-                 $notify[] = ['error', 'Store Quantity is not enough to process this transaction'];
-                return back()->withNotify($notify);
-            }
-            
-            DB::beginTransaction();
-
-            try {
-
-            
-                $user_id = auth()->id();
-
-                $stockist= Stockist::where('user_id', $user_id)->where('status', 1)->first();
-
-                $total = $order->price * $order->quantity;
-                // Update stockist status
-                //dd($stockist); 
-                $stockist->wallet += $total;
-                $stockist->save();
-
-                // Record the transaction
-                $post_balance1 = $stockist->wallet;
-                $details = 'Credit on stockist wallet';
-                $remark = 'stockist_sales';
-                $trx = $order->trx;
-
-                stockistPurchase($user_id, $total, $post_balance1, $details, $remark, $trx);
-                
-                // reduce stockist store quantity on this particular product
-                $stockist_store->quantity -= $order->quantity;
-                $stockist_store->save();
-
-                //$stockist->update(['wallet' => newTotal]);
-
-                $order->status = Status::ORDER_DELIVERED;
-                $order->stockist_user_id = $user_id;
-                $order->save(); 
-
-                // Process the commission for the distributor upliner
-                $this->processPurchaseCommision($product, $user_distributor, 
-                    $order);
-
-                $notify[] = ['success', 'Transaction successfully'];
-
-            DB::commit();
-
-            } catch (\Throwable $e) {
-                DB::rollBack();
-                throw $e;
-                $notify[] = ['error', 'Failed'];
-            }
-
-            
-            return back()->withNotify($notify);         
-        }
- 
-    }
     // Process the purchase commission
     protected function processPurchaseCommision(Product $product, User $user_distributor, Order $order){
         // first we allocate the 40 of the interest dirstribute to the stockist.
@@ -1984,79 +1856,6 @@ class StockistController extends Controller
       
     }
     
-    public function restockGoods(Request $request)
-    {
-        
-        $request->validate([
-            'prod_id'   => 'required|integer',
-            'qty'   => 'required|string',
-            'stock_id'   => 'required|string',
-            
-        ]);
-
-        $product = Product::where('status', 1)->find($request->prod_id);
-        
-
-        if(!$product){
-            $notify[] = ['error', 'Invalid request, Product not available'];
-                return back()->withNotify($notify);
-        }
-
-        $stockist_store = Stockist_store::where('user_id', auth()->id())->where('product_id', $product->id)->first();
-        if ($stockist_store) {
-           if($stockist_store->quantity > 100){
-                $notify[] = ['error', 'Order Decline. Your Store Quantity is still above 50 bags'];
-                return back()->withNotify($notify);
-            }
-
-        }
-
-        
-        //Ensure no previous order exist.
-        $s_order = Sorder::where('product_id', $product->id)->where('user_id', auth()->id())->where('status', 0)->first();
-
-        if($s_order){
-            $notify[] = ['error', 'You have an existing order'];
-            return back()->withNotify($notify);
-        }
-
-        if ($stockist_store ) {
-            DB::transaction(function () use ($stockist_store, $product, $request) {
-
-                $sorder                     = new Sorder();
-                $sorder->user_id            = auth()->id();
-                $sorder->quantity           = $request->qty;
-                $sorder->product_id         = $product->id;
-                $sorder->stockist_store_id  = $stockist_store->id;
-                $sorder->save();
- 
-            });
-        }else{
-            //create Stockist_store firstbefore making the order
-            DB::transaction(function () use ($stockist_store, $product, $request) {
-                $user_id = auth()->id();
-                //$stockist= Stockist::where('user_id', $user_id)->where('status', 1)->first();
-                
-                $stockist_store  = new Stockist_store();
-                $stockist_store->user_id    = $user_id;
-                $stockist_store->product_id = $product->id;
-                $stockist_store->status     = 1;
-                $stockist_store->save();
-
-                $sorder                     = new Sorder();
-                $sorder->user_id            = $user_id;
-                $sorder->quantity           = $request->qty;
-                $sorder->product_id         = $product->id;
-                $sorder->stockist_store_id  = $stockist_store->id;
-                $sorder->save();
-
-            }); 
-        }
-
-        $notify[] = ['success', 'Order Request successfully'];
-            return back()->withNotify($notify);
-    }
-
 
     public function transactions()
     {

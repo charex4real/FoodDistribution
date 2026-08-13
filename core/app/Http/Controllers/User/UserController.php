@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\GatewayCurrency;
 use App\Models\NotificationLog;
 use App\Models\GuarantorRequest;
+use App\Models\WelcomePackage;
 
 
 
@@ -139,38 +140,11 @@ class UserController extends Controller
             ? NotificationLog::where('user_id', auth()->id())->where('is_admin_notice', true)->where('user_read', false)->latest()->first()
             : null;
 
-        return view('Template::user.dashboard', compact('pageTitle', 'totalDeposit', 'totalWithdraw', 'completeWithdraw', 'pendingWithdraw', 'totalRef', 'totalBvCut', 'total_ref', 'total_ref_debit', 'recentTransactions', 'totalShares', 'totalDividends', 'userMatrix', 'unreadAdminNoticeCount', 'latestAdminNotice'));
+        $pendingWelcomePackages = WelcomePackage::where('user_id', auth()->id())->pending()->latest()->get();
+
+        return view('Template::user.dashboard', compact('pageTitle', 'totalDeposit', 'totalWithdraw', 'completeWithdraw', 'pendingWithdraw', 'totalRef', 'totalBvCut', 'total_ref', 'total_ref_debit', 'recentTransactions', 'totalShares', 'totalDividends', 'userMatrix', 'unreadAdminNoticeCount', 'latestAdminNotice', 'pendingWelcomePackages'));
     }
-    public function land()
-    {
-        $pageTitle        = 'Dashboard';
-        $user = User::find(auth()->id());
-        $totalDeposit     = Deposit::where('user_id', auth()->id())->where('status', 1)->sum('amount');
-        $totalWithdraw    = Withdrawal::where('user_id', auth()->id())->where('status', 1)->sum('amount');
-        $completeWithdraw = Withdrawal::where('user_id', auth()->id())->where('status', 1)->count();
-
-        $total_ref = Transaction::where('user_id', auth()->id())->where('remark', 'referral_commission')->where('trx_type', '+')->sum('amount');
-
-        $total_ref_debit = Transaction::where('user_id', auth()->id())->where('remark', 'referral_commission')->where('trx_type', '-')->sum('amount');
-
-        $pendingWithdraw  = Withdrawal::where('user_id', auth()->id())->where('status', 2)->count();
-        $totalRef         = User::where('ref_by', auth()->id())->count();
-        $totalBvCut       = BvLog::where('user_id', auth()->id())->where('trx_type', '-')->sum('amount');
-
-        $recentTransactions = Transaction::where('user_id', auth()->id())->latest()->limit(8)->get();
-        $totalShares      = Rinvestment::where('user_id', auth()->id())->where('status', 1)->sum('units');
-        $totalDividends   = auth()->user()->shtransactions()->where('status', 'completed')->sum('amount');
-        $userMatrix       = Matrix::where('user_id', auth()->id())->first();
-
-        $unreadAdminNoticeCount = NotificationLog::where('user_id', auth()->id())->where('is_admin_notice', true)->where('user_read', false)->count();
-        $latestAdminNotice      = $unreadAdminNoticeCount > 0
-            ? NotificationLog::where('user_id', auth()->id())->where('is_admin_notice', true)->where('user_read', false)->latest()->first()
-            : null;
-
-        return view('Template::user.dashboard', compact('pageTitle', 'totalDeposit', 'totalWithdraw', 'completeWithdraw', 'pendingWithdraw', 'totalRef', 'totalBvCut', 'total_ref', 'total_ref_debit', 'recentTransactions', 'totalShares', 'totalDividends', 'userMatrix', 'unreadAdminNoticeCount', 'latestAdminNotice'));
-    }
-
-
+    
     
     public function stockists()
     { 

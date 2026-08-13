@@ -11,6 +11,8 @@
 @endphp
 
 {{-- Header --}}
+<div class="nc-wrap" id="ncWrap">
+    <br/>
 <div class="wl-page">
 
     {{-- Summary stats --}}
@@ -133,6 +135,7 @@
     <div class="wl-pagination">{{ paginateLinks($withdraws) }}</div>
     @endif
 
+</div>
 </div>
 
 {{-- Withdrawal Suspended Modal --}}

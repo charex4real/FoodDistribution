@@ -61,10 +61,9 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
                 Route::get('downline', 'downline')->name('downline');
                 Route::post('downline1', 'downline1')->name('downline1');
                
-                // food production
-                Route::get('land', 'land')->name('land');
+                
                 //stockist
-                Route::get('stock', 'stockists')->name('stock');
+               
                 Route::get('sales', 'salesStockistOrders')->name('stock.sales');
                 //Stockist Orders
 
@@ -201,14 +200,9 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
                 Route::get('/setup', 'setup')->name('setup');
                 Route::post('/setup', 'storeSetup')->name('setup.store');
                 
-                 Route::get('/', 'index')->name('index');
-                Route::post('purchaseDone', 'purchaseDone')->name('purchaseDone');
-                Route::post('check-code', 'checkCode')->name('checkCode');
-
-                 Route::post('restock', 'restockGoods')->name('restock');
-
-
-
+               
+                
+                
                 Route::get('/dashboard', 'dashboard')->name('dashboard');
 
                 Route::post('/verify-invoice', 'verifyInvoice')->name('verify.invoice');
@@ -240,10 +234,23 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
                 Route::post('/inventory/levels/update', 'updateInventoryLevels')->name('inventory.levels.update');
             });
 
+            // Point of Sale
+            Route::controller('StockistPosController')->middleware(['stockist'])->prefix('stockist/pos')->name('stockist.pos.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/checkout', 'checkout')->name('checkout');
+            });
+
+            // Welcome Back Package redemption
+            Route::controller('StockistWelcomePackageController')->middleware(['stockist'])->prefix('stockist/welcome-pack')->name('stockist.welcome-pack.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/verify', 'verify')->name('verify');
+                Route::post('/redeem', 'redeem')->name('redeem');
+            });
+
             //Profile setting
             Route::controller('ProfileController')->group(function () {
                 Route::get('profile-setting', 'profile')->name('profile.setting');
-                Route::post('profile-setting', 'submitProfile');
+                Route::post('profile-setting', 'submitProfile'); 
                 Route::get('change-password', 'changePassword')->name('change.password');
                 Route::post('change-password', 'submitPassword');
                 // food production
@@ -262,7 +269,7 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
                
                 Route::post('/pin/generate', 'pinGenerate')->name('pin.generate');
             });
-
+ 
 
             // Withdraw
             Route::controller('WithdrawController')->prefix('withdraw')->name('withdraw')->group(function () {

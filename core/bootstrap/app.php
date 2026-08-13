@@ -12,9 +12,11 @@ use App\Http\Middleware\RegistrationStep;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laramin\Utility\VugiChugi;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -95,6 +97,27 @@ return Application::configure(basePath: dirname(__DIR__))
             if (request()->is('api/*')) {
                 return true;
             }
+        });
+
+        // Any unmatched route (or abort(404)/findOrFail()) redirects into the
+        // app instead of showing a bare 404 page — admin section keeps the
+        // admin guard/login, everything else uses the user guard/login.
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return null;
+            }
+
+            $notify = [['error', 'Page not found.']];
+
+            if ($request->is('admin/*')) {
+                return auth('admin')->check()
+                    ? redirect()->route('admin.dashboard')->withNotify($notify)
+                    : redirect()->route('admin.login')->withNotify($notify);
+            }
+
+            return auth()->check()
+                ? redirect()->route('user.home')->withNotify($notify)
+                : redirect()->route('user.login')->withNotify($notify);
         });
         $exceptions->respond(function (Response $response) {
             if ($response->getStatusCode() === 401) {

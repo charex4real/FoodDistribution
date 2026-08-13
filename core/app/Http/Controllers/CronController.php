@@ -70,72 +70,7 @@ class CronController extends Controller
 
     
     
-     public function listDownliner(){   
-         
-        $matric = Matrix::where('user_id', 6672)
-            ->where('stage_id', 1)->first();
-        $aa = [];
-        $sn = $this->matrixService->listTotalDownline($matric); 
-       // dd($sn);
-       
-       if ($sn) {
-            DB::beginTransaction();
-            try {
-                foreach ($sn as $s){
-                    $aa[] = $s;
-                    $s = (int)$s;
-                    
-                    // delete all from Rmatrix
-                    $rr = Rmatrix::where('user_id' ,$s )->first();
-                    $rr->delete();
-                   
-                    //delete all transactions
-                    
-                   
-                    $ts = Transaction::where('user_id' ,$s )->get();
-                    //dd($ts);
-                    foreach($ts as $t){
-                        
-                        $tt = Transaction::find($t->id);
-                        $tt->delete();
-                    }
     
-                    $ms = Matrix::where('user_id',$s)->get();
-                    foreach($ms as $m){
-                        $mq = Matrix::find($m->id);;
-                        $mq->delete();
-                    }
-    
-                    $ust = UserStageProgress::where('user_id',$s )->get();
-                    foreach($ust as $ut){
-                        $uq = UserStageProgress::find($ut->id);
-                        $uq->delete();
-                    }
-                    
-                   
-    
-                    $pin = Pin::where('user_id', $s)->first();
-                    $pin->delete();
-                    
-                   
-                    $user = User::find($s);
-                    $user->delete();
-                   
-                       
-                }
-            DB::commit();
-                        
-            } catch (\Throwable $e) {
-                DB::rollBack();
-                throw $e;
-                    
-                    
-                   
-            } //end transaction
-        }//end if
-        //dd($aa);
-       
-    }
 
 
     public function cron()

@@ -281,7 +281,7 @@ class DistributorController extends Controller
             // Cash back credited to the new user's product_wallet after visa deduction is settled
             $detss = $project->title . ' subscription cash back to Repurchase wallet';
             processCashBack($newUser, $project, $trx, $detss);
-
+            
             // Key-In Bonus: 2% of registration fee to the sponsor who keyed in the registration
             // PV in bonus it the registration bonus
             //the $project->pv= 450

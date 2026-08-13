@@ -2,7 +2,8 @@
 
 @section('content')
 @php $user = auth()->user(); @endphp
-
+<div class="nc-wrap" id="ncWrap">
+    <br/>
 <form method="POST" enctype="multipart/form-data" class="prof-page">
     @csrf
 
@@ -200,6 +201,7 @@
     </div>
 </div>
 @endif
+</div>
 @endsection
 
 @push('script')

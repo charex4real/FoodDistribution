@@ -497,6 +497,19 @@
             }
         ]
     },
+    "welcome_pack": {
+        "title": "Welcome Pack",
+        "icon": "las la-gift",
+        "menu_active": "admin.welcome-pack*",
+        "submenu": [
+            {
+                "keyword": ["Welcome Pack", "Welcome Back Package", "Welcome Package", "Redeem Code"],
+                "title": "All Welcome Packages",
+                "route_name": "admin.welcome-pack.index",
+                "menu_active": "admin.welcome-pack.index"
+            }
+        ]
+    },
     "deposits": {
         "title": "Deposits",
         "icon": "las la-file-invoice-dollar",

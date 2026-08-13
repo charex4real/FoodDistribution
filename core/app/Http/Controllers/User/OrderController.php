@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Models\WelcomePackage;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -14,14 +15,15 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $pageTitle = 'Order Details';
-        $orders    = auth()->user()
+        $pageTitle       = 'Order Details';
+        $orders          = auth()->user()
             ->orders()
             ->with(['items.product', 'invoice'])
             ->latest()
             ->paginate(10);
+        $welcomePackages = WelcomePackage::where('user_id', auth()->id())->latest()->get();
 
-        return view('Template::user.orders.index', compact('orders', 'pageTitle'));
+        return view('Template::user.orders.index', compact('orders', 'pageTitle', 'welcomePackages'));
     }
 
     public function checkout()

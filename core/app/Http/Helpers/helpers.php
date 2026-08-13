@@ -43,6 +43,8 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\AdminNotification;
 use App\Models\ProductStatePrice;
 use App\Models\UserStageProgress;
+use App\Models\WelcomePackage;
+use App\Services\WelcomePackageService;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -2351,53 +2353,48 @@ function indirectBonus(User $user, $pv, $details, $trx){
 }
 
 /**
- * Credit cash-back from a project subscription/upgrade to the user's product_wallet.
+ * Create a Welcome Back Package holding the registration cash-back amount,
+ * in place of an instant product_wallet credit. The amount stays locked
+ * until a stockist redeems the package code in person.
  *
- * Call this AFTER the payment has been confirmed (visa deducted or Paystack settled).
+ * @param  User   $user     The subscribing / registering user
+ * @param  Project $project The project just subscribed to (amount = cash-back value)
+ * @param  string $trx      Ledger reference for this registration
+ * @param  string $details  Human-readable context for the package
  *
- * @param  User        $user      The subscribing / upgrading user
-    project->amount
- * @param  string|null $context   Extra label appended to the transaction detail
+ * @see \App\Services\WelcomePackageService
  */
-function processCashBack(User $user, $project, $trx, $details): void
+function processCashBack(User $user, Project $project, string $trx, string $details): void
 {
-    
-    if (!$project) {
-        return;
-    }
-    $cashBackAmount = $project->amount;
-
-    if ($cashBackAmount <= 0) {
-        return;
-    }
-
-    $user->product_wallet += $cashBackAmount;
-    $user->save();
-    $sym = gs('cur_sym');
-    $remark = 'cash_back';
-    newTransaction($user, $details, $remark, $cashBackAmount, '+', $trx, 13, 0, 'product_wallet');
-    
+    app(WelcomePackageService::class)->createForUser(
+        $user,
+        (float) $project->amount,
+        WelcomePackage::SOURCE_REGISTRATION,
+        $trx,
+        $details
+    );
 }
 
-function processUpgradeCashBack(User $user, $cashBackDiff, $details, $trx): void
-{   
-    // line 161 
-    // user/ProjectController
-    //$upgradeCost
-    //($user, $cashBackDiff, $uDetails, $trx)
-    
-
-    if ($cashBackDiff <= 0) {
-        return;
-    }
-
-    $user->product_wallet += $cashBackDiff;
-    $user->save();
-    $sym = gs('cur_sym');
-    $remark = 'upgrade_cash_back';
-
-    newTransaction($user, $details, $remark, $cashBackDiff, '+', $trx, 13, 0, 'product_wallet');
-    
+/**
+ * Create a Welcome Back Package holding the upgrade cash-back difference,
+ * in place of an instant product_wallet credit. See processCashBack().
+ *
+ * @param  User   $user         The upgrading user
+ * @param  float  $cashBackDiff New cash-back minus previously received cash-back
+ * @param  string $details      Human-readable context for the package
+ * @param  string $trx          Ledger reference for this upgrade
+ *
+ * @see WelcomePackageService
+ */
+function processUpgradeCashBack(User $user, float $cashBackDiff, string $details, string $trx): void
+{
+    app(WelcomePackageService::class)->createForUser(
+        $user,
+        $cashBackDiff,
+        WelcomePackage::SOURCE_UPGRADE,
+        $trx,
+        $details
+    );
 }
 
 

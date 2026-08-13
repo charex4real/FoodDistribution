@@ -84,7 +84,7 @@
                             </ul>
                             </div>
                         </li>
-                    </ul>
+                    </ul> 
                     <ul class="user-dashboard-tab">
                         <li> 
                             <a href="{{ route('user.logout') }}" class="">

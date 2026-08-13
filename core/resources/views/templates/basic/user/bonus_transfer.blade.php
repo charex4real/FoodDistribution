@@ -1,6 +1,7 @@
 @extends($activeTemplate . 'layouts.master')
 @section('content')
-
+<div class="nc-wrap" id="ncWrap">
+    <br/>
 {{-- ══════════════════════════════════════════════════════
      HERO STRIP
 ══════════════════════════════════════════════════════ --}}
@@ -51,6 +52,66 @@
             // ACB members always see ACB row at zero; autoship and others only when balance > 0
             if (!$hasBalance && !($isAcbField && ($isAcb ?? false))) continue;
         @endphp
+
+        {{-- Welcome Packages inject before ACB row --}}
+        @if($isAcbField && $welcomePackages->count())
+        <div class="wp-section">
+            <div class="wp-section-label">
+                <i class="las la-gift"></i>
+                Welcome Packages
+                <span class="wp-count-badge">{{ $welcomePackages->count() }}</span>
+            </div>
+            @foreach($welcomePackages as $wp)
+            <div class="wp-gift-card {{ $wp->isRedeemed() ? 'wp-gift-card--redeemed' : '' }}">
+                {{-- Decorative ribbon bars --}}
+                <div class="wp-ribbon-h"></div>
+                <div class="wp-ribbon-v"></div>
+
+                <div class="wp-gift-inner">
+                    {{-- Top: icon + title + status --}}
+                    <div class="wp-gift-top">
+                        <div class="wp-gift-icon-wrap">
+                            <i class="las la-gift"></i>
+                        </div>
+                        <div class="wp-gift-title-wrap">
+                            <p class="wp-gift-title">{{ ucfirst($wp->source) }} Welcome Package</p>
+                            <p class="wp-gift-amount">{{ showAmount($wp->amount) }}</p>
+                        </div>
+                        <div class="wp-status-badge {{ $wp->isRedeemed() ? 'wp-status-badge--done' : 'wp-status-badge--pending' }}">
+                            @if($wp->isRedeemed())
+                                <i class="las la-check-circle"></i> Redeemed
+                            @else
+                                <i class="las la-hourglass-half"></i> Pending
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Tear line --}}
+                    <div class="wp-tear"></div>
+
+                    {{-- Code section --}}
+                    <div class="wp-code-section">
+                        <span class="wp-code-label">Redemption Code</span>
+                        <span class="wp-code">{{ $wp->code }}</span>
+                    </div>
+
+                    {{-- Footer hint --}}
+                    @if(!$wp->isRedeemed())
+                    <p class="wp-gift-hint">
+                        <i class="las la-map-marker-alt"></i>
+                        Present this code to any authorized stockist to claim your gift package.
+                    </p>
+                    @else
+                    <p class="wp-gift-hint wp-gift-hint--done">
+                        <i class="las la-check"></i>
+                        Redeemed {{ $wp->redeemed_at?->format('M d, Y') }}
+                    </p>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
 
         <div class="bt-row {{ $isLocked ? 'bt-row--locked' : '' }} {{ ($isAcbField && !$hasBalance) ? 'bt-row--zero' : '' }}">
             {{-- Icon --}}
@@ -409,7 +470,7 @@
     @endif
 </div>
 
-{{-- Data bridge: PHP → JS without Blade inside <script> --}}
+{{-- Data bridge: PHP → JS without Blade inside < script > --}}
 <div id="btAutoReopen"
      data-pw-error="{{ ($errors->has('password') && !session('reopen_all_modal')) ? '1' : '0' }}"
      data-all-error="{{ session('reopen_all_modal') ? '1' : '0' }}"
@@ -417,8 +478,9 @@
      data-amount="{{ old('amount', 0) }}"
      data-labels="{{ json_encode(array_map(fn($c) => $c['label'], $bonusFields)) }}"
      data-keys="{{ json_encode(array_keys($bonusFields)) }}"
-     style="display:none"></div>
-
+     style="display:none">
+    </div>
+</div>
 @endsection
 
 @push('style')

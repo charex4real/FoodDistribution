@@ -217,6 +217,12 @@
                     </a>
                 </div>
 
+                <div class="flex-fill">
+                    <a class="btn btn--secondary btn--shadow w-100 btn-lg" href="{{ route('admin.welcome-pack.index', ['user' => $user->username]) }}">
+                        <i class="las la-gift"></i>@lang('Welcome Packages')
+                    </a>
+                </div>
+
                 @if ($user->kyc_data)
                     <div class="flex-fill">
                         <a class="btn btn--dark btn--shadow w-100 btn-lg" href="{{ route('admin.users.kyc.details', $user->id) }}" target="_blank">
