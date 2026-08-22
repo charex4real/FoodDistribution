@@ -70,9 +70,9 @@ class WelcomePackageService
      *
      * @throws RuntimeException if the package was redeemed concurrently.
      */
-    public function redeem(WelcomePackage $package, Stockist $stockist): WelcomePackage
+    public function redeem(WelcomePackage $package, Stockist $stockist, $pvs): WelcomePackage
     {
-        return DB::transaction(function () use ($package, $stockist) {
+        return DB::transaction(function () use ($package, $stockist, $pvs) {
             $locked = WelcomePackage::lockForUpdate()->findOrFail($package->id);
 
             if ($locked->isRedeemed()) {
@@ -83,12 +83,16 @@ class WelcomePackageService
             $locked->redeemed_by_stockist_id = $stockist->id;
             $locked->redeemed_at             = now();
             $locked->save();
+            // calculate the stockist rebate from the product pv
 
-            $stockist->wallet += $locked->amount;
+            // get stockist type and percentage.
+            // $stockist->getStockistPercentage($pvs);
+
+            $stockist_rebate_amount =  $stockist->getStockistPercentage($pvs);
+            $stockist->wallet += $stockist_rebate_amount;
             $stockist->save();
 
-            stockistTransaction($stockist, $locked->user, $locked->trx, (float) $locked->amount);
-
+            stockistTransaction($stockist, $locked->user, $locked->trx, $stockist_rebate_amount);
             return $locked;
         });
     }

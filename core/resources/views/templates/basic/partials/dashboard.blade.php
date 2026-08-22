@@ -127,6 +127,13 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('user.stockist.pos.index') }}" class="bank-nav-link {{ menuActive('user.stockist.pos.*') }}">
+                                    <span class="bank-nav-icon"><i class="las la-cash-register"></i></span>
+                                    <span>Point of Sale</span>
+                                    <span class="pos-nav-badge">POS</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('user.stockist.profile') }}" class="bank-nav-link {{ menuActive('user.stockist.profile') }}">
                                     <span class="bank-nav-icon"><i class="las la-user-circle"></i></span>
                                     <span>Profile</span>
@@ -156,13 +163,7 @@
                                     <span>Welcome Package</span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="{{ route('user.stockist.pos.index') }}" class="bank-nav-link {{ menuActive('user.stockist.pos.*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-cash-register"></i></span>
-                                    <span>Point of Sale</span>
-                                    <span class="pos-nav-badge">POS</span>
-                                </a>
-                            </li>
+                            
                         </ul>
                         <p class="bank-nav-label">Account</p>
                         <ul>

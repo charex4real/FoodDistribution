@@ -50,6 +50,7 @@ class StockistPosController extends Controller
         ]);
 
         $stockist = auth()->user()->stockist;
+        $pvs = 0;
 
         if (! $stockist) {
             return response()->json(['success' => false, 'message' => 'Stockist profile not found.'], 403);
@@ -92,6 +93,7 @@ class StockistPosController extends Controller
                 $unitPrice  = (float) $statePrice->price;
                 $lineTotal  = $unitPrice * $qty;
                 $cartTotal += $lineTotal;
+                $pvs       += $store->product->pv * $qty;
 
                 $lineItems[] = [
                     'product_id'   => $productId,
@@ -102,7 +104,7 @@ class StockistPosController extends Controller
                     'store'        => $store,
                 ];
             }
-
+            
             // ── Payment ──────────────────────────────────────────────
             $walletCredit = 0.0;
             $paymentNote  = 'Cash';
@@ -116,10 +118,11 @@ class StockistPosController extends Controller
                         showAmount($package->amount, currencyFormat: false),
                         showAmount($cartTotal, currencyFormat: false)
                     ));
-                }
+                } 
 
-                $this->welcomePackageService->redeem($package, $stockist);
-                $walletCredit = (float) $package->amount;
+                $this->welcomePackageService->redeem($package, $stockist, $pvs);
+                //$walletCredit = (float) $package->amount;
+                $walletCredi = $stockist->getStockistPercentage($pvs);
                 $paymentNote  = "Welcome Pack #{$package->code}";
             }
 
@@ -160,6 +163,7 @@ class StockistPosController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         } catch (\Throwable $e) {
             DB::rollBack();
+            //throw $e;
             Log::error('POS checkout error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'An unexpected error occurred. Please try again.'], 500);
         }

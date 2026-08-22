@@ -67,6 +67,7 @@ class Stockist extends Model
         return $this->belongsTo(State::class);
     }
 
+
     // Accessor for state name
     public function getStateNameAttribute()
     {
@@ -74,7 +75,7 @@ class Stockist extends Model
     }
 
     public function getFormattedWalletAttribute()
-    {
+    { 
         return '₦' . number_format($this->wallet, 2);
     }
 
@@ -91,14 +92,19 @@ class Stockist extends Model
         return '<span class="badge badge-success">Active</span>';
     }
 
-
-
-
+    public function getStockistPercentage($pvs)
+    {       
+        if ($this->store_type == 1) {
+            return (float)(0.08 * $pvs * rDollar());
+        }else{
+            return (float)(0.06 * $pvs * rDollar());
+        }
+    }
+    
     public function isStockist()
     {
         return !is_null($this->stockist);
     }
-
 
     public function primaryLocation()
     {
@@ -109,9 +115,8 @@ class Stockist extends Model
     {
         return $this->hasMany(InvoiceRedemption::class); 
     }
-
-    
-     // SCOPES
+  
+    // SCOPES
     public function scopeActive($query)
     {
         return $query->where('status', Status::ACTIVE);
