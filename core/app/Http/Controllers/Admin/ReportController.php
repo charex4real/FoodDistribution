@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Refund;
 use App\Models\UserLogin;
 use App\Models\Transaction;
+use App\Models\Rinvestment;
 use Illuminate\Http\Request;
 use App\Models\NotificationLog;
 use App\Http\Controllers\Controller;
@@ -59,14 +60,19 @@ class ReportController extends Controller
  
     public function invest(Request $request, $userId = null)
     {
-        $pageTitle    = 'Invest Logs';
-        $transactions = Transaction::searchable(['trx', 'user:username'])->where('remark', 'purchased_plan')->with('user');
-        if ($userId) {
-            $transactions = $transactions->where('user_id', $userId);
-        }
-        $transactions = $transactions->latest()->paginate(getPaginate());
+        $pageTitle = 'Investment Logs';
 
-        return view('admin.reports.transactions', compact('pageTitle', 'transactions'));
+        $query = Rinvestment::searchable(['trx', 'user:username', 'plan:name'])->dateFilter();
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        $totalUnits  = (clone $query)->sum('units');
+        $totalAmount = (clone $query)->sum('five');
+
+        $investments = $query->with(['user', 'plan'])->latest()->paginate(getPaginate());
+
+        return view('admin.reports.investments', compact('pageTitle', 'investments', 'totalUnits', 'totalAmount', 'userId'));
     }
 
     public function bvLog(Request $request, $userId = null)

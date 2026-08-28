@@ -65,6 +65,14 @@
                             </div>
                         </div>
                         <div class="pf-metric-block">
+                            <label class="pf-label">Selling Price</label>
+                            <div class="pf-input-prefix">
+                                <span class="pf-prefix">₦</span>
+                                <input class="pf-input" name="selling_price" type="number" step="any" value="{{ $product->selling_price ? getAmount($product->selling_price) : '' }}" placeholder="0.00">
+                            </div>
+                            <p class="pf-hint">Public price shown on /shop. Leave blank to use the Price above.</p>
+                        </div>
+                        <div class="pf-metric-block">
                             <label class="pf-label pf-label-pv">Point Value (PV) <span class="pf-req">*</span></label>
                             <input class="pf-input" name="pv" type="number" step="any" value="{{ $product->pv ?? 0 }}" placeholder="0.00" required>
                             <p class="pf-hint">Accumulated for member rewards</p>
@@ -76,6 +84,31 @@
                                 <input class="pf-input" name="prb" type="number" step="any" value="{{ $product->prb ?? 0 }}" placeholder="0.00" required>
                             </div>
                             <p class="pf-hint">Base amount for unilevel distribution</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Affiliate Bonus --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-link"></i> Affiliate Bonus
+                </div>
+                <div class="pf-card-body">
+                    <div class="pf-metric-grid">
+                        <div class="pf-metric-block">
+                            <label class="pf-label">Bonus Type</label>
+                            <select class="pf-input" name="affiliate_bonus_type">
+                                <option value="" {{ !$product->affiliate_bonus_type ? 'selected' : '' }}>None</option>
+                                <option value="fixed" {{ $product->affiliate_bonus_type === 'fixed' ? 'selected' : '' }}>Fixed Amount</option>
+                                <option value="percentage" {{ $product->affiliate_bonus_type === 'percentage' ? 'selected' : '' }}>Percentage of Sale</option>
+                            </select>
+                            <p class="pf-hint">Paid to the referring member on /shop sales</p>
+                        </div>
+                        <div class="pf-metric-block">
+                            <label class="pf-label">Bonus Value</label>
+                            <input class="pf-input" name="affiliate_bonus_value" type="number" step="any" min="0" value="{{ $product->affiliate_bonus_value }}" placeholder="0.00">
+                            <p class="pf-hint">₦ amount, or % if Percentage selected</p>
                         </div>
                     </div>
                 </div>

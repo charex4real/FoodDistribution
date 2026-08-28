@@ -27,8 +27,30 @@ Route::middleware('cron.secret')->group(function () {
     Route::get('autoshipSweep', 'CronController@autoshipSweep')->name('autoshipSweep');
     // clear application cache (config/route/view/application) after a deploy
     Route::get('clearCache', 'CronController@clearCache')->name('clearCache');
+    // cancel stale unpaid/unpicked-up affiliate shop orders and release their reserved stock
+    Route::get('affiliateOrdersExpire', 'CronController@affiliateOrdersExpire')->name('affiliateOrdersExpire');
 });
- 
+
+// Public Affiliate Shop (guest-accessible, no auth) — extends layouts.frontend, never layouts.master
+Route::namespace('Shop')->prefix('shop')->name('shop.')->middleware(['affiliate.track'])->group(function () {
+    Route::get('/', 'ShopController@index')->name('index');
+    Route::get('/product/{product}', 'ShopController@show')->name('product');
+    Route::get('/img/{token}', 'ShopImageController@show')->name('image')->middleware('throttle:120,1');
+
+    Route::get('/cart', 'ShopController@cart')->name('cart');
+    Route::post('/cart/add', 'ShopCartController@add')->name('cart.add')->middleware('throttle:60,1');
+    Route::post('/cart/update', 'ShopCartController@update')->name('cart.update')->middleware('throttle:60,1');
+    Route::post('/cart/remove', 'ShopCartController@remove')->name('cart.remove')->middleware('throttle:60,1');
+
+    Route::get('/checkout', 'ShopCheckoutController@index')->name('checkout');
+    Route::post('/checkout', 'ShopCheckoutController@store')->name('checkout.store')->middleware('throttle:10,1');
+
+    Route::get('/paystack/callback', 'ShopPaystackController@callback')->name('paystack.callback')->middleware('throttle:20,1');
+
+    Route::get('/order/{orderCode}', 'ShopController@orderSuccess')->name('order.success');
+    Route::get('/order/{orderCode}/invoice', 'ShopController@orderInvoiceDownload')->name('order.invoice');
+});
+
 
 // User Support Ticket
 

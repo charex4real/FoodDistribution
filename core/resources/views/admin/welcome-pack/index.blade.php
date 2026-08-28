@@ -189,7 +189,7 @@
     @if($userFilter)
     <div class="mb-3">
         <span class="wp-filter-chip">
-            <i class="las la-filter"></i> Showing packages for @{{ $userFilter }}
+            <i class="las la-filter"></i> Showing packages for @ {{ $userFilter }}
             <a href="{{ route('admin.welcome-pack.index', ['tab' => $tab]) }}"><i class="las la-times"></i></a>
         </span>
     </div>

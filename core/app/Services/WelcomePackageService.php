@@ -70,7 +70,7 @@ class WelcomePackageService
      *
      * @throws RuntimeException if the package was redeemed concurrently.
      */
-    public function redeem(WelcomePackage $package, Stockist $stockist, $pvs): WelcomePackage
+    public function redeem(WelcomePackage $package, Stockist $stockist, $pvs = 0): WelcomePackage
     {
         return DB::transaction(function () use ($package, $stockist, $pvs) {
             $locked = WelcomePackage::lockForUpdate()->findOrFail($package->id);

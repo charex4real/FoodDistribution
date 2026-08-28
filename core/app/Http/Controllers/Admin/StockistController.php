@@ -10,6 +10,7 @@ use App\Models\Stockist_store;
 use App\Models\StockistInventory;
 use App\Models\Stockist_store_history;
 use App\Models\Sktransaction;
+use App\Models\StockistRedemption;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -396,6 +397,88 @@ class StockistController extends Controller
         ));
     }
 
-    
+    // ── Redemption / accounting report ──────────────────────────────
+
+    public function redemptionReport(Request $request)
+    {
+        $pageTitle = 'Stockist Redemption Report';
+
+        $perStockist = StockistRedemption::selectRaw('stockist_id, type, SUM(quantity) as qty, SUM(amount) as amt')
+            ->groupBy('stockist_id', 'type')
+            ->get()
+            ->groupBy('stockist_id');
+
+        $overall = StockistRedemption::selectRaw('type, SUM(quantity) as qty, SUM(amount) as amt')
+            ->groupBy('type')
+            ->get()
+            ->keyBy('type');
+
+        $totals = [];
+        foreach (StockistRedemption::$types as $type => $label) {
+            $totals[$type] = [
+                'label' => $label,
+                'qty'   => (int) ($overall[$type]->qty ?? 0),
+                'amt'   => (float) ($overall[$type]->amt ?? 0),
+            ];
+        }
+
+        $stockists = Stockist::with('user')
+            ->when($request->search, function ($q) use ($request) {
+                $q->where('business_name', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('user', function ($q) use ($request) {
+                      $q->where('username', 'like', '%' . $request->search . '%');
+                  });
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(getPaginate())
+            ->through(function ($stockist) use ($perStockist) {
+                $rows = $perStockist->get($stockist->id, collect());
+                $stockist->redemption_qty = (int) $rows->sum('qty');
+                $stockist->redemption_amt = (float) $rows->sum('amt');
+                return $stockist;
+            });
+
+        return view('admin.stockist.report-index', compact('pageTitle', 'stockists', 'totals'));
+    }
+
+    public function redemptionReportShow(Stockist $stockist, Request $request)
+    {
+        $pageTitle = 'Redemption Report - ' . ($stockist->business_name ?? $stockist->user->username ?? $stockist->id);
+
+        $stockist->load('user');
+
+        $grouped = StockistRedemption::where('stockist_id', $stockist->id)
+            ->selectRaw('type, SUM(quantity) as qty, SUM(amount) as amt, COUNT(*) as cnt')
+            ->groupBy('type')
+            ->get()
+            ->keyBy('type');
+
+        $totals = [];
+        foreach (StockistRedemption::$types as $type => $label) {
+            $totals[$type] = [
+                'label' => $label,
+                'qty'   => (int) ($grouped[$type]->qty ?? 0),
+                'amt'   => (float) ($grouped[$type]->amt ?? 0),
+                'cnt'   => (int) ($grouped[$type]->cnt ?? 0),
+            ];
+        }
+        $grandQty = array_sum(array_column($totals, 'qty'));
+        $grandAmt = array_sum(array_column($totals, 'amt'));
+
+        $type = $request->type;
+
+        $redemptions = StockistRedemption::where('stockist_id', $stockist->id)
+            ->when($type, fn ($q) => $q->ofType($type))
+            ->when($request->from, fn ($q) => $q->whereDate('redeemed_at', '>=', $request->from))
+            ->when($request->to, fn ($q) => $q->whereDate('redeemed_at', '<=', $request->to))
+            ->with(['customer', 'invoice', 'welcomePackage', 'affiliateOrder'])
+            ->latest('redeemed_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.stockist.report-show', compact(
+            'pageTitle', 'stockist', 'totals', 'grandQty', 'grandAmt', 'redemptions', 'type'
+        ));
+    }
 
 }

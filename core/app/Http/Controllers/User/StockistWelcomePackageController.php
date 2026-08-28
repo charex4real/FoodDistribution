@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\StockistRedemption;
 use App\Models\WelcomePackage;
 use App\Services\WelcomePackageService;
 use Illuminate\Http\JsonResponse;
@@ -77,6 +78,19 @@ class StockistWelcomePackageController extends Controller
         try {
             $package = $this->packages->findByCode($request->code);
             $package = $this->packages->redeem($package, $stockist);
+
+            StockistRedemption::create([
+                'stockist_id'        => $stockist->id,
+                'type'               => StockistRedemption::TYPE_WELCOME_PACK,
+                'trx'                => $package->trx,
+                'reference_code'     => $package->code,
+                'welcome_package_id' => $package->id,
+                'customer_user_id'   => $package->user_id,
+                'items'              => [],
+                'quantity'           => 0,
+                'amount'             => $package->amount,
+                'redeemed_at'        => $package->redeemed_at,
+            ]);
 
             return response()->json([
                 'success' => true,

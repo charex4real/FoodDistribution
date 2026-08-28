@@ -56,6 +56,12 @@ class Product extends Model
         return '₦' . number_format($this->price, 2);
     }
 
+    /** The price shown and charged on the public /shop storefront. */
+    public function getShopPriceAttribute()
+    {
+        return $this->selling_price ?: $this->price;
+    }
+
 
      public function inventory()
     {
@@ -81,5 +87,23 @@ class Product extends Model
     {
         $statePrice = $this->statePrices()->where('state_id', $stateId)->first();
         return $statePrice ? $statePrice->price : $this->price; // fallback to default price
+    }
+
+    public function affiliateOrderItems()
+    {
+        return $this->hasMany(AffiliateOrderItem::class);
+    }
+
+    public function calculateAffiliateBonus(float $unitPrice, int $quantity): float
+    {
+        if (empty($this->affiliate_bonus_type) || $this->affiliate_bonus_value === null || $this->affiliate_bonus_value <= 0) {
+            return 0.0;
+        }
+
+        if ($this->affiliate_bonus_type === 'percentage') {
+            return round(($unitPrice * $quantity) * ($this->affiliate_bonus_value / 100), 2);
+        }
+
+        return round($this->affiliate_bonus_value * $quantity, 2);
     }
 }

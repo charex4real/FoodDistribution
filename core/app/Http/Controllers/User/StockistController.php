@@ -22,7 +22,8 @@ use App\Models\StockistService;
 use App\Models\GeneralSetting;
 use App\Models\StockistLocation;
 use App\Models\InvoiceRedemption;
-use App\Models\Stockist_store_record;  
+use App\Models\StockistRedemption;
+use App\Models\Stockist_store_record;
 use Illuminate\Validation\Rule;
 use App\Lib\GoogleAuthenticator;
 use App\Http\Controllers\Controller;
@@ -494,8 +495,23 @@ class StockistController extends Controller
                 'notes' => $request->notes,
                 'redeemed_at' => now()
             ]);
-    
-            // // return the money to stockist 
+
+            // Unified redemption ledger (accounting/reporting only)
+            StockistRedemption::create([
+                'stockist_id'      => $stockist->id,
+                'type'             => StockistRedemption::TYPE_INVOICE,
+                'trx'              => $trx,
+                'reference_code'   => $invoice->invoice_code,
+                'invoice_id'       => $invoice->id,
+                'customer_user_id' => $invoice->order->user_id,
+                'items'            => $redeemedItems,
+                'quantity'         => array_sum(array_column($redeemedItems, 'quantity')),
+                'amount'           => $totalAmount,
+                'notes'            => $request->notes,
+                'redeemed_at'      => now(),
+            ]);
+
+            // // return the money to stockist
             //credit the stockist wallet.
             $stockist->wallet += $totalAmount;
             $stockist->save();
@@ -1493,6 +1509,47 @@ class StockistController extends Controller
 
     
 
+
+    public function redemptionsReport(Request $request)
+    {
+        $pageTitle = 'Redemption Report';
+        $stockist  = auth()->user()->stockist;
+
+        if (!$stockist) {
+            return redirect()->route('user.stockist.dashboard')->with('error', 'Please complete your stockist profile first.');
+        }
+
+        $grouped = StockistRedemption::where('stockist_id', $stockist->id)
+            ->selectRaw('type, SUM(quantity) as qty, SUM(amount) as amt, COUNT(*) as cnt')
+            ->groupBy('type')
+            ->get()
+            ->keyBy('type');
+
+        $totals = [];
+        foreach (StockistRedemption::$types as $type => $label) {
+            $totals[$type] = [
+                'label' => $label,
+                'qty'   => (int) ($grouped[$type]->qty ?? 0),
+                'amt'   => (float) ($grouped[$type]->amt ?? 0),
+                'cnt'   => (int) ($grouped[$type]->cnt ?? 0),
+            ];
+        }
+        $grandQty = array_sum(array_column($totals, 'qty'));
+        $grandAmt = array_sum(array_column($totals, 'amt'));
+
+        $type = $request->type;
+
+        $redemptions = StockistRedemption::where('stockist_id', $stockist->id)
+            ->when($type, fn ($q) => $q->ofType($type))
+            ->with('customer')
+            ->latest('redeemed_at')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('Template::user.stockist.redemptions', compact(
+            'pageTitle', 'stockist', 'totals', 'grandQty', 'grandAmt', 'redemptions', 'type'
+        ));
+    }
 
     public function redemptionHistory()
     {

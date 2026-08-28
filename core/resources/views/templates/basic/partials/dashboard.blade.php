@@ -2,7 +2,8 @@
     $unreadNotifCount = \App\Models\NotificationLog::where('user_id', auth()->id())
         ->where('user_read', false)
         ->count();
-        $inStockistSection = request()->routeIs('user.stockist.*'); 
+        $inStockistSection = request()->routeIs('user.stockist.*');
+        $inAffiliateSection = request()->routeIs('user.affiliate.*');
 @endphp
 <section class="bank-dashboard">
     <div class="bank-layout">
@@ -56,7 +57,7 @@
 
                     {{-- ── MAIN (flat, no dropdown) ─────────────── --}}
                     <p class="bank-nav-label">Main</p>
-                    @if(!$inStockistSection)
+                    @if(!$inStockistSection && !$inAffiliateSection)
                     <ul>
                         <li>
                             <a href="{{ route('user.home') }}" class="bank-nav-link {{ menuActive('user.home') }}">
@@ -76,7 +77,13 @@
                                 <span>My Referrals</span>
                             </a>
                         </li>
-                        
+                        <li>
+                            <a href="{{ route('user.affiliate.dashboard') }}" class="bank-nav-link {{ menuActive('user.affiliate.dashboard') }}">
+                                <span class="bank-nav-icon"><i class="las la-link"></i></span>
+                                <span>Affiliate Program</span>
+                            </a>
+                        </li>
+
                         <li>
                             <a href="{{ route('user.project.index') }}" class="bank-nav-link {{ menuActive('user.project.*') }}">
                                 <span class="bank-nav-icon"><i class="las la-project-diagram"></i></span>
@@ -146,6 +153,18 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('user.stockist.affiliate.redeem') }}" class="bank-nav-link {{ menuActive('user.stockist.affiliate.*') }}">
+                                    <span class="bank-nav-icon"><i class="las la-link"></i></span>
+                                    <span>Redeem Affiliate Products</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.stockist.redemptions') }}" class="bank-nav-link {{ menuActive('user.stockist.redemptions') }}">
+                                    <span class="bank-nav-icon"><i class="las la-clipboard-list"></i></span>
+                                    <span>Redemption Report</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('user.stockist.inventory.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.dashboard') }}">
                                     <span class="bank-nav-icon"><i class="las la-boxes"></i></span>
                                     <span>Inventory</span>
@@ -164,6 +183,46 @@
                                 </a>
                             </li>
                             
+                        </ul>
+                        <p class="bank-nav-label">Account</p>
+                        <ul>
+                            <li>
+                                <a href="{{ route('user.logout') }}" class="bank-nav-link bank-nav-logout">
+                                    <span class="bank-nav-icon"><i class="las la-sign-out-alt"></i></span>
+                                    <span>Sign Out</span>
+                                </a>
+                            </li>
+                        </ul>
+                    @elseif($inAffiliateSection)
+                        {{-- ── AFFILIATE-ONLY MENU ──────────────────── --}}
+                        <ul>
+                            <li>
+                                <a href="{{ route('user.home') }}" class="bank-nav-link">
+                                    <span class="bank-nav-icon"><i class="las la-home"></i></span>
+                                    <span>Back to Main Menu</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <p class="bank-nav-label">Affiliate</p>
+                        <ul>
+                            <li>
+                                <a href="{{ route('user.affiliate.dashboard') }}" class="bank-nav-link {{ menuActive('user.affiliate.dashboard') }}">
+                                    <span class="bank-nav-icon"><i class="las la-tachometer-alt"></i></span>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.affiliate.orders') }}" class="bank-nav-link {{ menuActive('user.affiliate.orders') }}">
+                                    <span class="bank-nav-icon"><i class="las la-box"></i></span>
+                                    <span>My Orders</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('user.bonus.transfer.index') }}" class="bank-nav-link {{ menuActive('user.bonus.transfer.*') }}">
+                                    <span class="bank-nav-icon"><i class="las la-exchange-alt"></i></span>
+                                    <span>Bonus Transfer</span>
+                                </a>
+                            </li>
                         </ul>
                         <p class="bank-nav-label">Account</p>
                         <ul>

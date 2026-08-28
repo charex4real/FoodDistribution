@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ProductStatePrice;
 use App\Models\Stockist;
 use App\Models\Stockist_store;
+use App\Models\StockistRedemption;
 use App\Models\Stransaction;
 use App\Services\WelcomePackageService;
 use Illuminate\Http\JsonResponse;
@@ -121,8 +122,7 @@ class StockistPosController extends Controller
                 } 
 
                 $this->welcomePackageService->redeem($package, $stockist, $pvs);
-                //$walletCredit = (float) $package->amount;
-                $walletCredi = $stockist->getStockistPercentage($pvs);
+                $walletCredit = $stockist->getStockistPercentage($pvs);
                 $paymentNote  = "Welcome Pack #{$package->code}";
             }
 
@@ -130,6 +130,27 @@ class StockistPosController extends Controller
             foreach ($lineItems as $line) {
                 $line['store']->decrement('quantity', $line['quantity']);
             }
+
+            // ── Redemption ledger ─────────────────────────────────────
+            StockistRedemption::create([
+                'stockist_id'        => $stockist->id,
+                'type'               => $request->payment_method === 'welcome_pack'
+                    ? StockistRedemption::TYPE_WELCOME_PACK
+                    : StockistRedemption::TYPE_CASH,
+                'trx'                => $trx,
+                'reference_code'     => $request->payment_method === 'welcome_pack' ? $package->code : null,
+                'welcome_package_id' => $package->id ?? null,
+                'items'              => array_map(fn ($line) => [
+                    'product_id'   => $line['product_id'],
+                    'product_name' => $line['product_name'],
+                    'quantity'     => $line['quantity'],
+                    'unit_price'   => $line['unit_price'],
+                    'subtotal'     => $line['subtotal'],
+                ], $lineItems),
+                'quantity'    => array_sum(array_column($lineItems, 'quantity')),
+                'amount'      => $cartTotal,
+                'redeemed_at' => now(),
+            ]);
 
             // ── Audit record ─────────────────────────────────────────
             $freshStockist    = $stockist->fresh();

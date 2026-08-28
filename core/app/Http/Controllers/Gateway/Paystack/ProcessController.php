@@ -162,20 +162,45 @@ class ProcessController extends Controller
         $paymentType = $data['metadata']['payment_type'] ?? null;
 
         if ($paymentType === 'deposit') {
-            $this->processDepositWebhook($data, $reference);  
+            $this->processDepositWebhook($data, $reference);
         } elseif ($paymentType === 'registration') {
             $this->processRegistrationWebhook($data, $reference);
+        } elseif ($paymentType === 'affiliate_shop') {
+            $this->processAffiliateShopWebhook($data, $reference);
         } else {
-            // Fallback: check by reference — deposit table first, then user trx
+            // Fallback: check by reference — deposit table, affiliate orders, then user trx
             $deposit = Deposit::where('trx', $reference)->orderBy('id', 'DESC')->first();
             if ($deposit) {
                 $this->processDepositWebhook($data, $reference);
+            } elseif (\App\Models\AffiliateOrder::where('order_code', $reference)->exists()) {
+                $this->processAffiliateShopWebhook($data, $reference);
             } else {
                 $this->processRegistrationWebhook($data, $reference);
             }
         }
 
         return response('OK', 200);
+    }
+
+    /**
+     * Server-to-server confirmation for /shop Paystack orders — the reliability
+     * fallback for AffiliateOrderService::markPaystackPaid(), same role this
+     * webhook already plays for deposits/registration above.
+     */
+    private function processAffiliateShopWebhook(array $data, string $reference): void
+    {
+        $order = \App\Models\AffiliateOrder::where('order_code', $reference)->first();
+
+        if (!$order || $order->status !== \App\Models\AffiliateOrder::STATUS_PENDING) {
+            return;
+        }
+
+        $paid     = round($data['amount'] / 100, 2);
+        $expected = round($order->total_amount, 2);
+
+        if ($data['status'] == 'success' && $paid >= $expected && $data['currency'] == 'NGN') {
+            app(\App\Services\AffiliateOrderService::class)->markPaystackPaid($order, $reference);
+        }
     }
 
     private function processDepositWebhook(array $data, string $reference): void

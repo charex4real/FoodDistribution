@@ -65,6 +65,14 @@
                             </div>
                         </div>
                         <div class="pf-metric-block">
+                            <label class="pf-label">Selling Price</label>
+                            <div class="pf-input-prefix">
+                                <span class="pf-prefix">₦</span>
+                                <input class="pf-input" name="selling_price" type="number" step="any" value="{{ old('selling_price') }}" placeholder="0.00">
+                            </div>
+                            <p class="pf-hint">Public price shown on /shop. Leave blank to use the Price above.</p>
+                        </div>
+                        <div class="pf-metric-block">
                             <label class="pf-label pf-label-pv">Point Value (PV) <span class="pf-req">*</span></label>
                             <input class="pf-input" name="pv" type="number" step="any" value="{{ old('pv', 0) }}" placeholder="0.00" required>
                             <p class="pf-hint">Accumulated for member rewards</p>

@@ -208,7 +208,8 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
                 Route::post('/verify-invoice', 'verifyInvoice')->name('verify.invoice');
                 
                 Route::post('/process-redemption', 'processRedemption')->name('process.redemption');
-                Route::get('/history', 'redemptionHistory')->name('history'); 
+                Route::get('/history', 'redemptionHistory')->name('history');
+                Route::get('/redemptions', 'redemptionsReport')->name('redemptions');
             });
 
 
@@ -245,6 +246,20 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::post('/verify', 'verify')->name('verify');
                 Route::post('/redeem', 'redeem')->name('redeem');
+            });
+
+            // Affiliate Program — every member gets this, no extra gating middleware
+            Route::controller('AffiliateController')->prefix('affiliate')->name('affiliate.')->group(function () {
+                Route::get('/', 'dashboard')->name('dashboard');
+                Route::get('/orders', 'orders')->name('orders');
+            });
+
+            // Redeem Affiliate Products — separate from the internal repurchase
+            // redemption flow above (no unilevel/PV logic; single-shot pickup)
+            Route::controller('StockistAffiliateRedemptionController')->middleware(['stockist'])->prefix('stockist/affiliate')->name('stockist.affiliate.')->group(function () {
+                Route::get('/', 'redeemForm')->name('redeem');
+                Route::post('/verify', 'verify')->name('verify');
+                Route::post('/confirm', 'confirm')->name('confirm');
             });
 
             //Profile setting

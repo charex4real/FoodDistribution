@@ -218,13 +218,15 @@
                 "route_name": "admin.stockist-orders.index",
                 "menu_active": "admin.stockist-orders.index"
             },
-            
             {
-                "keyword": ["All stockist","Recharge","Flexi load","Active stockist","Inactive stockist"],
-                "title": "All Stockist",
-                "route_name": "admin.stockist.index",
-                "menu_active": "admin.stockist.index"
+                "keyword": ["Redemption Report", "Stockist Sales", "Inventory Report", "Financial Report", "Accounting"],
+                "title": "Redemption Report",
+                "icon": "las la-clipboard-list",
+                "route_name": "admin.stockist.report",
+                "menu_active": "admin.stockist.report*"
             },
+
+            
            
             {
                 "keyword": ["Stockist Orders"],
@@ -239,7 +241,51 @@
                 "menu_active": "admin.supply.index"
             }
 
-            
+
+        ]
+    },
+    "affiliate": {
+        "title": "Affiliate",
+        "icon": "las la-link",
+        "counters": [],
+        "menu_active": "admin.affiliate*",
+        "submenu": [
+            {
+                "keyword": ["Affiliate", "Dashboard"],
+                "title": "Dashboard",
+                "route_name": "admin.affiliate.dashboard",
+                "menu_active": "admin.affiliate.dashboard"
+            },
+            {
+                "keyword": ["Affiliate", "Orders", "Shop Orders"],
+                "title": "Orders",
+                "route_name": "admin.affiliate.orders",
+                "menu_active": "admin.affiliate.orders*"
+            },
+            {
+                "keyword": ["Affiliate", "Affiliates", "Members"],
+                "title": "Affiliates",
+                "route_name": "admin.affiliate.affiliates",
+                "menu_active": "admin.affiliate.affiliates"
+            },
+            {
+                "keyword": ["Affiliate", "Funnel", "Analytics"],
+                "title": "Funnel Report",
+                "route_name": "admin.affiliate.funnel",
+                "menu_active": "admin.affiliate.funnel"
+            },
+            {
+                "keyword": ["Affiliate", "Audit", "Financial"],
+                "title": "Financial Audit",
+                "route_name": "admin.affiliate.audit",
+                "menu_active": "admin.affiliate.audit"
+            },
+            {
+                "keyword": ["Affiliate", "Settings"],
+                "title": "Settings",
+                "route_name": "admin.affiliate.settings",
+                "menu_active": "admin.affiliate.settings"
+            }
         ]
     },
     "Fractional Farm Ownership": {

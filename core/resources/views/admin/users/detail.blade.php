@@ -38,42 +38,42 @@
     <div class="row"> 
         <div class="col-12">
             <div class="row gy-4">
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->balance) }}" title="Balance" style="7" link="#" icon="las la-money-bill-wave-alt" bg="indigo" />
                      
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->visa) }}" title="VISA wallet" style="7" link="#" icon="la la-money" bg="8" />
                 </div>
                 @if($user->stockist)
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->stockist->wallet) }}" title="Stockist Balance" style="7" link="{{ route('admin.stockist.detail', $user->stockist->id) }}" icon="las la-money-bill-wave-alt" bg="14" />
                     
                 </div>
                 @endif
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($total_ref) }}" title="Total Referral Commission" style="7" link="{{ route('admin.report.referral.commission', $user->id) }}" icon="la la-user" bg="2" />
                 </div>
 
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($total_stage_out) }}" title="Total Stage-Out Commission" style="7" link="{{ route('admin.report.stageOut.commission', $user->id) }}" icon="la la-tree" bg="3" />
                 </div>
 
 
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($totalDeposit) }}" title="Deposits" style="7" link="{{ route('admin.deposit.list', $user->id) }}" icon="las la-wallet" bg="8" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($totalWithdrawals) }}" title="Withdrawals" style="7" link="{{ route('admin.withdraw.data.all', $user->id) }}" icon="la la-bank" bg="6" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ $totalTransaction }}" title="Transactions" style="7" link="{{ route('admin.report.transaction', $user->id) }}" icon="las la-exchange-alt" bg="17" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->total_invest) }}" title="Total Invest" style="7" link="{{ route('admin.report.invest', $user->id) }}" icon="la la-money" bg="17" />
                 </div>
                 
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->total_binary_com) }}" title="Total Invest Commission" style="7" link="{{ route('admin.report.binary.commission', $user->id) }}" icon="la la-tree" bg="3" />
                 </div>
 
@@ -89,31 +89,31 @@
                         @endif
                     </p>
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->product_wallet ?? 0) }}" title="Re-purchase wallet" style="7" link="#" icon="las la-shopping-bag" bg="9" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->direct_bonus ?? 0) }}" title="Direct Bonus (Lifetime)" style="7" link="#" icon="las la-hand-holding-usd" bg="2" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->indirect_bonus ?? 0) }}" title="Indirect Bonus (Lifetime)" style="7" link="#" icon="las la-network-wired" bg="8" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->upgrade_bonus ?? 0) }}" title="Upgrade Bonus (Lifetime)" style="7" link="#" icon="las la-arrow-up" bg="14" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->unilevel_bonus ?? 0) }}" title="Unilevel Bonus (Lifetime)" style="7" link="#" icon="las la-sitemap" bg="17" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->matching_bonus ?? 0) }}" title="Matching Bonus (Lifetime)" style="7" link="#" icon="las la-balance-scale" bg="6" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->repurchase_award ?? 0) }}" title="Repurchase Award Wallet" style="7" link="#" icon="las la-medal" bg="14" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->key_in_bonus ?? 0) }}" title="Key-In Bonus (Lifetime)" style="7" link="#" icon="las la-keyboard" bg="17" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($user->acb ?? 0) }}" title="ACB Bonus (Achievers Celebrated)" style="7" link="#" icon="las la-star" bg="2" />
                 </div>
 
@@ -130,34 +130,34 @@
                         @endif
                     </p>
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ number_format($userMatrix->pv_left ?? 0, 2) }}" title="PV Left Ranking" style="7" link="#" icon="las la-arrow-alt-circle-left" bg="1" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ number_format($userMatrix->pv_right ?? 0, 2) }}" title="PV Right Ranking" style="7" link="#" icon="las la-arrow-alt-circle-right" bg="13" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ number_format($userMatrix->pv_left_pairing ?? 0, 2) }}" title="PV Left (Matched)" style="7" link="#" icon="las la-check-double" bg="4" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ number_format($userMatrix->pv_right_pairing ?? 0, 2) }}" title="PV Right (Matched)" style="7" link="#" icon="las la-check-double" bg="16" />
                 </div>
                 @endif
 
                 {{--
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ getAmount($totalBvCut) }}" title="Total Cut BV" style="7" link="{{ route('admin.report.bvLog', $user->id) }}?type=cutBV" icon="la la-cut" bg="4" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ getAmount($user->userExtra->bv_left) }}" title="Left BV" style="7" link="{{ route('admin.report.bvLog', $user->id) }}?type=leftBV" icon="las la-arrow-alt-circle-left" bg="1" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ getAmount($user->userExtra->bv_right) }}" title="Right BV" style="7" link="{{ route('admin.report.bvLog', $user->id) }}?type=rightBV" icon="las la-arrow-alt-circle-right" bg="13" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ getAmount($user->userExtra->bv_left + $user->userExtra->bv_right) }}" title="Total BV" style="7" link="{{ route('admin.report.bvLog', $user->id) }}" icon="las la-arrow-alt-circle-right" bg="14" />
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
+                <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ $totalOrder }}" title="Total Orders" style="7"
                         link="{{ route('admin.order.index', $user->id) }}" icon="las la-question-circle"
                         bg="16" />
@@ -167,119 +167,93 @@
 
             </div>
 
-            <div class="d-flex mt-4 flex-wrap gap-3">
+            <div class="udb-toolbar mt-4">
                 @if(auth('admin')->user()->hasRole('Owner|super-admin'))
-                <div class="flex-fill">
-                    <button class="btn btn--success btn--shadow w-100 btn-lg bal-btn" data-bs-toggle="modal" data-bs-target="#addSubModal" data-act="add">
-                        <i class="las la-plus-circle"></i> @lang('+ Money Box')
-                    </button>
-                </div>
-
-
-
-                <div class="flex-fill">
-                    <button class="btn btn--danger btn--shadow w-100 btn-lg bal-btn" data-bs-toggle="modal" data-bs-target="#addSubModal" data-act="sub">
-                        <i class="las la-minus-circle"></i> @lang('- Money Box ')
-                    </button>
-                </div>
-
-                <div class="flex-fill">
-                    <button class="btn btn--success btn--shadow w-100 btn-lg bal-btn1" data-bs-toggle="modal" data-bs-target="#addSubModalVisa" data-act="add">
-                        <i class="las la-plus-circle"></i> @lang('VISA wallet')
-                    </button>
-                </div>
-                <div class="flex-fill">
-                    <button class="btn btn--danger btn--shadow w-100 btn-lg bal-btn1" data-bs-toggle="modal" data-bs-target="#addSubModalVisa" data-act="sub">
-                        <i class="las la-minus-circle"></i> @lang('VISA wallet ')
-                    </button>
-                </div>
-                <div class="flex-fill">
-                    <button class="btn btn--success btn--shadow w-100 btn-lg bal-btn-pw" data-bs-toggle="modal" data-bs-target="#addSubModalProductWallet" data-act="add">
-                        <i class="las la-plus-circle"></i> @lang('+ Re-purchase wallet')
-                    </button>
-                </div>
-                <div class="flex-fill">
-                    <button class="btn btn--danger btn--shadow w-100 btn-lg bal-btn-pw" data-bs-toggle="modal" data-bs-target="#addSubModalProductWallet" data-act="sub">
-                        <i class="las la-minus-circle"></i> @lang('- Re-purchase wallet')
-                    </button>
+                <div class="udb-group">
+                    <p class="udb-group-label"><i class="las la-wallet"></i>@lang('Wallet Adjustments')</p>
+                    <div class="udb-group-row">
+                        <button class="btn btn--success btn--shadow udb-btn bal-btn" data-bs-toggle="modal" data-bs-target="#addSubModal" data-act="add">
+                            <i class="las la-plus-circle"></i> @lang('Money Box')
+                        </button>
+                        <button class="btn btn--danger btn--shadow udb-btn bal-btn" data-bs-toggle="modal" data-bs-target="#addSubModal" data-act="sub">
+                            <i class="las la-minus-circle"></i> @lang('Money Box')
+                        </button>
+                        <button class="btn btn--success btn--shadow udb-btn bal-btn1" data-bs-toggle="modal" data-bs-target="#addSubModalVisa" data-act="add">
+                            <i class="las la-plus-circle"></i> @lang('VISA Wallet')
+                        </button>
+                        <button class="btn btn--danger btn--shadow udb-btn bal-btn1" data-bs-toggle="modal" data-bs-target="#addSubModalVisa" data-act="sub">
+                            <i class="las la-minus-circle"></i> @lang('VISA Wallet')
+                        </button>
+                        <button class="btn btn--success btn--shadow udb-btn bal-btn-pw" data-bs-toggle="modal" data-bs-target="#addSubModalProductWallet" data-act="add">
+                            <i class="las la-plus-circle"></i> @lang('Re-purchase Wallet')
+                        </button>
+                        <button class="btn btn--danger btn--shadow udb-btn bal-btn-pw" data-bs-toggle="modal" data-bs-target="#addSubModalProductWallet" data-act="sub">
+                            <i class="las la-minus-circle"></i> @lang('Re-purchase Wallet')
+                        </button>
+                    </div>
                 </div>
                 @endif
 
-                <div class="flex-fill">
-                    <a class="btn btn--primary btn--shadow w-100 btn-lg" href="{{ route('admin.report.login.history') }}?search={{ $user->username }}">
-                        <i class="las la-list-alt"></i>@lang('Logins')
-                    </a>
-                </div>
-
-                <div class="flex-fill">
-                    <a class="btn btn--secondary btn--shadow w-100 btn-lg" href="{{ route('admin.users.notification.log', $user->id) }}">
-                        <i class="las la-bell"></i>@lang('Notifications')
-                    </a>
-                </div>
-
-                <div class="flex-fill">
-                    <a class="btn btn--secondary btn--shadow w-100 btn-lg" href="{{ route('admin.welcome-pack.index', ['user' => $user->username]) }}">
-                        <i class="las la-gift"></i>@lang('Welcome Packages')
-                    </a>
-                </div>
-
-                @if ($user->kyc_data)
-                    <div class="flex-fill">
-                        <a class="btn btn--dark btn--shadow w-100 btn-lg" href="{{ route('admin.users.kyc.details', $user->id) }}" target="_blank">
-                            <i class="las la-user-check"></i>@lang('KYC Data')
+                <div class="udb-group">
+                    <p class="udb-group-label"><i class="las la-link"></i>@lang('Quick Links')</p>
+                    <div class="udb-group-row">
+                        <a class="btn btn--primary btn--shadow udb-btn" href="{{ route('admin.report.login.history') }}?search={{ $user->username }}">
+                            <i class="las la-list-alt"></i>@lang('Logins')
+                        </a>
+                        <a class="btn btn--secondary btn--shadow udb-btn" href="{{ route('admin.users.notification.log', $user->id) }}">
+                            <i class="las la-bell"></i>@lang('Notifications')
+                        </a>
+                        <a class="btn btn--secondary btn--shadow udb-btn" href="{{ route('admin.welcome-pack.index', ['user' => $user->username]) }}">
+                            <i class="las la-gift"></i>@lang('Welcome Packages')
+                        </a>
+                        @if ($user->kyc_data)
+                            <a class="btn btn--dark btn--shadow udb-btn" href="{{ route('admin.users.kyc.details', $user->id) }}" target="_blank">
+                                <i class="las la-user-check"></i>@lang('KYC Data')
+                            </a>
+                        @endif
+                        <a class="btn btn--primary btn--shadow udb-btn" href="{{ route('admin.users.other.tree', $user->username) }}">
+                            <i class="las la-project-diagram"></i>@lang('User Tree')
+                        </a>
+                        <a class="btn btn--info btn--shadow udb-btn" href="{{ route('admin.users.referral', $user->id) }}">
+                            <i class="las la-users"></i>@lang('User Referrals')
                         </a>
                     </div>
-                @endif
-                @if(auth('admin')->user()->hasRole('Owner|super-admin'))
-                
-                @endif
-
-                <div class="flex-fill">
-                    @if ($user->status == Status::ACTIVE)
-                        <button class="btn btn--warning btn--shadow w-100 btn-lg userStatus" data-bs-toggle="modal" data-bs-target="#userStatusModal" type="button">
-                            <i class="las la-ban"></i>@lang('Ban User')
-                        </button>
-                    @else
-                        <button class="btn btn--success btn--shadow w-100 btn-lg userStatus" data-bs-toggle="modal" data-bs-target="#userStatusModal" type="button">
-                            <i class="las la-undo"></i>@lang('Unban User')
-                        </button>
-                    @endif
                 </div>
 
-                <div class="flex-fill">
-                    @if(!$user->withdrawal_blocked)
-                        <button class="btn btn--danger btn--shadow w-100 btn-lg" data-bs-toggle="modal" data-bs-target="#withdrawalBlockModal" type="button">
-                            <i class="las la-lock"></i> @lang('Block Withdrawal')
-                        </button>
-                    @else
-                        <button class="btn btn--success btn--shadow w-100 btn-lg" data-bs-toggle="modal" data-bs-target="#withdrawalBlockModal" type="button">
-                            <i class="las la-lock-open"></i> @lang('Unblock Withdrawal')
-                        </button>
-                    @endif
-                </div>
+                <div class="udb-group">
+                    <p class="udb-group-label"><i class="las la-shield-alt"></i>@lang('Account Controls')</p>
+                    <div class="udb-group-row">
+                        @if ($user->status == Status::ACTIVE)
+                            <button class="btn btn--warning btn--shadow udb-btn userStatus" data-bs-toggle="modal" data-bs-target="#userStatusModal" type="button">
+                                <i class="las la-ban"></i>@lang('Ban User')
+                            </button>
+                        @else
+                            <button class="btn btn--success btn--shadow udb-btn userStatus" data-bs-toggle="modal" data-bs-target="#userStatusModal" type="button">
+                                <i class="las la-undo"></i>@lang('Unban User')
+                            </button>
+                        @endif
 
-                <div class="flex-fill">
-                    <a class="btn btn--primary btn--shadow btn-block w-100 btn-lg" href="{{ route('admin.users.other.tree', $user->username) }}">
-                        @lang('User Tree')
-                    </a>
-                </div>
-                <div class="flex-fill">
-                    <a class="btn btn--info btn--shadow btn-block btn-lg w-100" href="{{ route('admin.users.referral', $user->id) }}">
-                        @lang('User Referrals')
-                    </a>
-                </div>
+                        @if(!$user->withdrawal_blocked)
+                            <button class="btn btn--danger btn--shadow udb-btn" data-bs-toggle="modal" data-bs-target="#withdrawalBlockModal" type="button">
+                                <i class="las la-lock"></i> @lang('Block Withdrawal')
+                            </button>
+                        @else
+                            <button class="btn btn--success btn--shadow udb-btn" data-bs-toggle="modal" data-bs-target="#withdrawalBlockModal" type="button">
+                                <i class="las la-lock-open"></i> @lang('Unblock Withdrawal')
+                            </button>
+                        @endif
 
-                @if(auth('admin')->user()->hasRole('super-admin'))
-                <div class="flex-fill">
-                    <button class="btn btn--primary btn--shadow w-100 btn-lg"
-                            data-bs-toggle="modal"
-                            data-bs-target="#buySharesModal"
-                            data-balance="{{ $user->balance }}"
-                            id="openBuySharesBtn">
-                        <i class="las la-chart-pie me-1"></i>@lang('Buy Shares')
-                    </button>
+                        @if(auth('admin')->user()->hasRole('super-admin'))
+                        <button class="btn btn--primary btn--shadow udb-btn udb-btn-cta"
+                                data-bs-toggle="modal"
+                                data-bs-target="#buySharesModal"
+                                data-balance="{{ $user->balance }}"
+                                id="openBuySharesBtn">
+                            <i class="las la-chart-pie"></i>@lang('Buy Shares')
+                        </button>
+                        @endif
+                    </div>
                 </div>
-                @endif
             </div>
 
 
@@ -1107,15 +1081,35 @@
                         </select>
                     </div>
 
-                    {{-- Unit Price Display --}}
-                    <div class="bsm-unit-price-row mb-3" id="bsmUnitPriceRow" style="display:none">
-                        <div class="bsm-unit-box">
-                            <span class="bsm-unit-label">Price per unit</span>
-                            <span class="bsm-unit-value" id="bsmUnitPrice">—</span>
-                        </div>
-                        <div class="bsm-unit-box">
-                            <span class="bsm-unit-label">Available units</span>
-                            <span class="bsm-unit-value" id="bsmAvailQty">—</span>
+                    {{-- Quick Action --}}
+                    <div class="mb-3">
+                        <label class="bsm-label"><i class="las la-bolt me-1"></i>Quick Action</label>
+                        <div class="bsm-quick-actions" id="bsmQuickActions">
+                            <button type="button" class="bsm-quick-btn" data-qty="5">
+                                <span class="bsm-quick-num">5</span>
+                                <span class="bsm-quick-unit">units</span>
+                                <i class="las la-check-circle bsm-quick-check"></i>
+                            </button>
+                            <button type="button" class="bsm-quick-btn" data-qty="10">
+                                <span class="bsm-quick-num">10</span>
+                                <span class="bsm-quick-unit">units</span>
+                                <i class="las la-check-circle bsm-quick-check"></i>
+                            </button>
+                            <button type="button" class="bsm-quick-btn" data-qty="20">
+                                <span class="bsm-quick-num">20</span>
+                                <span class="bsm-quick-unit">units</span>
+                                <i class="las la-check-circle bsm-quick-check"></i>
+                            </button>
+                            <button type="button" class="bsm-quick-btn" data-qty="50">
+                                <span class="bsm-quick-num">50</span>
+                                <span class="bsm-quick-unit">units</span>
+                                <i class="las la-check-circle bsm-quick-check"></i>
+                            </button>
+                            <button type="button" class="bsm-quick-btn" data-qty="100">
+                                <span class="bsm-quick-num">100</span>
+                                <span class="bsm-quick-unit">units</span>
+                                <i class="las la-check-circle bsm-quick-check"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -1272,32 +1266,6 @@
             box-shadow: 0 0 0 3px rgba(37,99,235,.1);
         }
 
-        /* Unit price row */
-        .bsm-unit-price-row {
-            display: flex;
-            gap: 12px;
-        }
-        .bsm-unit-box {
-            flex: 1;
-            background: #f8f9fc;
-            border: 1px solid #e8eaf0;
-            border-radius: 10px;
-            padding: 10px 14px;
-        }
-        .bsm-unit-label {
-            font-size: .72rem;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            color: #888;
-            display: block;
-            margin-bottom: 2px;
-        }
-        .bsm-unit-value {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #222;
-        }
-
         /* Quantity group */
         .bsm-qty-group {
             display: flex;
@@ -1377,7 +1345,6 @@
         /* Responsive */
         @media (max-width:480px) {
             .bsm-header { padding: 16px; }
-            .bsm-unit-price-row { flex-direction: column; }
         }
     </style>
 
@@ -1447,9 +1414,7 @@
     /* ── DOM refs ── */
     var $planSelect    = $('#bsmPlanSelect');
     var $qtyInput      = $('#bsmQtyInput');
-    var $unitPriceRow  = $('#bsmUnitPriceRow');
-    var $unitPrice     = $('#bsmUnitPrice');
-    var $availQty      = $('#bsmAvailQty');
+    var $quickBtns     = $('#bsmQuickActions .bsm-quick-btn');
     var $calcUnit      = $('#bsmCalcUnit');
     var $calcQty       = $('#bsmCalcQty');
     var $calcTotal     = $('#bsmCalcTotal');
@@ -1493,6 +1458,9 @@
         }
 
         $submitBtn.prop('disabled', false);
+
+        /* Highlight the quick-action button matching the current quantity */
+        $quickBtns.removeClass('active').filter('[data-qty="' + qty + '"]').addClass('active');
     }
 
     /* ── Plan change ── */
@@ -1504,16 +1472,12 @@
 
         if (!$opt.val()) {
             selectedPlan = null;
-            $unitPriceRow.hide();
             $balanceCheck.hide();
             $submitBtn.prop('disabled', true);
             return;
         }
 
         selectedPlan = { price: price, name: name, qty: qty };
-        $unitPrice.text(fmtMoney(price));
-        $availQty.text(qty.toLocaleString() + ' units');
-        $unitPriceRow.show();
         recalculate();
     });
 
@@ -1528,15 +1492,28 @@
     });
     $qtyInput.on('input', recalculate);
 
+    /* ── Quick action buttons ── */
+    $quickBtns.on('click', function () {
+        $qtyInput.val($(this).data('qty')).trigger('input');
+    });
+
+    /* ── Auto-select the first plan whenever the modal is opened ── */
+    $('#buySharesModal').on('show.bs.modal', function () {
+        var $firstPlan = $planSelect.find('option[value!=""]').first();
+        if ($firstPlan.length) {
+            $planSelect.val($firstPlan.val()).trigger('change');
+        }
+    });
+
     /* ── Reset modal when closed ── */
     $('#buySharesModal').on('hidden.bs.modal', function () {
         $planSelect.val('');
         $qtyInput.val(1);
         selectedPlan = null;
-        $unitPriceRow.hide();
         $balanceCheck.hide().removeClass('bsm-balance-ok bsm-balance-warn');
         $forceRow.hide();
         $('#bsmForce').prop('checked', false);
+        $quickBtns.removeClass('active');
         $submitBtn.prop('disabled', true);
         $submitText.show();
         $submitSpinner.hide();

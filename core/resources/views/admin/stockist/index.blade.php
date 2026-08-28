@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+@extends('admin.layouts.app') 
 @section('panel')
     <div class="row">
         <div class="col-lg-12">
@@ -58,12 +58,7 @@
                                 </td>
 
                                 <td>
-                                    <div class="button--group">
-                                        <a href="{{ route('admin.stockist.detail', $stockist->id) }}" class="btn btn-sm btn-outline--primary">
-                                            <i class="las la-desktop"></i> @lang('Details')
-                                        </a>
-                                        
-                                    </div>
+                                   
                                 </td>
 
                             </tr>

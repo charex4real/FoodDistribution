@@ -191,9 +191,13 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::get('activeStockist', 'activeStockist')->name('activeStockist');
         Route::get('inactiveStockist', 'inactiveStockist')->name('inactiveStockist');
         Route::get('changeUserStockistStatus', 'changeUserStockistStatus')->name('changeUserStockistStatus');
+        
         Route::get('detail/{id}', 'detail')->name('detail'); 
+
         Route::post('status/{id}', 'changeUserStockistStatus')->name('changeUserStockistStatus');
         Route::post('store/{id}', 'store')->name('store');
+
+        
    
         // the new stockist 
 
@@ -208,7 +212,10 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::get('/stockist-wallet/{stockist}', 'walletTopUpPage')->name('wallet-page');
         Route::post('/topup-wallet/{stockist}', 'topUpWallet')->name('topup-wallet');
         Route::get('/stockist-details/{stockist}', 'showDetails')->name('details');
-       
+
+        // Redemption / accounting report
+        Route::get('/report', 'redemptionReport')->name('report');
+        Route::get('/report/{stockist}', 'redemptionReportShow')->name('report.show');
 
     });
  
@@ -223,6 +230,18 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::post('{order}/process', 'processOrder')->name('processOrder');
         Route::post('{order}/cancel', 'cancelOrder')->name('cancel');
 
+    });
+
+    // Affiliate Program
+    Route::controller('AffiliateController')->prefix('affiliate')->name('affiliate.')->group(function () {
+        Route::get('/', 'dashboard')->name('dashboard');
+        Route::get('orders', 'orders')->name('orders');
+        Route::get('orders/{order}', 'orderShow')->name('order.show');
+        Route::get('affiliates', 'affiliates')->name('affiliates');
+        Route::get('funnel', 'funnel')->name('funnel');
+        Route::get('audit', 'audit')->name('audit');
+        Route::get('settings', 'settings')->name('settings');
+        Route::post('settings', 'settingsUpdate')->name('settings.update');
     });
 
     // Manage Sales

@@ -86,6 +86,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'stockist' => \App\Http\Middleware\StockistMiddleware::class,
             'first.login' => \App\Http\Middleware\CheckFirstLogin::class,
             'cron.secret' => \App\Http\Middleware\CronSecret::class,
+            'affiliate.track' => \App\Http\Middleware\TrackAffiliateClick::class,
         ]);
 
         $middleware->validateCsrfTokens(

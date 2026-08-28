@@ -346,6 +346,18 @@ class CronController extends Controller
         }
     }
 
+    public function affiliateOrdersExpire()
+    {
+        try {
+            Artisan::call('affiliate:expire-orders');
+            $output = trim(Artisan::output());
+            return response('affiliate:expire-orders OK — ' . $output . ' [' . now() . ']', 200);
+        } catch (\Throwable $e) {
+            \Log::error('affiliateOrdersExpire cron failed: ' . $e->getMessage());
+            return response('affiliate:expire-orders FAILED: ' . $e->getMessage(), 500);
+        }
+    }
+
     public function clearCache()
     {
         try {

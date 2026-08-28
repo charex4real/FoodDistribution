@@ -282,8 +282,13 @@ class User extends Authenticatable
     } 
 
     public function getTotalOrderAmountAttribute()
-    { 
+    {
         return $this->orderStatus->sum('total_amount') ?? 0;
+    }
+
+    public function getTotalInvestAttribute()
+    {
+        return $this->rinvestment()->sum('five') ?? 0;
     }
 
 
@@ -333,6 +338,54 @@ class User extends Authenticatable
             return true;
         }
         return false;
+    }
+
+    public function getAffiliateBonusBalanceAttribute()
+    {
+        return $this->affiliate_bonus ?? 0;
+    }
+
+    public function addAffiliateBonus($amount)
+    {
+        $this->affiliate_bonus += $amount;
+        $this->save();
+        return true;
+    }
+
+    public function deductAffiliateBonus($amount)
+    {
+        if ($this->affiliate_bonus >= $amount) {
+            $this->affiliate_bonus -= $amount;
+            $this->save();
+            return true;
+        }
+        return false;
+    }
+
+    public function affiliateOrders()
+    {
+        return $this->hasMany(\App\Models\AffiliateOrder::class, 'affiliate_user_id');
+    }
+
+    public function affiliateClicks()
+    {
+        return $this->hasMany(\App\Models\AffiliateClick::class, 'affiliate_user_id');
+    }
+
+    public function getOrCreateAffiliateCode(): string
+    {
+        if (!empty($this->affiliate_code)) {
+            return $this->affiliate_code;
+        }
+
+        do {
+            $code = strtoupper(\Illuminate\Support\Str::random(8));
+        } while (static::where('affiliate_code', $code)->exists());
+
+        $this->affiliate_code = $code;
+        $this->save();
+
+        return $code;
     }
 
 

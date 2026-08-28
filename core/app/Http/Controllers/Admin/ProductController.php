@@ -34,6 +34,7 @@ class ProductController extends Controller
             'name'                  => 'required|string|max:255',
             'category'              => 'required|integer|exists:categories,id',
             'price'                 => 'required|numeric|gt:0',
+            'selling_price'         => 'nullable|numeric|gt:0',
             'quantity'              => 'required|integer|gt:0',
             'sku'                   => 'required|integer|gt:0',
             'pv'                    => 'required|numeric|min:0',
@@ -54,6 +55,7 @@ class ProductController extends Controller
         $product->category_id        = $request->category;
         $product->name               = $request->name;
         $product->price              = $request->price;
+        $product->selling_price      = $request->selling_price ?: null;
         $product->quantity           = $request->quantity;
         $product->sku                = $request->sku;
         $product->pv                 = $request->pv;
@@ -117,6 +119,7 @@ class ProductController extends Controller
             'name'                  => 'required|string|max:255',
             'category'              => 'required|integer|exists:categories,id',
             'price'                 => 'required|numeric|gt:0',
+            'selling_price'         => 'nullable|numeric|gt:0',
             'sku'                   => 'required|integer|gt:0',
             'pv'                    => 'required|numeric|min:0',
             'prb'                   => 'required|numeric|min:0',
@@ -128,6 +131,8 @@ class ProductController extends Controller
             'specification.*.value' => 'required|sometimes',
             'galleryImages.*'       => ['nullable', 'image', new FileTypeValidate(['jpg', 'jpeg', 'png'])],
             'thumbnail'             => ['nullable', 'image', new FileTypeValidate(['jpg', 'jpeg', 'png'])],
+            'affiliate_bonus_type'  => 'nullable|in:fixed,percentage',
+            'affiliate_bonus_value' => 'nullable|numeric|min:0',
         ], [
             'specification.*.name.required'  => 'All specification name fields are required',
             'specification.*.value.required' => 'All specification value fields are required',
@@ -137,6 +142,7 @@ class ProductController extends Controller
         $product->name               = $request->name;
         $product->category_id        = $request->category;
         $product->price              = $request->price;
+        $product->selling_price      = $request->selling_price ?: null;
         $product->quantity           = $request->quantity;
         $product->description        = $request->description;
         $product->meta_title         = $request->meta_title;
@@ -148,6 +154,8 @@ class ProductController extends Controller
         $product->min_order_quantity = $request->min_order_quantity;
         $product->max_order_quantity = $request->max_order_quantity;
         $product->meta_keyword       = $request->meta_keywords;
+        $product->affiliate_bonus_type  = $request->affiliate_bonus_type ?: null;
+        $product->affiliate_bonus_value = $request->affiliate_bonus_type ? $request->affiliate_bonus_value : null;
 
         if ($request->specification) {
             $product->specifications = array_values($request->specification);
