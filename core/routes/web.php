@@ -31,6 +31,8 @@ Route::middleware('cron.secret')->group(function () {
     Route::get('affiliateOrdersExpire', 'CronController@affiliateOrdersExpire')->name('affiliateOrdersExpire');
 });
 
+
+
 // Public Affiliate Shop (guest-accessible, no auth) — extends layouts.frontend, never layouts.master
 Route::namespace('Shop')->prefix('shop')->name('shop.')->middleware(['affiliate.track'])->group(function () {
     Route::get('/', 'ShopController@index')->name('index');

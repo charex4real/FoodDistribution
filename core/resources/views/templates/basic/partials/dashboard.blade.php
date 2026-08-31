@@ -176,12 +176,14 @@
                                     <span>My Orders</span>
                                 </a>
                             </li>
+                            {{--
                             <li>
                                 <a href="{{ route('user.stockist.welcome-pack.index') }}" class="bank-nav-link {{ menuActive('user.stockist.welcome-pack.index') }}">
                                     <span class="bank-nav-icon"><i class="las la-gift"></i></span>
                                     <span>Welcome Package</span>
                                 </a>
                             </li>
+                            --}
                             
                         </ul>
                         <p class="bank-nav-label">Account</p>

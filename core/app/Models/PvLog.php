@@ -12,7 +12,7 @@ class PvLog extends Model
     {
         return $this->belongsTo(User::class);
     }
-
+ 
     public function positionBadge(): Attribute
     {
         return new Attribute(function () {

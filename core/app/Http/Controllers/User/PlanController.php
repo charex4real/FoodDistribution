@@ -185,7 +185,7 @@ class PlanController extends Controller
             'rightPV' => 'Right PV Log',
             'cutPV'   => 'Cut PV Log',
             default   => 'PV Log',
-        };
+        };  
 
         $logs = $this->pvData($type)->where('user_id', $uid)->latest('id')->paginate(getPaginate());
 

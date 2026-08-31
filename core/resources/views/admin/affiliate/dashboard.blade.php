@@ -38,7 +38,7 @@
                             <tbody>
                                 @forelse($topAffiliates as $aff)
                                     <tr>
-                                        <td>{{ $aff->fullname }} <br><span class="small text-muted">@{{ $aff->username }}</span></td>
+                                        <td>{{ $aff->fullname }} <br><span class="small text-muted">@ {{ $aff->username }}</span></td>
                                         <td>{{ $aff->affiliate_orders_count }}</td>
                                     </tr>
                                 @empty

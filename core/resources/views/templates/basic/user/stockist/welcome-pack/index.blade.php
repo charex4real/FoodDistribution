@@ -351,7 +351,7 @@ $(document).ready(function () {
         $('#codeSingleInput').prop('disabled', true).addClass('rwp-mobile-input--scanning');
 
         $.ajax({
-            url: "{{ route('user.stockist.welcome-pack.verify') }}",
+            //url: "{{ route('user.stockist.welcome-pack.verify') }}",
             method: 'POST',
             data: { code: code, _token: "{{ csrf_token() }}" },
             success: function (response) {

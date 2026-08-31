@@ -17,6 +17,7 @@
                             <span class="badge bg-white text-warning ms-1" style="font-size:.65rem;">Active · Click to remove</span>
                         </button>
                     @else
+                    
                         <button type="submit" class="btn btn-sm btn--outline--warning btn--shadow"
                             onclick="return confirm('Tag {{ addslashes($user->fullname) }} as Ambassador?')"
                             style="font-size:.8rem;padding:6px 16px;">
@@ -52,13 +53,14 @@
                 </div>
                 @endif
                 <div class="col-6 col-xxl-3 col-lg-4">
-                    <x-widget type="2" value="{{ showAmount($total_ref) }}" title="Total Referral Commission" style="7" link="{{ route('admin.report.referral.commission', $user->id) }}" icon="la la-user" bg="2" />
+                    <x-widget type="2" value="{{ showAmount($total_ref) }}" title="Referral Commission" style="7" link="{{ route('admin.report.referral.commission', $user->id) }}" icon="la la-user" bg="2" />
                 </div>
-
+                {{-- 
                 <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($total_stage_out) }}" title="Total Stage-Out Commission" style="7" link="{{ route('admin.report.stageOut.commission', $user->id) }}" icon="la la-tree" bg="3" />
                 </div>
 
+                --}}
 
                 <div class="col-6 col-xxl-3 col-lg-4">
                     <x-widget type="2" value="{{ showAmount($totalDeposit) }}" title="Deposits" style="7" link="{{ route('admin.deposit.list', $user->id) }}" icon="las la-wallet" bg="8" />

@@ -13,7 +13,7 @@
                     Binary Network
                 </div>
                 <h2 class="pv-hero-title">Point Value Log</h2>
-                <p class="pv-hero-sub">Track every PV credit and debit across your binary legs</p>
+                <!-- <p class="pv-hero-sub">Track every PV credit and debit across your binary legs</p> -->
             </div>
             <div class="pv-hero-badge">
                 <i class="las la-chart-line pv-hero-badge-icon"></i>
@@ -39,6 +39,7 @@
             </div>
             <a href="{{ route('user.pv.log') }}?type=rightPV" class="pv-stat-link">View <i class="las la-arrow-right"></i></a>
         </div>
+        {{--
         <div class="pv-stat-card pv-stat--cut">
             <div class="pv-stat-icon"><i class="las la-cut"></i></div>
             <div class="pv-stat-body">
@@ -47,6 +48,7 @@
             </div>
             <a href="{{ route('user.pv.log') }}?type=cutPV" class="pv-stat-link">View <i class="las la-arrow-right"></i></a>
         </div>
+        --}}
         <div class="pv-stat-card pv-stat--total">
             <div class="pv-stat-icon"><i class="las la-star"></i></div>
             <div class="pv-stat-body">
@@ -72,10 +74,12 @@
            class="pv-tab pv-tab--right {{ $activeType === 'rightPV' ? 'pv-tab--active' : '' }}">
             <i class="las la-arrow-right"></i> Right PV
         </a>
+        {{--
         <a href="{{ route('user.pv.log') }}?type=cutPV"
            class="pv-tab pv-tab--cut {{ $activeType === 'cutPV' ? 'pv-tab--active' : '' }}">
             <i class="las la-cut"></i> Cut PV
         </a>
+        --}}
     </div>
 
     {{-- ══ LOG FEED ══ --}}

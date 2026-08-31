@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 @section('panel')
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-12"> 
         <div class="card">
             <div class="card-header"><h5 class="card-title">Affiliates</h5></div>
             <div class="card-body p-0">
@@ -13,7 +13,7 @@
                                 <tr>
                                     <td>
                                         <span class="fw-bold">{{ $affiliate->fullname }}</span><br>
-                                        <span class="small"><a href="{{ route('admin.users.detail', $affiliate->id) }}">@{{ $affiliate->username }}</a></span>
+                                        <span class="small"><a href="{{ route('admin.users.detail', $affiliate->id) }}">@ {{ $affiliate->username }}</a></span>
                                     </td>
                                     <td>{{ $affiliate->affiliate_clicks_count }}</td>
                                     <td>{{ $affiliate->affiliate_orders_count }}</td>
