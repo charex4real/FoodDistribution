@@ -1722,7 +1722,7 @@ function purchaseCommision_distributor(User $user, $details, $amount, $trxx, $pe
     $transaction->bonus_type   = 7;
     $transaction->save();
 }
- 
+  
 function stockist_commision(User $user, $amount, $trxx, $details, $qty){
     
     $amt = $amount * $qty;

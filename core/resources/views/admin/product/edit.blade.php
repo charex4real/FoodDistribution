@@ -110,6 +110,14 @@
                             <input class="pf-input" name="affiliate_bonus_value" type="number" step="any" min="0" value="{{ $product->affiliate_bonus_value }}" placeholder="0.00">
                             <p class="pf-hint">₦ amount, or % if Percentage selected</p>
                         </div>
+                        <div class="pf-metric-block">
+                            <label class="pf-label">Stockist Affiliate Bonus</label>
+                            <div class="pf-input-prefix">
+                                <span class="pf-prefix">₦</span>
+                                <input class="pf-input" name="stockist_affiliate_bonus" type="number" step="any" min="0" value="{{ $product->stockist_affiliate_bonus }}" placeholder="0.00">
+                            </div>
+                            <p class="pf-hint">Fixed bonus paid for stockist affiliate sales</p>
+                        </div>
                     </div>
                 </div>
             </div>

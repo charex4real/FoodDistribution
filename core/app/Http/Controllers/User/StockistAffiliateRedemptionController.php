@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  * doesn't apply here since /shop buyers are guests with no MLM tree).
  */
 class StockistAffiliateRedemptionController extends Controller
-{
+{ 
     public function redeemForm()
     {
         $pageTitle = 'Redeem Affiliate Products';
@@ -76,8 +76,9 @@ class StockistAffiliateRedemptionController extends Controller
         }
 
         $request->validate(['order_code' => 'required|string']);
+        $order_code = trim($request->order_code);
 
-        $order = AffiliateOrder::where('order_code', trim($request->order_code))->first();
+        $order = AffiliateOrder::where('order_code', $order_code)->first();
 
         if (!$order) {
             return response()->json(['success' => false, 'message' => 'Order not found']);
@@ -87,8 +88,10 @@ class StockistAffiliateRedemptionController extends Controller
             return response()->json(['success' => false, 'message' => 'This order is for a buyer in another state.']);
         }
 
-        try {
+        try { 
+           
             $orders->confirmPickup($order, $stockist);
+
         } catch (\RuntimeException $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }

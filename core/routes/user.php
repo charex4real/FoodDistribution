@@ -34,7 +34,7 @@ Route::namespace('User\Auth')->name('user.')->middleware(['guest', 'XssSanitizer
 
 Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
     Route::get('user-data', 'User\UserController@userData')->name('data');
-    Route::get('user-data1', 'User\UserController@userData')->name('data');
+    Route::get('user-data1', 'User\UserController@userData')->name('data1');
     Route::post('user-data-submit', 'User\UserController@userDataSubmit')->name('data.submit');
 
     //authorization
@@ -256,7 +256,7 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
 
             // Redeem Affiliate Products — separate from the internal repurchase
             // redemption flow above (no unilevel/PV logic; single-shot pickup)
-            Route::controller('StockistAffiliateRedemptionController')->middleware(['stockist'])->prefix('stockist/affiliate')->name('stockist.affiliate.')->group(function () {
+            Route::controller('StockistAffiliateRedemptionController')->middleware(['stockist'])->prefix('stockist/affiliate')->name('stockist.affiliate.')->group(function () { 
                 Route::get('/', 'redeemForm')->name('redeem');
                 Route::post('/verify', 'verify')->name('verify');
                 Route::post('/confirm', 'confirm')->name('confirm');

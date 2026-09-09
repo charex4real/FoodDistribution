@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class AffiliateController extends Controller
 {
-    public function dashboard()
+    public function dashboard() 
     {
         $pageTitle = 'Affiliate Dashboard';
         $user      = auth()->user();

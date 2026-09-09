@@ -9,7 +9,7 @@
             <p class="sl-page-subtitle mb-0">Share your link, earn a bonus on every order.</p>
         </div>
         <a href="{{ route('user.affiliate.orders') }}" class="sl-btn sl-btn-outline">
-            <i class="las la-box me-1"></i> My Orders
+            <i class="las la-box me-1"></i> My Sales
         </a>
     </div>
 

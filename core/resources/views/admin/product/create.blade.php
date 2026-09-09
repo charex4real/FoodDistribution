@@ -89,6 +89,39 @@
                 </div>
             </div>
 
+            {{-- Affiliate Bonus --}}
+            <div class="pf-card">
+                <div class="pf-card-header">
+                    <i class="las la-link"></i> Affiliate Bonus
+                </div>
+                <div class="pf-card-body">
+                    <div class="pf-metric-grid">
+                        <div class="pf-metric-block">
+                            <label class="pf-label">Bonus Type</label>
+                            <select class="pf-input" name="affiliate_bonus_type">
+                                <option value="" @selected(!old('affiliate_bonus_type'))>None</option>
+                                <option value="fixed" @selected(old('affiliate_bonus_type') === 'fixed')>Fixed Amount</option>
+                                <option value="percentage" @selected(old('affiliate_bonus_type') === 'percentage')>Percentage of Sale</option>
+                            </select>
+                            <p class="pf-hint">Paid to the referring member on /shop sales</p>
+                        </div>
+                        <div class="pf-metric-block">
+                            <label class="pf-label">Bonus Value</label>
+                            <input class="pf-input" name="affiliate_bonus_value" type="number" step="any" min="0" value="{{ old('affiliate_bonus_value') }}" placeholder="0.00">
+                            <p class="pf-hint">₦ amount, or % if Percentage selected</p>
+                        </div>
+                        <div class="pf-metric-block">
+                            <label class="pf-label">Stockist Affiliate Bonus</label>
+                            <div class="pf-input-prefix">
+                                <span class="pf-prefix">₦</span>
+                                <input class="pf-input" name="stockist_affiliate_bonus" type="number" step="any" min="0" value="{{ old('stockist_affiliate_bonus') }}" placeholder="0.00">
+                            </div>
+                            <p class="pf-hint">Fixed bonus paid for stockist affiliate sales</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Description & Specs --}}
             <div class="pf-card">
                 <div class="pf-card-header">

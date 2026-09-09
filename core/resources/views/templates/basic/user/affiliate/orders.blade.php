@@ -5,7 +5,7 @@
     <br>
     <div class="sl-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
-            <h4 class="sl-page-title mb-1">My Affiliate Orders</h4>
+            <h4 class="sl-page-title mb-1">My Affiliate Sales</h4>
             <p class="sl-page-subtitle mb-0">Every order placed through your affiliate link.</p>
         </div>
         <a href="{{ route('user.affiliate.dashboard') }}" class="sl-btn sl-btn-outline">

@@ -16,7 +16,7 @@ class StockistRedemption extends Model
     const TYPE_INVOICE           = 'invoice_code';
     const TYPE_WELCOME_PACK      = 'welcome_pack';
     const TYPE_AFFILIATE_INVOICE = 'affiliate_invoice';
-
+ 
     public static array $types = [
         self::TYPE_CASH              => 'Cash',
         self::TYPE_INVOICE           => 'Invoice Code',

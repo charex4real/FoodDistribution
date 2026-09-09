@@ -9,7 +9,7 @@
             <p class="sl-page-subtitle mb-0">Enter a buyer's redemption code to hand over their /shop order.</p>
         </div>
     </div>
-
+ 
     <div class="row g-4">
         <div class="col-lg-5">
             <div class="aff-stat-card">

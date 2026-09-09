@@ -111,9 +111,10 @@ class AffiliateOrderService
      * cash-on-pickup, paid in person). Credits the affiliate bonus at this
      * point for cash orders (money wasn't real until now) and an optional
      * stockist handling fee.
-     */
+     */ 
+
     public function confirmPickup(AffiliateOrder $order, Stockist $stockist): void
-    {
+    { 
         if (!$order->isReadyForPickup()) {
             throw new \RuntimeException('This order is not awaiting pickup.');
         }
@@ -124,7 +125,7 @@ class AffiliateOrderService
                 'redeemed_by_stockist_id' => $stockist->id,
                 'redeemed_at'             => now(),
             ]);
-
+ 
             $order->loadMissing('items');
 
             StockistRedemption::create([
@@ -146,34 +147,48 @@ class AffiliateOrderService
             ]);
 
             if ($order->payment_method === AffiliateOrder::PAYMENT_CASH_ON_PICKUP) {
+               
                 $this->creditAffiliateBonus($order->fresh('items'));
-
-                $fee = AffiliateSetting::current()->stockistFeeFor((float) $order->total_amount);
-                if ($fee > 0) {
-                    $stockist->wallet += $fee;
-                    $stockist->save();
-                    stockistTransaction($stockist, $order->affiliate ?: $stockist->user, getTrx(10), $fee);
-                }
             }
-        });
+            // old settings
+            //$fee = AffiliateSetting::current()->stockistFeeFor((float) $order->total_amount);
+
+            $total_amount = $order->items->sum(
+                fn($item) => (float) ($item->product?->stockist_affiliate_bonus ?? 0) * $item->quantity
+            );
+
+            if ($total_amount > 0) {
+                // test auth()->user()->stockist->wallet
+                $stockist->wallet += $total_amount;
+                $stockist->save();
+
+                //$order->affiliate ?: $stockist->user;
+                stockistTransaction($stockist, auth()->user(), getTrx(10), $total_amount);
+            }
+        }); 
     }
 
     public function creditAffiliateBonus(AffiliateOrder $order): void
-    {
-        if ($order->bonus_credited || !$order->affiliate_user_id) {
-            return;
-        }
-
+    { 
+        /* 
+            if ($order->bonus_credited || !$order->affiliate_user_id)
+             $order->affiliate_user_id this alwasy 
+             return null so i will visit much later. 
+        */
+        //dd($order->bonus_credited);
         $affiliate = $order->affiliate;
-        if (!$affiliate) {
+        if ($order->bonus_credited || !$order->affiliate) {
             return;
         }
 
-        $total = (float) $order->items->sum('bonus_amount');
+        
+        $order->loadMissing('items.product');
+        $total = $order->items->sum(
+            fn ($item) => (float) ($item->product?->affiliate_bonus_value ?? 0) * $item->quantity
+        );
 
-        if ($total > 0) {
+        if ($total > 0) { 
             $affiliate->addAffiliateBonus($total);
-
             newTransaction(
                 $affiliate,
                 'Affiliate bonus for order ' . $order->order_code,
@@ -186,7 +201,6 @@ class AffiliateOrderService
                 'affiliate_bonus'
             );
         }
-
         $order->update(['bonus_credited' => true]);
     }
 

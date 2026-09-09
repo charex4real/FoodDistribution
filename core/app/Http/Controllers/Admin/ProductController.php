@@ -46,6 +46,9 @@ class ProductController extends Controller
             'specification.*.value' => 'required|sometimes',
             'gallery.*'             => ['nullable', 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
             'thumbnail'             => ['required', 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
+            'affiliate_bonus_type'  => 'nullable|in:fixed,percentage',
+            'affiliate_bonus_value' => 'nullable|numeric|min:0',
+            'stockist_affiliate_bonus' => 'nullable|numeric|min:0',
         ], [
             'specification.*.name.required'  => 'All specification name fields are required',
             'specification.*.value.required' => 'All specification value fields are required',
@@ -62,6 +65,9 @@ class ProductController extends Controller
         $product->prb                = $request->prb;
         $product->min_order_quantity = $request->min_order_quantity;
         $product->max_order_quantity = $request->max_order_quantity;
+        $product->affiliate_bonus_type  = $request->affiliate_bonus_type ?: null;
+        $product->affiliate_bonus_value = $request->affiliate_bonus_type ? $request->affiliate_bonus_value : null;
+        $product->stockist_affiliate_bonus = $request->stockist_affiliate_bonus ?: null;
         $product->description        = $request->description;
         $product->meta_title         = $request->meta_title;
         $product->meta_description   = $request->meta_description;
@@ -133,6 +139,7 @@ class ProductController extends Controller
             'thumbnail'             => ['nullable', 'image', new FileTypeValidate(['jpg', 'jpeg', 'png'])],
             'affiliate_bonus_type'  => 'nullable|in:fixed,percentage',
             'affiliate_bonus_value' => 'nullable|numeric|min:0',
+            'stockist_affiliate_bonus' => 'nullable|numeric|min:0',
         ], [
             'specification.*.name.required'  => 'All specification name fields are required',
             'specification.*.value.required' => 'All specification value fields are required',
@@ -156,6 +163,7 @@ class ProductController extends Controller
         $product->meta_keyword       = $request->meta_keywords;
         $product->affiliate_bonus_type  = $request->affiliate_bonus_type ?: null;
         $product->affiliate_bonus_value = $request->affiliate_bonus_type ? $request->affiliate_bonus_value : null;
+        $product->stockist_affiliate_bonus = $request->stockist_affiliate_bonus ?: null;
 
         if ($request->specification) {
             $product->specifications = array_values($request->specification);

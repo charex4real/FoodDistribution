@@ -46,9 +46,9 @@ class AffiliateOrder extends Model
             }
         });
     }
-
-    public function items()
-    {
+                   
+    public function items() 
+    { 
         return $this->hasMany(AffiliateOrderItem::class);
     }
 

@@ -287,14 +287,14 @@ class CronController extends Controller
      * Backups older than 30 days are automatically purged to manage disk usage.
      * The password is never exposed — it is passed to mysqldump via the child
      * process environment (MYSQL_PWD), keeping it invisible in server process lists.
-     *
+     * 
      * Artisan command : db:backup
      * Command file    : app/Console/Commands/DatabaseBackupCommand.php
      * Backup location : storage/app/db_bk/db_backup_YYYY-MM-DD_HH-II-SS.sql.gz
      * Scheduled       : daily at 03:00 via console.php
      * Route           : GET /dbBackup?token=CRON_SECRET  (name: dbBackup)
      * cPanel cron     : curl -s "https://yourdomain.com/dbBackup?token=CRON_SECRET"
-     */
+     */ 
     public function dbBackup()
     {
         try {
