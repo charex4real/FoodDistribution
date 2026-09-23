@@ -2,7 +2,19 @@
 
 @section('panel')
     {{-- Flashcards are included only on the dashboard page --}}
-    @include($activeTemplate.'partials.dashboard')
+
+    @if(request()->routeIs('user.affiliate.*'))
+        @include($activeTemplate.'partials.dashboard_affiliate')
+
+    @elseif($inStockistSection = request()->routeIs('user.stockist.*'))
+    
+        @include($activeTemplate.'partials.dashboard_stockist_main')
+    @else
+        @include($activeTemplate.'partials.dashboard')
+
+    @endif
+    
+
     @include($activeTemplate . 'partials.footer')
 @endsection 
 

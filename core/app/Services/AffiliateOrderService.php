@@ -8,6 +8,7 @@ use App\Models\AffiliateSetting;
 use App\Models\Product;
 use App\Models\Stockist;
 use App\Models\StockistRedemption;
+use App\Models\Stockist_store;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -128,6 +129,22 @@ class AffiliateOrderService
  
             $order->loadMissing('items');
 
+            foreach ($order->items as $item) {
+                $stockistStore = Stockist_store::where('user_id', $stockist->user_id)
+                    ->where('product_id', $item->product_id)
+                    ->first();
+
+                if (!$stockistStore) {
+                    throw new \RuntimeException("This stockist does not have the product \"{$item->product_name}\" in stock.");
+                }
+
+                if ($stockistStore->quantity < $item->quantity) {
+                    throw new \RuntimeException("Insufficient stock for \"{$item->product_name}\" to complete this affiliate pickup.");
+                }
+
+                $stockistStore->decrementStock($item->quantity);
+            }
+
             StockistRedemption::create([
                 'stockist_id'        => $stockist->id,
                 'type'               => StockistRedemption::TYPE_AFFILIATE_INVOICE,
@@ -150,8 +167,9 @@ class AffiliateOrderService
                
                 $this->creditAffiliateBonus($order->fresh('items'));
             }
-            // old settings
-            //$fee = AffiliateSetting::current()->stockistFeeFor((float) $order->total_amount);
+            // old settings for stockist bonus 
+            //$fee = AffiliateSetting::current()->stockistFeeFor((float)    
+            //$order->total_amount);
 
             $total_amount = $order->items->sum(
                 fn($item) => (float) ($item->product?->stockist_affiliate_bonus ?? 0) * $item->quantity
@@ -164,7 +182,7 @@ class AffiliateOrderService
 
                 //$order->affiliate ?: $stockist->user;
                 stockistTransaction($stockist, auth()->user(), getTrx(10), $total_amount);
-            }
+            }   
         }); 
     }
 

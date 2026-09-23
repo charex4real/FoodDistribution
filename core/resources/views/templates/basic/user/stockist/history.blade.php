@@ -229,9 +229,9 @@
                                     <button class="sl-btn sl-btn-outline copy-invoice" data-invoice="{{ $redemption->invoice->invoice_code }}">
                                         <i class="las la-copy me-1"></i> Copy Invoice Code
                                     </button>
-                                    <button class="sl-btn sl-btn-outline view-details" data-redemption-id="{{ $redemption->id }}">
+                                    {{-- <button class="sl-btn sl-btn-outline view-details" data-redemption-id="{{ $redemption->id }}">
                                         <i class="las la-eye me-1"></i> View Details
-                                    </button>
+                                    </button> --}}
                                 </div>
                             </div>
                         </div>

@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+ 
 class StockistPosController extends Controller
 {
     public function __construct(private readonly WelcomePackageService $welcomePackageService) {}
@@ -31,6 +31,8 @@ class StockistPosController extends Controller
                 $statePrice = ProductStatePrice::where('state_id', $stockist->state_id)
                     ->where('product_id', $item->product_id)
                     ->first();
+
+
                 $item->unit_price = $statePrice ? (float) $statePrice->price : (float) ($item->product->price ?? 0);
                 return $item;
             })

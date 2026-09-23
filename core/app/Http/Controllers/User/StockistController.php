@@ -513,6 +513,9 @@ class StockistController extends Controller
 
             // // return the money to stockist
             //credit the stockist wallet.
+
+
+            //work on this now stockist wallet
             $stockist->wallet += $totalAmount;
             $stockist->save();
 
@@ -1517,7 +1520,7 @@ class StockistController extends Controller
 
         if (!$stockist) {
             return redirect()->route('user.stockist.dashboard')->with('error', 'Please complete your stockist profile first.');
-        }
+        } 
 
         $grouped = StockistRedemption::where('stockist_id', $stockist->id)
             ->selectRaw('type, SUM(quantity) as qty, SUM(amount) as amt, COUNT(*) as cnt')

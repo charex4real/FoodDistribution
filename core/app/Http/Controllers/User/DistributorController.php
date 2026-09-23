@@ -42,7 +42,7 @@ class DistributorController extends Controller
         $prePosition = in_array($request->query('position'), ['left', 'right'], true)
                        ? $request->query('position')
                        : '';
-
+ 
         return view('Template::user.distributor', compact(
             'pageTitle', 'sponsor', 'projects', 'mobileCode', 'countries',
             'preParent', 'prePosition'
@@ -79,13 +79,13 @@ class DistributorController extends Controller
         $countryCodes = implode(',', array_keys($countryData));
         $mobileCodes  = implode(',', array_column($countryData, 'dial_code'));
         $countries    = implode(',', array_column($countryData, 'country'));
-
+ 
         $request->validate([
             'username'    => 'required|unique:users|min:4|regex:/^[A-Za-z0-9_]+$/',
             'email'       => 'required|email',
             'password'    => ['required', 'confirmed', $passwordValidation],
-            'firstname'   => 'required|string|min:4|max:50',
-            'lastname'    => 'required|string|min:4|max:50',
+            'firstname'   => 'required|string|min:3|max:50',
+            'lastname'    => 'required|string|min:3|max:50',
             'country_code'=> 'required|in:' . $countryCodes,
             'country'     => 'required|in:' . $countries,
             'mobile_code' => 'required|in:' . $mobileCodes,
@@ -94,9 +94,9 @@ class DistributorController extends Controller
             'state'       => 'required|string|max:50',
             'city'        => 'required|string|max:50',
             'project_id'  => 'required|integer|exists:projects,id',
-            'referBy'     => 'required|min:4|max:40|regex:/^[A-Za-z0-9_]+$/|exists:users,username',
+            'referBy'     => 'required|min:3|max:40|regex:/^[A-Za-z0-9_]+$/|exists:users,username',
             
-            'parent'      => 'nullable|string|min:4|max:30',
+            'parent'      => 'nullable|string|min:3|max:30',
             
             'position'    => 'required|in:left,right',
         ], [
@@ -107,11 +107,12 @@ class DistributorController extends Controller
         ]);
         //'position'    => 'nullable|in:left,right',
 
-        $sponsor = auth()->user();
+        $user = auth()->user();
+
         $project = Project::findOrFail($request->project_id);
 
         // Visa balance check
-        $visaBalance = (float) ($sponsor->visa ?? 0);
+        $visaBalance = (float) ($user->visa ?? 0);
         $cost        = (float) $project->amount;
 
         if ($visaBalance < $cost) {
@@ -122,7 +123,7 @@ class DistributorController extends Controller
         
 
         // Resolve referrer
-        $referrerId = $sponsor->id;
+        $referrerId = $user->id;
         if ($request->filled('referBy')) {
             $refUser = User::where('username', $request->referBy)->first();
             if (!$refUser) {
@@ -131,9 +132,11 @@ class DistributorController extends Controller
             }
             $sponsor = $refUser;
             $referrerId = $refUser->id;
+        }else {
+            $sponsor = auth()->user();
         }
 
-        // check is the palcement username is your downline as Binary matrix does not allow board crossing.
+        // check is the placement username is your downline as Binary matrix does not allow board crossing.
 
         //checkDownline_new(Matrix $sponsor_matrix, Matrix $user_placement_matrix)
         if ($request->filled('parent')) {
@@ -181,17 +184,17 @@ class DistributorController extends Controller
                 $sponsorMatrix = Matrix::where('user_id', $sponsor->id)
                     ->where('stage_id', 1)
                     ->first();
-                    //->where('is_active', 1)
+                    //->where('is_active', 1) this will be revisited. for now.. let me rest
 
                 if (!$sponsorMatrix) {
-                    $notify[] = ['error', 'Your matrix account is not active. Please contact support.'];
+                    $notify[] = ['error', 'Your account is not active. Please contact support. ERROR 205'];
                     return back()->withNotify($notify)->withInput($request->except('password', 'password_confirmation'));
                 }
 
                 $placement = $this->matrixService2->findDownline_reg($sponsorMatrix, 1);
 
                 if (!$placement) {
-                    $notify[] = ['error', 'No open slot found in your downline. Please specify a parent and position manually.'];
+                    $notify[] = ['error', 'No open slot found in your downline. Please specify a parent and position manually.ERROR 206'];
                     return back()->withNotify($notify)->withInput($request->except('password', 'password_confirmation'));
                 }
 
@@ -246,15 +249,16 @@ class DistributorController extends Controller
             }
 
             // Debit sponsor's visa wallet FIRST — cash back is only allocated after this deduction
-            $sponsor->visa -= $cost;
-            $sponsor->save();
+            $user = auth()->user()->fresh();
+            $user->visa -= $cost;
+            $user->save();
 
             // Record debit transaction for sponsor's visa wallet
             $detailsss = 'Registered distributor: ' . $newUser->username . ' on ' . $project->title;
             $remark = 'distributor_registration';
-            newTransaction($sponsor, $detailsss, $remark, $cost, '-', $trx , 1, 0, 'visa');
+            newTransaction($user, $detailsss, $remark, $cost, '-', $trx , 1, 0, 'visa');
 
-            $newUser->keyed_in_by = $sponsor->id;
+            $newUser->keyed_in_by = $user->id;
             $newUser->save();
             $details = 'Direct bonus gotten from username: '.$newUser->username. 'Subscribing to '.$project->title;
 

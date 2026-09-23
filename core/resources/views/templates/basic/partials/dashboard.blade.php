@@ -2,9 +2,12 @@
     $unreadNotifCount = \App\Models\NotificationLog::where('user_id', auth()->id())
         ->where('user_read', false)
         ->count();
-        $inStockistSection = request()->routeIs('user.stockist.*');
-        $inAffiliateSection = request()->routeIs('user.affiliate.*');
+        //$inStockistSection = request()->routeIs('user.stockist.*');
+        //$inAffiliateSection = request()->routeIs('user.affiliate.*');
+        //die($inAffiliateSection);
 @endphp
+
+
 <section class="bank-dashboard">
     <div class="bank-layout">
 
@@ -57,7 +60,7 @@
 
                     {{-- ── MAIN (flat, no dropdown) ─────────────── --}}
                     <p class="bank-nav-label">Main</p>
-                    @if(!$inStockistSection && !$inAffiliateSection)
+                    @if(!$inStockistSection)
                     <ul>
                         <li>
                             <a href="{{ route('user.home') }}" class="bank-nav-link {{ menuActive('user.home') }}">
@@ -94,13 +97,55 @@
                                 @endif
                             </a>
                         </li>
+
                         @if(auth()->user()->section == 1)
-                        <li>
-                            <a href="{{ route('user.epin.recharge') }}" class="bank-nav-link {{ menuActive('user.epin*') }}">
-                                <span class="bank-nav-icon"><i class="las la-qrcode"></i></span>
-                                <span>E-Pin</span>
-                            </a>
-                        </li>
+                       
+                        {{-- ── USER TREE (section == 1 only) ─────────── --}}
+                    
+                        <div class="bk-nav-group {{ $grpTree ? 'open' : '' }}">
+                            <button class="bk-nav-group-toggle" type="button">
+                                <span class="bank-nav-icon"><i class="las la-sitemap"></i></span>
+                                <span>User Tree</span>
+                                <i class="las la-angle-right bk-nav-chevron"></i>
+                            </button>
+                            <ul class="bk-nav-group-body">
+
+                                <li>
+                                    <a href="{{ route('user.distributor.index') }}" class="bank-nav-link {{ menuActive('user.distributor*') }}">
+                                        <span class="bank-nav-icon"><i class="las la-user-plus"></i></span>
+                                        <span>Add Distributor</span>
+                                    </a>
+                                </li>
+                            
+                                <li>
+                                    <a href="{{ route('user.my.tree') }}" class="bank-nav-link {{ menuActive('user.my.tree') }}">
+                                        <span class="bank-nav-icon"><i class="las la-sitemap"></i></span>
+                                        <span>Genealogy</span>
+                                    </a>
+                                </li>
+                                {{--
+                                <li>
+                                    <a href="{{ route('user.my.stages') }}" class="bank-nav-link {{ menuActive('user.my.stages') }}">
+                                        <span class="bank-nav-icon"><i class="las la-layer-group"></i></span>
+                                        <span>User Stages</span>
+                                    </a>
+                                </li>
+                                --}}
+                                <li>
+                                    <a href="{{ route('user.binary.list') }}" class="bank-nav-link {{ menuActive('user.binary.list') }}">
+                                        <span class="bank-nav-icon"><i class="las la-list-ul"></i></span>
+                                        <span>Binary List</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('user.pv.log') }}" class="bank-nav-link {{ menuActive('user.pv.log') }}">
+                                        <span class="bank-nav-icon"><i class="las la-list-alt"></i></span>
+                                        <span>PV Log</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    
                         @endif
                         @if(returnStockist(auth()->id()))
                         <li>
@@ -113,176 +158,8 @@
                     </ul>
                     @endif
 
-                    @if($inStockistSection)
-                        {{-- ── STOCKIST-ONLY MENU ───────────────────── --}}
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.home') }}" class="bank-nav-link">
-                                    <span class="bank-nav-icon"><i class="las la-home"></i></span>
-                                    <span>Back to Main Menu</span>
-                                </a>
-                            </li>
-
-                            
-                        </ul>
-                        <p class="bank-nav-label">Stockist</p>
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.stockist.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.dashboard') }}">
-                                    <span class="bank-nav-icon"><i class="las la-store-alt"></i></span>
-                                    <span>Dashboard</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.pos.index') }}" class="bank-nav-link {{ menuActive('user.stockist.pos.*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-cash-register"></i></span>
-                                    <span>Point of Sale</span>
-                                    <span class="pos-nav-badge">POS</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.profile') }}" class="bank-nav-link {{ menuActive('user.stockist.profile') }}">
-                                    <span class="bank-nav-icon"><i class="las la-user-circle"></i></span>
-                                    <span>Profile</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.history') }}" class="bank-nav-link {{ menuActive('user.stockist.history') }}">
-                                    <span class="bank-nav-icon"><i class="las la-history"></i></span>
-                                    <span>Redemption History</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.affiliate.redeem') }}" class="bank-nav-link {{ menuActive('user.stockist.affiliate.*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-link"></i></span>
-                                    <span>Redeem Affiliate Products</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.redemptions') }}" class="bank-nav-link {{ menuActive('user.stockist.redemptions') }}">
-                                    <span class="bank-nav-icon"><i class="las la-clipboard-list"></i></span>
-                                    <span>Redemption Report</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.inventory.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.dashboard') }}">
-                                    <span class="bank-nav-icon"><i class="las la-boxes"></i></span>
-                                    <span>Inventory</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.inventory.orders') }}" class="bank-nav-link {{ menuActive('user.stockist.inventory.orders') }}">
-                                    <span class="bank-nav-icon"><i class="las la-shopping-basket"></i></span>
-                                    <span>My Orders</span>
-                                </a>
-                            </li>
-                            {{--
-                            <li>
-                                <a href="{{ route('user.stockist.welcome-pack.index') }}" class="bank-nav-link {{ menuActive('user.stockist.welcome-pack.index') }}">
-                                    <span class="bank-nav-icon"><i class="las la-gift"></i></span>
-                                    <span>Welcome Package</span>
-                                </a>
-                            </li>
-                            --}
-                            
-                        </ul>
-                        <p class="bank-nav-label">Account</p>
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.logout') }}" class="bank-nav-link bank-nav-logout">
-                                    <span class="bank-nav-icon"><i class="las la-sign-out-alt"></i></span>
-                                    <span>Sign Out</span>
-                                </a>
-                            </li>
-                        </ul>
-                    @elseif($inAffiliateSection)
-                        {{-- ── AFFILIATE-ONLY MENU ──────────────────── --}}
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.home') }}" class="bank-nav-link">
-                                    <span class="bank-nav-icon"><i class="las la-home"></i></span>
-                                    <span>Back to Main Menu</span>
-                                </a>
-                            </li>
-                        </ul>
-                        <p class="bank-nav-label">Affiliate</p>
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.affiliate.dashboard') }}" class="bank-nav-link {{ menuActive('user.affiliate.dashboard') }}">
-                                    <span class="bank-nav-icon"><i class="las la-tachometer-alt"></i></span>
-                                    <span>Dashboard</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.affiliate.orders') }}" class="bank-nav-link {{ menuActive('user.affiliate.orders') }}">
-                                    <span class="bank-nav-icon"><i class="las la-box"></i></span>
-                                    <span>My Orders</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.bonus.transfer.index') }}" class="bank-nav-link {{ menuActive('user.bonus.transfer.*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-exchange-alt"></i></span>
-                                    <span>Bonus Transfer</span>
-                                </a>
-                            </li>
-                        </ul>
-                        <p class="bank-nav-label">Account</p>
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.logout') }}" class="bank-nav-link bank-nav-logout">
-                                    <span class="bank-nav-icon"><i class="las la-sign-out-alt"></i></span>
-                                    <span>Sign Out</span>
-                                </a>
-                            </li>
-                        </ul>
-                    @else
-
-                    {{-- ── USER TREE (section == 1 only) ─────────── --}}
-                    @if(auth()->user()->section == 1)
-                    <div class="bk-nav-group {{ $grpTree ? 'open' : '' }}">
-                        <button class="bk-nav-group-toggle" type="button">
-                            <span class="bank-nav-icon"><i class="las la-sitemap"></i></span>
-                            <span>User Tree</span>
-                            <i class="las la-angle-right bk-nav-chevron"></i>
-                        </button>
-                        <ul class="bk-nav-group-body">
-
-                            <li>
-                                <a href="{{ route('user.distributor.index') }}" class="bank-nav-link {{ menuActive('user.distributor*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-user-plus"></i></span>
-                                    <span>Add Distributor</span>
-                                </a>
-                            </li>
-                        
-                            <li>
-                                <a href="{{ route('user.my.tree') }}" class="bank-nav-link {{ menuActive('user.my.tree') }}">
-                                    <span class="bank-nav-icon"><i class="las la-sitemap"></i></span>
-                                    <span>Genealogy</span>
-                                </a>
-                            </li>
-                            {{--
-                            <li>
-                                <a href="{{ route('user.my.stages') }}" class="bank-nav-link {{ menuActive('user.my.stages') }}">
-                                    <span class="bank-nav-icon"><i class="las la-layer-group"></i></span>
-                                    <span>User Stages</span>
-                                </a>
-                            </li>
-                            --}}
-                            <li>
-                                <a href="{{ route('user.binary.list') }}" class="bank-nav-link {{ menuActive('user.binary.list') }}">
-                                    <span class="bank-nav-icon"><i class="las la-list-ul"></i></span>
-                                    <span>Binary List</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.pv.log') }}" class="bank-nav-link {{ menuActive('user.pv.log') }}">
-                                    <span class="bank-nav-icon"><i class="las la-list-alt"></i></span>
-                                    <span>PV Log</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    @endif
+                   
+                    
                     {{-- ── SHOP ─────────────────────────────────── --}}
                     <div class="bk-nav-group {{ $grpShop ? 'open' : '' }}">
                         <button class="bk-nav-group-toggle" type="button">
@@ -490,7 +367,7 @@
                         </ul>
                     </div>
 
-                    @endif
+                   
 
                 </nav>
             </div>

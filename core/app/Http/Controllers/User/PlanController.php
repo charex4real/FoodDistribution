@@ -640,12 +640,12 @@ class PlanController extends Controller
     }
  
     public function myTree()
-    { 
-      
+    {  
+       
         $tree      = showMatrixTree(auth()->user()->id);
         //dd($tree);
         $pageTitle = "My Tree";
-        $user      = auth()->user(); 
+        $user      = auth()->user();  
         return view('Template::user.myTree', compact('pageTitle', 'tree', 'user'));
     }
 

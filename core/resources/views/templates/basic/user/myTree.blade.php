@@ -248,6 +248,26 @@ $renderNode = function (string $key) use ($tree, $nodeParent): string {
                     </div>
                 </div>
 
+                <div class="bk-pv-row" id="modalPvRow">
+                    <div class="bk-pv-label">
+                        <i class="las la-project-diagram"></i> Ranking PV
+                    </div>
+                    <div class="bk-pv-bars">
+                        <div class="bk-pv-leg">
+                            <div class="bk-pv-leg-top">
+                                <span class="bk-pv-leg-lbl"><i class="las la-arrow-alt-circle-left"></i> Left PV</span>
+                                <span class="bk-pv-leg-val" id="modalPvLeftRankVal">0.00</span>
+                            </div>
+                        </div>
+                        <div class="bk-pv-leg">
+                            <div class="bk-pv-leg-top">
+                                <span class="bk-pv-leg-lbl"><i class="las la-arrow-alt-circle-right"></i> Right PV</span>
+                                <span class="bk-pv-leg-val" id="modalPvRightRankVal">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <a href="#" class="tree-modal-btn tree_url">
                     <i class="las la-project-diagram"></i> View Their Tree
                 </a>
@@ -300,6 +320,8 @@ window.addEventListener('resize', scaleTree);
         var url    = $(this).data('treeurl');
         var pvLeft  = parseFloat($(this).data('pvleft'))  || 0;
         var pvRight = parseFloat($(this).data('pvright')) || 0;
+        var pvLeftrank  = parseFloat($(this).data('pvleftrank'))  || 0;
+        var pvRightrank = parseFloat($(this).data('pvrightrank')) || 0;
 
         $('.tree_name').text(name);
         $('.tree_status').text(status);
@@ -310,6 +332,9 @@ window.addEventListener('resize', scaleTree);
         var pvMax = Math.max(pvLeft, pvRight, 1);
         $('#modalPvLeftVal').text(pvLeft.toFixed(2));
         $('#modalPvRightVal').text(pvRight.toFixed(2));
+
+        $('#modalPvLeftRankVal').text(pvLeftrank.toFixed(2));
+        $('#modalPvRightRankVal').text(pvRightrank.toFixed(2));
         $('#modalPvLeftBar').css('width', Math.min(100, Math.round(pvLeft / pvMax * 100)) + '%');
         $('#modalPvRightBar').css('width', Math.min(100, Math.round(pvRight / pvMax * 100)) + '%');
 

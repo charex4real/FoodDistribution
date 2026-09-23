@@ -2,9 +2,9 @@
     $unreadNotifCount = \App\Models\NotificationLog::where('user_id', auth()->id())
         ->where('user_read', false)
         ->count();
-        $inStockistSection = request()->routeIs('user.stockist.*');
+        //$inStockistSection = request()->routeIs('user.stockist.*');
         //$inAffiliateSection = request()->routeIs('user.affiliate.*');
-        //die($inAffiliateSection);
+        
 @endphp
 
 
@@ -60,110 +60,9 @@
 
                     {{-- ── MAIN (flat, no dropdown) ─────────────── --}}
                     <p class="bank-nav-label">Main</p>
-                    @if(!$inStockistSection)
-                    <ul>
-                        <li>
-                            <a href="{{ route('user.home') }}" class="bank-nav-link {{ menuActive('user.home') }}">
-                                <span class="bank-nav-icon"><i class="las la-home"></i></span>
-                                <span>Dashboard</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('user.investment.portfolio') }}" class="bank-nav-link {{ menuActive('user.investment.portfolio') }}">
-                                <span class="bank-nav-icon"><i class="las la-chart-line"></i></span>
-                                <span>Investments</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('user.my.ref') }}" class="bank-nav-link {{ menuActive('user.my.ref') }}">
-                                <span class="bank-nav-icon"><i class="las la-users"></i></span>
-                                <span>My Referrals</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('user.affiliate.dashboard') }}" class="bank-nav-link {{ menuActive('user.affiliate.dashboard') }}">
-                                <span class="bank-nav-icon"><i class="las la-link"></i></span>
-                                <span>Affiliate Program</span>
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{{ route('user.project.index') }}" class="bank-nav-link {{ menuActive('user.project.*') }}">
-                                <span class="bank-nav-icon"><i class="las la-project-diagram"></i></span>
-                                <span>My Project</span>
-                                @php $userProject = auth()->user()->project; @endphp
-                                @if($userProject)
-                                    <span class="bank-nav-badge" style="background:{{ $userProject->color }}1a;color:{{ $userProject->color }};font-size:.6rem;padding:2px 7px;border-radius:20px;font-weight:800;margin-left:auto;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $userProject->title }}">{{ Str::limit($userProject->title, 8) }}</span>
-                                @endif
-                            </a>
-                        </li>
-
-                        @if(auth()->user()->section == 1)
-                        <li>
-                            <a href="{{ route('user.epin.recharge') }}" class="bank-nav-link {{ menuActive('user.epin*') }}">
-                                <span class="bank-nav-icon"><i class="las la-qrcode"></i></span>
-                                <span>E-Pin</span>
-                            </a>
-                        </li>
-                        {{-- ── USER TREE (section == 1 only) ─────────── --}}
                     
-                        <div class="bk-nav-group {{ $grpTree ? 'open' : '' }}">
-                            <button class="bk-nav-group-toggle" type="button">
-                                <span class="bank-nav-icon"><i class="las la-sitemap"></i></span>
-                                <span>User Tree</span>
-                                <i class="las la-angle-right bk-nav-chevron"></i>
-                            </button>
-                            <ul class="bk-nav-group-body">
 
-                                <li>
-                                    <a href="{{ route('user.distributor.index') }}" class="bank-nav-link {{ menuActive('user.distributor*') }}">
-                                        <span class="bank-nav-icon"><i class="las la-user-plus"></i></span>
-                                        <span>Add Distributor</span>
-                                    </a>
-                                </li>
-                            
-                                <li>
-                                    <a href="{{ route('user.my.tree') }}" class="bank-nav-link {{ menuActive('user.my.tree') }}">
-                                        <span class="bank-nav-icon"><i class="las la-sitemap"></i></span>
-                                        <span>Genealogy</span>
-                                    </a>
-                                </li>
-                                {{--
-                                <li>
-                                    <a href="{{ route('user.my.stages') }}" class="bank-nav-link {{ menuActive('user.my.stages') }}">
-                                        <span class="bank-nav-icon"><i class="las la-layer-group"></i></span>
-                                        <span>User Stages</span>
-                                    </a>
-                                </li>
-                                --}}
-                                <li>
-                                    <a href="{{ route('user.binary.list') }}" class="bank-nav-link {{ menuActive('user.binary.list') }}">
-                                        <span class="bank-nav-icon"><i class="las la-list-ul"></i></span>
-                                        <span>Binary List</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('user.pv.log') }}" class="bank-nav-link {{ menuActive('user.pv.log') }}">
-                                        <span class="bank-nav-icon"><i class="las la-list-alt"></i></span>
-                                        <span>PV Log</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    
-                        @endif
-                        @if(returnStockist(auth()->id()))
-                        <li>
-                            <a href="{{ route('user.stockist.dashboard') }}" class="bank-nav-link {{ menuActive('user.stockist.dashboard') }}">
-                                <span class="bank-nav-icon"><i class="las la-store-alt"></i></span>
-                                <span>Stockist Dashboard</span>
-                            </a>
-                        </li>
-                        @endif
-                    </ul>
-                    @endif
-
-                    @if($inStockistSection)
+                
                         {{-- ── STOCKIST-ONLY MENU ───────────────────── --}}
                         <ul>
                             <li>
@@ -246,186 +145,7 @@
                             </li>
                         </ul>
 
-                    @elseif($inAffiliateSection)
-                        {{-- ── AFFILIATE-ONLY MENU ──────────────────── --}}
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.home') }}" class="bank-nav-link">
-                                    <span class="bank-nav-icon"><i class="las la-home"></i></span>
-                                    <span>Back to Main Menu</span>
-                                </a>
-                            </li>
-                        </ul>
-                        <p class="bank-nav-label">Affiliate</p>
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.affiliate.dashboard') }}" class="bank-nav-link {{ menuActive('user.affiliate.dashboard') }}">
-                                    <span class="bank-nav-icon"><i class="las la-tachometer-alt"></i></span>
-                                    <span>Dashboard</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.affiliate.orders') }}" class="bank-nav-link {{ menuActive('user.affiliate.orders') }}">
-                                    <span class="bank-nav-icon"><i class="las la-box"></i></span>
-                                    <span>My Orders</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.bonus.transfer.index') }}" class="bank-nav-link {{ menuActive('user.bonus.transfer.*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-exchange-alt"></i></span>
-                                    <span>Bonus Transfer</span>
-                                </a>
-                            </li>
-                        </ul>
-                        <p class="bank-nav-label">Account</p>
-                        <ul>
-                            <li>
-                                <a href="{{ route('user.logout') }}" class="bank-nav-link bank-nav-logout">
-                                    <span class="bank-nav-icon"><i class="las la-sign-out-alt"></i></span>
-                                    <span>Sign Out</span>
-                                </a>
-                            </li>
-                        </ul>
-                    @else
-
-                    
-                    {{-- ── SHOP ─────────────────────────────────── --}}
-                    <div class="bk-nav-group {{ $grpShop ? 'open' : '' }}">
-                        <button class="bk-nav-group-toggle" type="button">
-                            <span class="bank-nav-icon"><i class="las la-shopping-bag"></i></span>
-                            <span>Shop</span>
-                            <i class="las la-angle-right bk-nav-chevron"></i>
-                        </button>
-                        <ul class="bk-nav-group-body">
-                            <li>
-                                <a href="{{ route('products') }}" class="bank-nav-link {{ menuActive('product*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-store"></i></span>
-                                    <span>Browse Shop</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.orders.index') }}" class="bank-nav-link {{ menuActive('user.orders*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-box"></i></span>
-                                    <span>Orders</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.stockist.find') }}" class="bank-nav-link {{ menuActive('user.stockist.fin') }}">
-                                    <span class="bank-nav-icon"><i class="las la-map-marker"></i></span>
-                                    <span>Find Stockist</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {{-- ── SAVINGS & LOANS ──────────────────────── --}}
-                    <div class="bk-nav-group {{ $grpSavings ? 'open' : '' }}">
-                        <button class="bk-nav-group-toggle" type="button">
-                            <span class="bank-nav-icon"><i class="las la-piggy-bank"></i></span>
-                            <span>Savings &amp; Loans</span>
-                            <i class="las la-angle-right bk-nav-chevron"></i>
-                        </button>
-                        <ul class="bk-nav-group-body">
-                            <li>
-                                <a href="{{ route('user.savings.index') }}" class="bank-nav-link {{ menuActive('user.savings*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-piggy-bank"></i></span>
-                                    <span>Savings</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.loans.index') }}" class="bank-nav-link {{ menuActive('user.loans*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-hand-holding-usd"></i></span>
-                                    <span>Loans</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {{-- ── FINANCE ──────────────────────────────── --}}
-                    <div class="bk-nav-group {{ $grpFinance ? 'open' : '' }}">
-                        <button class="bk-nav-group-toggle" type="button">
-                            <span class="bank-nav-icon"><i class="las la-wallet"></i></span>
-                            <span>Finance</span>
-                            <i class="las la-angle-right bk-nav-chevron"></i>
-                        </button>
-                        <ul class="bk-nav-group-body">
-                            <li>
-                                <a href="{{ route('user.deposit.index') }}" class="bank-nav-link {{ menuActive(['user.deposit.index']) }}">
-                                    <span class="bank-nav-icon"><i class="las la-arrow-circle-down"></i></span>
-                                    <span>Deposit</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.withdraw.history') }}" class="bank-nav-link {{ menuActive('user.withdraw*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-arrow-circle-up"></i></span>
-                                    <span>Withdraw</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.transactions') }}" class="bank-nav-link {{ menuActive('user.transactions') }}">
-                                    <span class="bank-nav-icon"><i class="las la-exchange-alt"></i></span>
-                                    <span>Transactions</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.deposit.history') }}" class="bank-nav-link {{ menuActive(['user.deposit*']) }}">
-                                    <span class="bank-nav-icon"><i class="las la-history"></i></span>
-                                    <span>Deposit History</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.bonus.transfer.index') }}" class="bank-nav-link {{ menuActive('user.bonus.transfer*') }}">
-                                    <span class="bank-nav-icon"><i class="las la-random"></i></span>
-                                    <span>Bonus Transfer</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    
-                    {{--  ACHIEVEMENTS (section == 1 only)  --}}
-                    @if(auth()->user()->section == 1)
-                    <div class="bk-nav-group {{ $grpAwards ? 'open' : '' }}">
-                        <button class="bk-nav-group-toggle" type="button">
-                            <span class="bank-nav-icon"><i class="las la-trophy"></i></span>
-                            <span>Achievements</span>
-                            @if($pendingAwardCount > 0)
-                                <span class="bank-nav-badge" style="background:#fef3c7;color:#92400e;font-size:.6rem;padding:2px 7px;border-radius:20px;font-weight:800;">{{ $pendingAwardCount }}</span>
-                            @endif
-                            <i class="las la-angle-right bk-nav-chevron"></i>
-                        </button>
-                        <ul class="bk-nav-group-body">
-                            <li>
-                                <a href="{{ route('user.awards') }}" class="bank-nav-link {{ menuActive('user.awards') }}">
-                                    <span class="bank-nav-icon"><i class="las la-trophy"></i></span>
-                                    <span>My Awards</span>
-                                    @if($pendingAwardCount > 0)
-                                        <span class="bank-nav-badge" style="background:#fef3c7;color:#92400e;font-size:.65rem;padding:2px 7px;border-radius:20px;font-weight:800;margin-left:auto;">{{ $pendingAwardCount }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.repurchase.award') }}" class="bank-nav-link {{ menuActive('user.repurchase.award') }}">
-                                    <span class="bank-nav-icon"><i class="las la-medal"></i></span>
-                                    <span>Repurchase Award</span>
-                                </a>
-                            </li>
-                            @if(auth()->user()->isAcb())
-                            <li>
-                                <a href="{{ route('user.acb') }}" class="bank-nav-link {{ menuActive('user.acb') }}">
-                                    <span class="bank-nav-icon"><i class="las la-star"></i></span>
-                                    <span>ACB Bonus</span>
-                                    @if((float)auth()->user()->acb > 0)
-                                        <span class="bank-nav-badge" style="background:#fef9c3;color:#854d0e;font-size:.6rem;padding:2px 7px;border-radius:20px;font-weight:800;margin-left:auto;">{{ showAmount(auth()->user()->acb) }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                            @endif
-                        </ul>
-                    </div>
-                    @endif
-
-                    
+                   
 
                     {{-- ── ACCOUNT ──────────────────────────────── --}}
                     <div class="bk-nav-group {{ $grpAccount ? 'open' : '' }}">
@@ -438,40 +158,8 @@
                             <i class="las la-angle-right bk-nav-chevron"></i>
                         </button>
                         <ul class="bk-nav-group-body">
-                            <li>
-                                <a href="{{ route('user.notifications') }}" class="bank-nav-link {{ menuActive('user.notifications') }}">
-                                    <span class="bank-nav-icon"><i class="las la-bell"></i></span>
-                                    <span>Notifications</span>
-                                    @if($unreadNotifCount > 0)
-                                        <span class="bank-nav-badge bank-nav-badge-danger">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.profile.setting') }}" class="bank-nav-link {{ menuActive('user.profile.setting') }}">
-                                    <span class="bank-nav-icon"><i class="las la-user-cog"></i></span>
-                                    <span>Profile</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('user.change.password') }}" class="bank-nav-link {{ menuActive('user.change.password') }}">
-                                    <span class="bank-nav-icon"><i class="las la-user-cog"></i></span>
-                                    <span>Change password</span>
-                                </a>
-                            </li> 
-                            <li>
-                                <a href="{{ $kycUrl }}" class="bank-nav-link {{ menuActive(['user.kyc.form','user.kyc.data']) }}">
-                                    <span class="bank-nav-icon"><i class="las la-id-card"></i></span>
-                                    <span>KYC Verification</span>
-                                    @if($kv == \App\Constants\Status::KYC_VERIFIED)
-                                        <span class="bank-nav-badge" style="background:#D1FAE5;color:#059669;font-size:.65rem;padding:2px 7px;border-radius:20px;font-weight:700;margin-left:auto;">Verified</span>
-                                    @elseif($kv == \App\Constants\Status::KYC_PENDING)
-                                        <span class="bank-nav-badge" style="background:#FFFBEB;color:#D97706;font-size:.65rem;padding:2px 7px;border-radius:20px;font-weight:700;margin-left:auto;">Pending</span>
-                                    @else
-                                        <span class="bank-nav-badge bank-nav-badge-danger">!</span>
-                                    @endif
-                                </a>
-                            </li>
+                           
+                            
                             <li>
                                 <a href="{{ route('user.guarantor.requests') }}" class="bank-nav-link {{ menuActive('user.guarantor.requests') }}">
                                     <span class="bank-nav-icon"><i class="las la-handshake"></i></span>
@@ -487,16 +175,11 @@
                                     <span>2FA Security</span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="{{ route('user.logout') }}" class="bank-nav-link bank-nav-logout">
-                                    <span class="bank-nav-icon"><i class="las la-sign-out-alt"></i></span>
-                                    <span>Sign Out</span>
-                                </a>
-                            </li>
+                            
                         </ul>
                     </div>
 
-                    @endif
+                    
 
                 </nav>
             </div>

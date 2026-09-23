@@ -375,7 +375,7 @@ Route::middleware(['auth', 'XssSanitizer'])->name('user.')->group(function () {
                 Route::get('/check-purchase', 'checkPurchase')->name('check.purchase');
             });
 
-            // My Project 
+            // My Project  
             Route::controller('ProjectController')->prefix('my-project')->name('project.')->group(function () {
                 Route::get('/',         'index')->name('index');
                 Route::post('/upgrade', 'upgrade')->name('upgrade');

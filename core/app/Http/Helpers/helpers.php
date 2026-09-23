@@ -1180,6 +1180,9 @@ function showSingleUserinTree_new($user, $gg = null)
         $pvLeft     = (float) ($userMatrix->pv_left_pairing  ?? 0);
         $pvRight    = (float) ($userMatrix->pv_right_pairing ?? 0);
 
+        $pvLeftrank     = (float) ($userMatrix->pv_left  ?? 0);
+        $pvRightrank    = (float) ($userMatrix->pv_right ?? 0);
+
         if (auth()->guard('admin')->user()) {
 
             $hisTree = route('admin.users.other.tree', $user->username);
@@ -1196,6 +1199,8 @@ function showSingleUserinTree_new($user, $gg = null)
         $extraData .= " data-refby=\"$refby\"";
         $extraData .= " data-pvleft=\"$pvLeft\"";
         $extraData .= " data-pvright=\"$pvRight\"";
+        $extraData .= " data-pvleftrank=\"$pvLeftrank\"";
+        $extraData .= " data-pvrightrank=\"$pvRightrank\"";
 
         $res       .= "<div class=\"user showDetails\" type=\"button\" $extraData>";
         $res       .= "<img src=\"$img\" alt=\"*\"  class=\"$userType\">";
@@ -1559,7 +1564,7 @@ function stockistTransaction(Stockist $stock, User $user, $trxx, $amount)
         $trx->save();
 
         notify($user, 'PROJECT_PURCHASED', [
-            'shopping'         => 'Products purchase',
+            'shopping'         => 'Products redemption',
             'amount'       => showAmount($amount, currencyFormat: false),
             'trx'          => $trxx,
             'post_balance' => showAmount($stock->wallet, currencyFormat: false),

@@ -49,8 +49,8 @@ class CheckUserAwardJob implements ShouldQueue
             ->pluck('award_id')
             ->toArray();
 
-        $leftPv  = (float) $matrix->pv_left_pairing;
-        $rightPv = (float) $matrix->pv_right_pairing;
+        $leftPv  = (float) $matrix->pv_left;
+        $rightPv = (float) $matrix->pv_right;
         $totalPv = $leftPv + $rightPv;
 
         foreach ($awards as $award) {

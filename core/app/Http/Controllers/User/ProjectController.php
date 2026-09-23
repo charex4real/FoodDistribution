@@ -141,6 +141,7 @@ class ProjectController extends Controller
 
                 $cashBackDiff = round($newCashBack - $oldCashBack, 2);
                 $uDetails = 'Repurchase wallet gotten from an upgrade to ' . $targetProject->title;
+                
                 processUpgradeCashBack($user, $cashBackDiff, $uDetails, $trx);
                 
                 // 5.) Upgrade bonus to sponsor (percentage difference in PVs)

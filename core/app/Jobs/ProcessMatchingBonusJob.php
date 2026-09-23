@@ -43,7 +43,7 @@ class ProcessMatchingBonusJob implements ShouldQueue
      * class is bound in AppServiceProvider, satisfying the Dependency Inversion principle.
      */
     public function handle(MatchingBonusServiceInterface $service): void
-    {
+    { 
         $service->processMatrix($this->matrix);
     }
 
