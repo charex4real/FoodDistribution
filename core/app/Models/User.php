@@ -218,6 +218,11 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'ref_by');
     }
 
+    public function sponsorChangeLogs()
+    {
+        return $this->hasMany(SponsorChangeLog::class);
+    }
+
     public function acbUser()
     {
         return $this->hasOne(AcbUser::class);
@@ -328,6 +333,12 @@ class User extends Authenticatable
         $this->save();
         return true;
        
+    }
+    public function addToStockistRebate($amount)
+    {
+        $this->stockist_rebate += $amount;
+        $this->save();
+        return true;
     }
 
     public function productDeductWallet($amount)

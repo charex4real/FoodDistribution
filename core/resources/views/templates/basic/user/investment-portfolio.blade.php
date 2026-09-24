@@ -6,9 +6,9 @@
     <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div>
-                <h2 class="portfolio-title">
+                <h3 class="portfolio-title">
                     <i class="fas fa-briefcase me-2"></i>Investment Portfolio
-                </h2>
+                </h3>
             </div>
             <button type="button" class="btn btn-buy-shares" data-bs-toggle="modal" data-bs-target="#buySharesModal">
                 <i class="fas fa-plus-circle me-2"></i>Buy Shares
@@ -44,9 +44,9 @@
                     <div class="d-flex align-items-start justify-content-between mb-3">
                         <div>
                             <p class="kpi-label">Investment Value</p>
-                            <h3 class="kpi-value kpi-value-danger">{{ showAmount($totalInvestmentValue) }}</h3>
+                            <h3 class="kpi-value kpi-value-primary">{{ showAmount($totalInvestmentValue) }}</h3>
                         </div>
-                        <div class="kpi-icon kpi-icon-warning">
+                        <div class="kpi-icon kpi-icon-primary">
                             <i class="fas fa-wallet"></i>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                             <p class="kpi-label">Total Dividends</p>
                             <h4 class="kpi-value kpi-value-info">{{ showAmount($totalDividends) }}</h4>
                         </div>
-                        <div class="kpi-icon kpi-icon-info">
+                        <div class="kpi-icon kpi-icon-primary">
                             <i class="fas fa-gift"></i>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
                             <p class="kpi-label">Total Shares Value</p>
                             <h4 class="kpi-value kpi-value-warning">{{ showAmount(auth()->user()->shares) }}</h4>
                         </div>
-                        <div class="kpi-icon kpi-icon-warning">
+                        <div class="kpi-icon kpi-icon-primary">
                             <i class="fas fa-wallet"></i>
                         </div>
                     </div>
@@ -315,7 +315,7 @@
 
     /* ===== TITLES ===== */
     .portfolio-title {
-        font-size: 2.5rem;
+        font-size: 2.0rem;
         font-weight: 700;
         color: #229e3b;
         margin-bottom: 0.5rem;

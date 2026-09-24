@@ -130,7 +130,7 @@
                 <div class="pf-card-body">
                     <div class="pf-field">
                         <label class="pf-label">Product Description <span class="pf-req">*</span></label>
-                        <textarea class="pf-input nicEdit" name="description" rows="5" required>{{ $product->description }}</textarea>
+                        <textarea class="pf-input nicEdit" name="description" rows="5">{{ $product->description }}</textarea>
                     </div>
                     <div class="pf-field pf-field--spec">
                         <div class="pf-spec-header">

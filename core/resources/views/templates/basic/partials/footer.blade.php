@@ -28,10 +28,13 @@
         @endif
     </div>
 
-    {{-- Divider --}}
+    {{-- 
+
+    <!--  Divider -->
     <div class="ft-divider"></div>
 
-   {{--  <!-- Policy links  -->
+    --}}
+   {{--  Policy links  -->
     @if($policyPages->count())
     <div class="ft-policy-row">
         @foreach($policyPages as $page)

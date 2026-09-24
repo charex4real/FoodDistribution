@@ -441,7 +441,7 @@ const POS = (function ($) {
     function showReceipt(res, method) {
         var payLabel   = method === 'cash' ? 'Cash Payment' : 'Welcome Package';
         var creditNote = res.wallet_credited
-            ? '<div class="pos-receipt-credit"><i class="las la-wallet"></i> ₦' + res.wallet_credited + ' credited to wallet</div>'
+            ? '<div class="pos-receipt-credit"><i class="las la-wallet"></i> ₦' + res.wallet_credited + ' credited to stockist rebate</div>'
             : '';
 
         $receiptTrx.text('TRX: ' + res.trx);

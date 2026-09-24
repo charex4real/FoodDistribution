@@ -413,6 +413,7 @@ class StockistController extends Controller
                         if (!$stockist_store) {
                             throw new \Exception("You dont have this  {$product->name} in your store");
                         }
+
                         //get the product original price
                         
                         
@@ -435,6 +436,13 @@ class StockistController extends Controller
 
                         // 1.) deduct the product from stockist store. 
                         $stockist_store = Stockist_store::where('user_id', auth()->id())->where('product_id', $productId)->first();
+
+                        // terminat process if stock is low.
+                        if ($quantity > $stockist_store->quantity) {
+                            $diff = $quantity - $stockist_store->quantity;
+                            throw new \Exception("Your Stock for {$product->name} is {$stockist_store->quantity} you need extra {$diff} ");
+                        }
+
                         $stockist_store->quantity -= $quantity;
                         $stockist_store->save();
 
@@ -461,21 +469,15 @@ class StockistController extends Controller
                         //app(UnilevelService::class)->process($invoice, $user_dist, $product, $quantity, $trx); 
                          
                         $this->unilevelService->process($invoice, $user_dist, $product, $quantity, $trx);
-                        //dd($user_dist);
-                        // this is to distribute the pv up to the user upline through the parent route. So the product pv
+                        
 
-
+                        // 5.) this is to distribute the pv up to the user upline through the parent route. So the product pv
                         $dess = $user_dist->username . ' Purchase ' . $quantity.' qty of '.$product->name;
-                        //dd($product);
-
-
+                       
                         updateProductPV($user_dist, $product, $quantity, $dess);
 
-                        // 5.) Record product PV for repurchase award tracking
-                        //$this->recordRepurchasePv($user_dist, $product, $quantity);
-
-                        // State leaders commission (SKU-based, runs independently of unilevel)
-                        $this->stateLeaderCommission($invoice, $product, $quantity, $trx);
+                        // 6.) Record product PV for repurchase award tracking
+                        $this->recordRepurchasePv($user_dist, $product, $quantity); 
                        
                     }
                 }
@@ -583,8 +585,6 @@ class StockistController extends Controller
         $record = RepurchasePv::lockForUpdate()->firstOrNew(['user_id' => $user->id]);
         $record->total_pv = round((float)($record->total_pv ?? 0) + $pvEarned, 2);
         $record->save();
-
-        $this->shareRepurchasePvUpline($user, $pvEarned);
     }
 
     /**
@@ -597,6 +597,8 @@ class StockistController extends Controller
 
     protected function shareRepurchasePvUpline(User $user, float $pvEarned): void
     {
+        //$this->shareRepurchasePvUpline($user, $pvEarned); 
+
         $matrix      = Matrix::where('user_id', $user->id)->where('stage_id', 1)->first();
         $childUserId = $user->id;
         $levels      = 0;
@@ -626,67 +628,7 @@ class StockistController extends Controller
     }
     
 
-    protected function stateLeaderCommission(Invoice $invoice, Product $product, $quantity, $trx): void
-    {
-        $stateId  = $invoice->state_id;
-        $stockist = auth()->user()->stockist;
-
-        if (!$stockist || $stockist->store_type != 1 || !$stateId) {
-            return;
-        }
-
-        $product_sku = (int) $product->sku;
-        if ($product_sku !== 50 && $product_sku !== 25) {
-            return;
-        }
-
-        $rates = [
-            3  => [50 => 500, 25 => 250],
-            25 => [50 => 800, 25 => 400],
-            10 => [50 => 600, 25 => 300],
-            12 => [50 => 800, 25 => 400],
-        ];
-
-        if (!isset($rates[$stateId])) {
-            return;
-        }
-
-        $amount = $rates[$stateId][$product_sku] ?? 0;
-        if ($amount > 0) {
-            $this->state_user_commision($product, $trx, $quantity, $stateId, $amount);
-        }
-    }
     
-   
-
-    protected function state_user_commision(Product $product, $trxx, $quantity, $state_id, $amount)
-    {
-        
-        $amt = $amount * $quantity;
-        
-        $stateleader = Stateleader::where('state_id', $state_id)->first();
-        if ($stateleader) {
-            //$stateleader->addWallet($amt);
-            $stateleader->wallet += $amt;
-             $stateleader->save();
-            // code...
-       
-            
-        $transaction               = new Transaction();
-        $transaction->user_id      = $stateleader->user_id;
-        $transaction->amount       = $amt;
-        $transaction->charge       = 0;
-        $transaction->trx_type     = '+';
-        $transaction->details      = 'State Leaders commision';
-        $transaction->remark       = 'leaders commision';
-        $transaction->trx          = $trxx;
-        $transaction->post_balance = $stateleader->wallet;
-        $transaction->bonus_type   = 13;
-        $transaction->save();
-        }
-
-
-    }
     protected function delta_state_user(User $user, Product $product, $trxx, $quantity)
     {
        $product_name = $product->name;

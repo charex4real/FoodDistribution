@@ -24,7 +24,7 @@
             <div class="sl-stat-icon"><i class="las la-file-invoice"></i></div>
             <div class="sl-stat-body">
                 <p class="sl-stat-label">Stockist Rebate</p>
-                <h3 class="sl-stat-value">{{ showAmount(auth()->user()->stockist->wallet) }}</h3>
+                <h3 class="sl-stat-value">{{ showAmount(auth()->user()->stockist_rebate) }}</h3>
             </div>
         </div>
     </div>
@@ -32,8 +32,8 @@
         <div class="sl-stat-card sl-stat-info">
             <div class="sl-stat-icon"><i class="las la-receipt"></i></div>
             <div class="sl-stat-body">
-                <p class="sl-stat-label">Total Redemptions</p>
-                <h3 class="sl-stat-value">{{ $stats['total_redemptions'] }}</h3>
+                <p class="sl-stat-label">Stockist wallet</p>
+                <h3 class="sl-stat-value">{{ showAmount(auth()->user()->stockist->wallet) }}</h3>
             </div>
         </div>
     </div>

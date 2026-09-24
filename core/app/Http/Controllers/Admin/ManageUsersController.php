@@ -14,6 +14,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\Plan;
 use App\Models\Rinvestment;
+use App\Models\SponsorChangeLog;
 use App\Models\NotificationLog;
 use App\Rules\FileTypeValidate;
 use App\Http\Controllers\Controller;
@@ -243,8 +244,21 @@ class ManageUsersController extends Controller
         
         $plans = Plan::active()->orderBy('price')->get();
         $userMatrix = \App\Models\Matrix::where('user_id', $user->id)->first();
+        $sponsorChangeCount = $user->sponsorChangeLogs()->count();
 
-        return view('admin.users.detail', compact('pageTitle', 'user', 'totalDeposit', 'totalWithdrawals', 'totalTransaction', 'totalPinGenerate', 'totalUsedPin', 'countries', 'totalBvCut', 'totalOrder', 'total_ref', 'total_stage_out', 'plans', 'userMatrix'));
+        return view('admin.users.detail', compact('pageTitle', 'user', 'totalDeposit', 'totalWithdrawals', 'totalTransaction', 'totalPinGenerate', 'totalUsedPin', 'countries', 'totalBvCut', 'totalOrder', 'total_ref', 'total_stage_out', 'plans', 'userMatrix', 'sponsorChangeCount'));
+    }
+
+    public function sponsorHistory($id)
+    {
+        $user      = User::with('refBy')->findOrFail($id);
+        $pageTitle = 'Sponsor History - ' . $user->username;
+        $logs      = $user->sponsorChangeLogs()
+            ->with(['previousSponsor:id,firstname,lastname,username', 'newSponsor:id,firstname,lastname,username', 'admin:id,name,username'])
+            ->latest('id')
+            ->paginate(getPaginate());
+
+        return view('admin.users.sponsor_history', compact('pageTitle', 'user', 'logs'));
     }
 
     /**
@@ -560,7 +574,7 @@ class ManageUsersController extends Controller
         $notify[] = ['success', 'User details updated successfully'];
         return back()->withNotify($notify);
     }
-    
+     
     public function update_again(Request $request, $id){  
         // $c = current 
         //$n = new 
@@ -607,17 +621,14 @@ class ManageUsersController extends Controller
             return back()->withNotify($notify);
         }
 
+        // No-op change would only pollute the sponsor history
+        if ($n_s_user->id == $c_s_user->id) {
+            $notify[] = ['error', 'The new sponsor is the same as the current sponsor.'];
+            return back()->withNotify($notify);
+        }
+
         // Get the old trx number 
         $trx = $user->trx;
-
-        /*
-            Begin Operation with transaction using old TRX 
-            1)first change the ref_by
-
-            2)Next retrief the money from current sponsor and record it in transactionnd update the new sponsor account. 
-
-             3)lastly update the new sponsor accountbalance and record it in transaction
-        */
 
         //dd($user->id);
          if ($user->id < $n_s_user->id ) {
@@ -629,9 +640,25 @@ class ManageUsersController extends Controller
         DB::beginTransaction();
         try {
 
+        // Lock the row and re-verify so a double submit can't log the same change twice
+        $user = User::lockForUpdate()->find($user->id);
+        if ($user->ref_by != $c_s_user->id) {
+            DB::rollBack();
+            $notify[] = ['error', 'Sponsor was changed by another request. Please reload and try again.'];
+            return back()->withNotify($notify);
+        }
+
         // 1)Change the ref_by which is where the sponsor is stored.
         $user->ref_by    = $n_s_user->id;
         $user->save();
+
+        // Keep an audit trail of every sponsor change
+        SponsorChangeLog::create([
+            'user_id'             => $user->id,
+            'previous_sponsor_id' => $c_s_user->id,
+            'new_sponsor_id'      => $n_s_user->id,
+            'admin_id'            => auth('admin')->id(),
+        ]);
 
        
 

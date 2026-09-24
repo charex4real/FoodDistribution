@@ -87,11 +87,17 @@ class WelcomePackageService
 
             // get stockist type and percentage.
             // $stockist->getStockistPercentage($pvs);
-
+            
             $stockist_rebate_amount =  $stockist->getStockistPercentage($pvs);
-            $stockist->wallet += $stockist_rebate_amount;
-            $stockist->save();
+            // add money to $stockist->wallet so stockist can use it to order again.
+            $amount = (float)$package->amount;
+            $stockist->addToWallet($amount);
+            // $stockist->save();
+            // $stockist->wallet += $stockist_rebate_amount;
 
+            $user = auth()->user();
+            $user->addToStockistRebate($stockist_rebate_amount);
+ 
             stockistTransaction($stockist, $locked->user, $locked->trx, $stockist_rebate_amount);
             return $locked;
         });

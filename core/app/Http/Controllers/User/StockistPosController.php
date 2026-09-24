@@ -83,6 +83,12 @@ class StockistPosController extends Controller
                     throw new \RuntimeException("Insufficient stock for {$name}.");
                 }
 
+                // deduct the product from stockist store. 
+                $store->quantity -= $qty;
+                $store->save();
+
+
+
                 $statePrice = ProductStatePrice::where('state_id', $stockist->state_id)
                     ->where('product_id', $productId)
                     ->first();
@@ -117,21 +123,36 @@ class StockistPosController extends Controller
 
                 if ((float) $package->amount < $cartTotal) {
                     throw new \RuntimeException(sprintf(
-                        'Welcome package value (%s) is less than cart total (%s). Customer should pay the difference in cash.',
+                        'Welcome package value (%s) is less than cart total (%s). Remove some item from the cart.',
+                        showAmount($package->amount, currencyFormat: false),
+                        showAmount($cartTotal, currencyFormat: false)
+                    ));
+                } 
+
+
+                if ((float) $package->amount > $cartTotal) {
+                    throw new \RuntimeException(sprintf(
+                        'Welcome package value (%s) is greater than cart total (%s). Add more item to the cart.',
                         showAmount($package->amount, currencyFormat: false),
                         showAmount($cartTotal, currencyFormat: false)
                     ));
                 } 
 
                 $this->welcomePackageService->redeem($package, $stockist, $pvs);
+
                 $walletCredit = $stockist->getStockistPercentage($pvs);
                 $paymentNote  = "Welcome Pack #{$package->code}";
             }
+
+            
 
             // ── Deduct inventory ─────────────────────────────────────
             foreach ($lineItems as $line) {
                 $line['store']->decrement('quantity', $line['quantity']);
             }
+
+            
+
 
             // ── Redemption ledger ─────────────────────────────────────
             StockistRedemption::create([
@@ -153,6 +174,7 @@ class StockistPosController extends Controller
                 'amount'      => $cartTotal,
                 'redeemed_at' => now(),
             ]);
+
 
             // ── Audit record ─────────────────────────────────────────
             $freshStockist    = $stockist->fresh();
@@ -186,7 +208,7 @@ class StockistPosController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         } catch (\Throwable $e) {
             DB::rollBack();
-            //throw $e;
+            throw $e;
             Log::error('POS checkout error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'An unexpected error occurred. Please try again.'], 500);
         }

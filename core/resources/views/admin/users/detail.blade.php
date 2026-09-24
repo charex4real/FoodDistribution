@@ -354,6 +354,15 @@
                                         <button class="btn btn--primary w-100 h-45" type="submit">@lang('Submit')
                                         </button>
                                     </div>
+
+                                    @if ($sponsorChangeCount)
+                                        <div class="col-md-12 mt-3 text-center">
+                                            <a class="btn btn-sm btn-outline--dark" href="{{ route('admin.users.sponsor.history', $user->id) }}">
+                                                <i class="las la-history"></i> @lang('View Sponsor History')
+                                                <span class="badge badge--dark ms-1">{{ $sponsorChangeCount }}</span>
+                                            </a>
+                                        </div>
+                                    @endif
                                 </div>
                             </form>
                         </div>

@@ -126,6 +126,7 @@ Route::middleware(['admin','XssSanitizer','admin.action.log'])->group(function (
         Route::post('activate/{id}', 'activateAccount')->name('activateAccount');
          
         Route::post('update_again/{id}', 'update_again')->name('update_again');
+        Route::get('sponsor-history/{id}', 'sponsorHistory')->name('sponsor.history');
         Route::post('update_again1/{id}', 'update_again1')->name('update_again1');
         // change password
         Route::post('password/{id}', 'passwordUpdate')->name('update_password');

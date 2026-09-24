@@ -1,8 +1,7 @@
-<?php
- 
+<?php 
 use Illuminate\Support\Facades\Route;
- 
- 
+
+
 Route::middleware('cron.secret')->group(function () {
     Route::get('cron', 'CronController@cron')->name('cron');
     Route::get('stageOne', 'CronController@stageOneComplete')->name('stageOneComplete');
@@ -15,6 +14,8 @@ Route::middleware('cron.secret')->group(function () {
     Route::get('reconAll/{stage}', 'CronController@reconnectAll')->name('reconAll');
     // dispatch award payment processing jobs for all eligible users
     Route::get('paymentsDispatch', 'CronController@paymentsDispatch')->name('paymentsDispatch');
+    
+
     
     // check and process award qualifications
     Route::get('awardCheck', 'CronController@awardCheck')->name('awardCheck');

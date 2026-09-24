@@ -115,7 +115,7 @@
     <script src=" {{ asset($activeTemplateTrue . 'js/isotope.min.js') }}"></script>
     <script src="{{ asset($activeTemplateTrue . 'js/main.js') }}"></script>
     
-    
+     @if(request()->routeIs('user.dashboard'))
     <!--Start of Tawk.to Script-->
         <script type="text/javascript">
         var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -129,6 +129,8 @@
         })();
         </script>
     <!--End of Tawk.to Script-->
+
+    @endif
 
     @stack('script-lib')
 

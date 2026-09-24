@@ -1560,7 +1560,7 @@ function stockistTransaction(Stockist $stock, User $user, $trxx, $amount)
         $trx->details      = 'Stockist Redemption';
         $trx->remark       = 'stockist_redemption';
         $trx->trx          = $trxx;
-        $trx->post_balance = $stock->wallet;
+        $trx->post_balance = $user->stockist_rebate;
         $trx->save();
 
         notify($user, 'PROJECT_PURCHASED', [
@@ -2197,11 +2197,11 @@ function upLinePvOnUpgrade($user, $pvAmount, $details){
 function updateProductPV(User $user, Product $product, $quantity, $details){
 
     $pv = (float)$product->pv * $quantity;
-    /*
-        if ($pvEarned <= 0) {
+    
+    if ($pv <= 0) {
          return;
-        }
-    */
+    }
+   
 
     $user_m = Matrix::where('user_id', $user->id)->where('stage_id', 1)->first();
 

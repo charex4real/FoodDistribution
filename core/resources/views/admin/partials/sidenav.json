@@ -173,7 +173,7 @@
         ]
     },
     "permissions": {
-        "title": "Manage permissions",
+        "title": "admin Permissions",
         "icon": "las la-paper-plane",
         "counters": [],
         "menu_active": "admin.permissions*",
